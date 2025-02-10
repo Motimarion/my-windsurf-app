@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>טבלת שברים</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin: 0 0 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .practice-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .target-fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+
+        .fraction-line {
+            width: 30px;
+            height: 2px;
+            background-color: black;
+        }
+
+        .fraction-number {
+            font-weight: bold;
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .button {
+            background: linear-gradient(45deg, #2575fc 0%, #6a11cb 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .row {
+            display: grid;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cell {
+            border: 1px solid #ddd;
+            padding: 3px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 45px;
+            min-width: 30px;
+        }
+
+        .cell-fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .cell-fraction-line {
+            width: 15px;
+            height: 1px;
+            background-color: black;
+        }
+
+        .cell-fraction-number {
+            font-size: 0.8em;
+        }
+
+        .cell:hover {
+            background-color: #f5f5f5;
+            transform: scale(1.02);
+        }
+
+        .cell.selected {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .row1 { grid-template-columns: repeat(2, 1fr); }
+        .row2 { grid-template-columns: repeat(3, 1fr); }
+        .row3 { grid-template-columns: repeat(4, 1fr); }
+        .row4 { grid-template-columns: repeat(5, 1fr); }
+        .row5 { grid-template-columns: repeat(6, 1fr); }
+        .row6 { grid-template-columns: repeat(7, 1fr); }
+        .row7 { grid-template-columns: repeat(8, 1fr); }
+        .row8 { grid-template-columns: repeat(9, 1fr); }
+        .row9 { grid-template-columns: repeat(10, 1fr); }
+        .row10 { grid-template-columns: repeat(11, 1fr); }
+        .row11 { grid-template-columns: repeat(12, 1fr); }
+        .row12 { grid-template-columns: repeat(13, 1fr); }
+
+        .navigation {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .nav-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196f3;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+        }
+
+        .nav-button:hover {
+            background-color: #1976d2;
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 98%;
+                padding: 5px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .button {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+
+            .target-fraction {
+                font-size: 1.2em;
+            }
+
+            .cell {
+                min-height: 40px;
+                min-width: 25px;
+                padding: 2px;
+            }
+
+            .cell-fraction-number {
+                font-size: 0.7em;
+            }
+
+            .cell-fraction-line {
+                width: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: 100%;
+                padding: 5px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .cell {
+                height: 35px;
+                font-size: 0.8em;
+                padding: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>לומדים שברים</h1>
+            <p>בחר תאים בטבלה כדי ליצור שברים</p>
+        </div>
+        <div class="navigation">
+            <a href="compare.html" class="nav-button">
+                <i class="fas fa-arrow-left"></i>
+                למעבר לתרגול השוואת שברים
+            </a>
+        </div>
+        <div class="practice-section">
+            <button id="startPractice" class="button">התחל</button>
+            <div id="targetFraction" class="target-fraction"></div>
+            <div id="feedback" class="feedback"></div>
+        </div>
+
+        <div class="row row1"></div>
+        <div class="row row2"></div>
+        <div class="row row3"></div>
+        <div class="row row4"></div>
+        <div class="row row5"></div>
+        <div class="row row6"></div>
+        <div class="row row7"></div>
+        <div class="row row8"></div>
+        <div class="row row9"></div>
+        <div class="row row10"></div>
+        <div class="row row11"></div>
+        <div class="row row12"></div>
+    </div>
+
+    <script>
+        let currentRow = null;
+        let selectedCells = new Set();
+        let currentPractice = null;
+        
+        function checkFraction() {
+            const feedbackDiv = document.getElementById('feedback');
+            
+            if (!currentPractice) {
+                feedbackDiv.textContent = 'יש ללחוץ על "התחל" כדי להתחיל בתרגול';
+                feedbackDiv.className = 'feedback error show';
+                return;
+            }
+
+            if (selectedCells.size === 0) {
+                feedbackDiv.textContent = 'נא לבחור תאים';
+                feedbackDiv.className = 'feedback error show';
+                return;
+            }
+
+            const denominator = currentRow ? currentRow.querySelectorAll('.cell').length : 0;
+            const numerator = selectedCells.size;
+
+            if (numerator === currentPractice.numerator && denominator === currentPractice.denominator) {
+                feedbackDiv.textContent = 'כל הכבוד! התשובה נכונה';
+                feedbackDiv.className = 'feedback success show';
+                setTimeout(() => {
+                    startNewPractice();
+                }, 1500);
+            } else {
+                if (denominator === currentPractice.denominator) {
+                    feedbackDiv.textContent = 'טעות - בחרת מספר שגוי של תאים';
+                } else {
+                    feedbackDiv.textContent = 'טעות - בחרת שורה שגויה';
+                }
+                feedbackDiv.className = 'feedback error show';
+            }
+        }
+
+        function createCell(row, denominator, cellIndex) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.denominator = denominator;
+            
+            const fractionHTML = `
+                <div class="cell-fraction">
+                    <div class="cell-fraction-number">1</div>
+                    <div class="cell-fraction-line"></div>
+                    <div class="cell-fraction-number">${denominator}</div>
+                </div>
+            `;
+            cell.innerHTML = fractionHTML;
+            
+            cell.addEventListener('click', () => {
+                if (currentRow !== row) {
+                    clearSelection();
+                    currentRow = row;
+                }
+                cell.classList.toggle('selected');
+                if (cell.classList.contains('selected')) {
+                    selectedCells.add(cell);
+                } else {
+                    selectedCells.delete(cell);
+                }
+                checkFraction(); // בדיקה מיידית אחרי כל לחיצה
+            });
+            
+            return cell;
+        }
+
+        function clearSelection() {
+            selectedCells.forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            selectedCells.clear();
+            currentRow = null;
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.textContent = '';
+            feedbackDiv.className = 'feedback';
+        }
+
+        function startNewPractice() {
+            clearSelection();
+            currentPractice = practiceFractions[Math.floor(Math.random() * practiceFractions.length)];
+            const targetFractionDiv = document.getElementById('targetFraction');
+            targetFractionDiv.innerHTML = `
+                <div class="fraction-number">${currentPractice.numerator}</div>
+                <div class="fraction-line"></div>
+                <div class="fraction-number">${currentPractice.denominator}</div>
+            `;
+        }
+
+        const practiceFractions = [
+            { numerator: 1, denominator: 2 },
+            { numerator: 2, denominator: 3 },
+            { numerator: 3, denominator: 4 },
+            { numerator: 2, denominator: 5 },
+            { numerator: 4, denominator: 6 },
+            { numerator: 3, denominator: 7 },
+            { numerator: 5, denominator: 8 },
+            { numerator: 6, denominator: 9 },
+            { numerator: 7, denominator: 10 }
+        ];
+
+        document.getElementById('startPractice').addEventListener('click', startNewPractice);
+
+        // יצירת השורות והתאים
+        for (let i = 1; i <= 12; i++) {
+            const row = document.querySelector(`.row${i}`);
+            row.innerHTML = ''; // ניקוי התוכן הקיים
+            
+            for (let j = 0; j < i + 1; j++) {
+                const cell = createCell(row, i + 1, j);
+                row.appendChild(cell);
+            }
+        }
+    </script>
+</body>
+</html>
