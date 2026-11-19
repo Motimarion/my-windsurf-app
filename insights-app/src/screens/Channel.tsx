@@ -3,7 +3,7 @@ import { useObjectUrls } from '../useObjectUrls';
 import type { ChannelId, ImageRecord, Observation, Session } from '../types';
 import { channelById } from '../data/channels';
 import StepNav, { stepList } from '../components/StepNav';
-import { StatusBadge } from '../components/ui';
+import { StatusBadge, radioKeys, rovingIndex } from '../components/ui';
 import { ingestImage, mergeComputed, validateFile } from '../engine/ingest';
 import { deleteImage } from '../storage/db';
 import { go } from '../router';
@@ -28,9 +28,12 @@ export default function Channel({ session, images, channel, update, reloadImages
   const obs = session.observations[channel] ?? [];
   const valueOf = (fid: string) => obs.find((o) => o.featureId === fid);
 
-  async function onFile(f: File | undefined) {
+  async function onFile(input: HTMLInputElement) {
+    const f = input.files?.[0];
+    input.value = ''; // כדי שבחירה חוזרת של אותו קובץ תפעיל שוב את האירוע
     setErr(null);
-    if (!f) return;
+    if (!f || busy) return;
+    const replacing = !!img;
     const v = validateFile(f);
     if (v) return setErr(v);
     setBusy(true);
@@ -38,6 +41,7 @@ export default function Channel({ session, images, channel, update, reloadImages
       const { obs: computed } = await ingestImage(session.id, channel, f);
       update((s) => mergeComputed(s, channel, computed));
       await reloadImages();
+      if (replacing) toast('התמונה הוחלפה — הסימונים הידניים אופסו, כי תיארו את התמונה הקודמת');
     } catch (e) {
       setErr(`לא ניתן לקרוא את התמונה (${(e as Error).message}). נסו קובץ JPG או PNG.`);
     } finally {
@@ -108,9 +112,9 @@ export default function Channel({ session, images, channel, update, reloadImages
                 ))}
               </ul>
               <div className="row" style={{ marginTop: 8 }}>
-                <label className="btn sm">
-                  החלפת תמונה
-                  <input type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+                <label className="btn sm file-btn">
+                  {busy ? 'מנתח…' : 'החלפת תמונה'}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy} onChange={(e) => onFile(e.currentTarget)} />
                 </label>
                 <button className="btn sm danger" onClick={removeImage}>
                   מחיקת התמונה
@@ -124,13 +128,13 @@ export default function Channel({ session, images, channel, update, reloadImages
               </p>
               <p className="small muted">טרם הועלתה תמונה</p>
               <div className="row" style={{ justifyContent: 'center' }}>
-                <label className="btn primary">
+                <label className="btn primary file-btn">
                   {busy ? 'מנתח…' : 'צילום במצלמה'}
-                  <input type="file" accept="image/*" capture="environment" hidden disabled={busy} onChange={(e) => onFile(e.target.files?.[0])} />
+                  <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" disabled={busy} onChange={(e) => onFile(e.currentTarget)} />
                 </label>
-                <label className="btn">
+                <label className="btn file-btn">
                   העלאת קובץ
-                  <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => onFile(e.target.files?.[0])} />
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy} onChange={(e) => onFile(e.currentTarget)} />
                 </label>
               </div>
             </div>
@@ -169,13 +173,14 @@ export default function Channel({ session, images, channel, update, reloadImages
                   )}
                 </p>
               ) : (
-                <div className="chips" style={{ marginTop: 6 }} role="radiogroup" aria-label={f.label}>
+                <div className="chips" style={{ marginTop: 6 }} role="radiogroup" aria-label={f.label} onKeyDown={radioKeys}>
                   {f.options.map((o) => (
                     <button
                       key={o}
                       className={`chip ${cur?.value === o ? 'on' : ''}`}
                       role="radio"
                       aria-checked={cur?.value === o}
+                      tabIndex={rovingIndex(f.options.indexOf(o), f.options.indexOf(cur?.value ?? ''))}
                       disabled={!img}
                       onClick={() => setManual(f.id, o)}
                     >

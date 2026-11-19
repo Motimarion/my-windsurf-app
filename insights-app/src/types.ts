@@ -153,6 +153,8 @@ export interface Report {
   bigFive: ScaleScore<BigFiveTrait>[];
   riasec: ScaleScore<RiasecType>[];
   hollandCode: string | null;
+  /** שוויון בציונים שמשפיע על הסדר או על הבחירה בקוד — מוצג למשתמש. */
+  hollandTie: boolean;
   channels: {
     channel: ChannelId;
     hasImage: boolean;

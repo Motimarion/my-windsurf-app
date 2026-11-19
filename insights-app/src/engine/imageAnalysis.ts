@@ -241,8 +241,20 @@ export function computedObservations(channel: ChannelId, c: ComputedFeatures): O
 
 const MAX_ANALYSIS_SIDE = 800;
 
+/** צד מקסימלי לעותק הנשמר. גם מקטין את נפח האחסון. */
+const MAX_STORED_SIDE = 2000;
+
 export async function analyzeBlob(blob: Blob, channel: ChannelId) {
   const bmp = await createImageBitmap(blob);
+  // שמירת עותק מקודד מחדש: ציור על canvas מסיר את כל מטא־הנתונים (EXIF — מיקום GPS, דגם מכשיר, זמן).
+  const ss = Math.min(1, MAX_STORED_SIDE / Math.max(bmp.width, bmp.height));
+  const sc = document.createElement('canvas');
+  sc.width = Math.max(1, Math.round(bmp.width * ss));
+  sc.height = Math.max(1, Math.round(bmp.height * ss));
+  sc.getContext('2d')!.drawImage(bmp, 0, 0, sc.width, sc.height);
+  const clean = await new Promise<Blob>((res, rej) =>
+    sc.toBlob((b) => (b ? res(b) : rej(new Error('encode failed'))), 'image/jpeg', 0.9),
+  );
   const scale = Math.min(1, MAX_ANALYSIS_SIDE / Math.max(bmp.width, bmp.height));
   const w = Math.max(1, Math.round(bmp.width * scale));
   const h = Math.max(1, Math.round(bmp.height * scale));
@@ -256,7 +268,7 @@ export async function analyzeBlob(blob: Blob, channel: ChannelId) {
   const quality = assessQuality(gray, bmp.width, bmp.height, isPage ? 'page' : 'photo');
   const computed = isPage ? computeInkFeatures(gray, channel === 'handwriting') : undefined;
   bmp.close();
-  return { quality, computed };
+  return { quality, computed, clean };
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;

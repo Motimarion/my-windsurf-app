@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bandOf, hollandCode, itemScore, progress, scoreScales } from '../engine/scoring';
+import { bandOf, hollandCode, hollandTies, itemScore, progress, scoreScales } from '../engine/scoring';
 import { BIG_FIVE_ORDER, MINI_IPIP, RIASEC_ITEMS, RIASEC_ORDER } from '../data/questionnaires';
 
 describe('itemScore', () => {
@@ -65,6 +65,13 @@ describe('hollandCode', () => {
     const answers = Object.fromEntries(RIASEC_ITEMS.map((i) => [i.id, ['I', 'A', 'E'].includes(i.scale) ? 4 : 2]));
     const s = scoreScales(RIASEC_ITEMS, answers, RIASEC_ORDER);
     expect(hollandCode(s)).toBe('IAE');
+  });
+  it('detects ties that affect the code', () => {
+    const tie = Object.fromEntries(RIASEC_ITEMS.map((i) => [i.id, ['I', 'A', 'E'].includes(i.scale) ? 4 : 2]));
+    expect(hollandTies(scoreScales(RIASEC_ITEMS, tie, RIASEC_ORDER))).toBe(true);
+    const vals: Record<string, number> = { R: 1, I: 5, A: 4, S: 3, E: 2, C: 1 };
+    const clear = Object.fromEntries(RIASEC_ITEMS.map((i) => [i.id, vals[i.scale]]));
+    expect(hollandTies(scoreScales(RIASEC_ITEMS, clear, RIASEC_ORDER))).toBe(false);
   });
   it('null when incomplete', () => {
     expect(hollandCode(scoreScales(RIASEC_ITEMS, {}, RIASEC_ORDER))).toBeNull();

@@ -24,7 +24,7 @@ import {
 } from '../data/questionnaires';
 import { CHANNELS, TRADITIONS, channelById, traditionsFor } from '../data/channels';
 import { CLAIMS, SOURCES, claimById, sourceById } from '../data/evidence';
-import { hollandCode, scoreScales } from './scoring';
+import { hollandCode, hollandTies, scoreScales } from './scoring';
 import { PROVIDERS } from './providers';
 
 export interface ImageMeta {
@@ -45,10 +45,18 @@ export const BF_RIASEC_PAIRS: [BigFiveTrait, RiasecType][] = [
 
 const BAND_WORD = { low: 'נמוך', mid: 'בינוני', high: 'גבוה' } as const;
 
+export type VisualKind = 'palm' | 'handwriting' | 'drawing';
+
+const VISUAL_NOTE: Record<VisualKind, { claimId: string; text: string }> = {
+  palm: { claimId: 'palm_lines', text: 'קווי כף היד: לא אותר מחקר מבוקר על קשר לאישיות — לא נחקר, ולכן גם לא הוכח.' },
+  handwriting: { claimId: 'hw_personality', text: 'כתב היד: נחקר — והמחקר לא מצא תוקף להסקת אישיות כשתוכן הטקסט מנוטרל.' },
+  drawing: { claimId: 'drawing_signs', text: 'הציורים: נחקרו — ולרוב ״הסימנים״ לא נמצא תוקף משוכפל.' },
+};
+
 export function integrate(
   bf: ScaleScore<BigFiveTrait>[],
   ri: ScaleScore<RiasecType>[],
-  hasVisual: boolean,
+  visualKinds: VisualKind[],
 ): IntegrationNote[] {
   const notes: IntegrationNote[] = [];
   for (const [t, r] of BF_RIASEC_PAIRS) {
@@ -80,25 +88,30 @@ export function integrate(
       claimId: 'integ_bf_riasec',
     });
   }
-  if (hasVisual) {
+  for (const k of visualKinds) {
     notes.push({
-      id: 'visual-separate',
+      id: `visual-separate-${k}`,
       kind: 'info',
-      text: 'התצפיות החזותיות (כפות ידיים, כתב יד, ציורים) לא שימשו בחישוב אף ציון. הן מוצגות לצד השאלונים בלבד, משום שלא נמצא להן תוקף לניבוי תכונות.',
-      claimId: 'drawing_signs',
+      text: `${VISUAL_NOTE[k].text} התצפיות לא שימשו בחישוב אף ציון ומוצגות לצד השאלונים בלבד.`,
+      claimId: VISUAL_NOTE[k].claimId,
     });
   }
   return notes;
 }
 
-export function reflections(bf: ScaleScore<BigFiveTrait>[], ri: ScaleScore<RiasecType>[], code: string | null) {
+export function reflections(
+  bf: ScaleScore<BigFiveTrait>[],
+  ri: ScaleScore<RiasecType>[],
+  code: string | null,
+  hasTraditions: boolean,
+) {
   const out: ReflectionPrompt[] = [];
-  const known = bf.filter((s) => s.mean !== null);
-  if (known.length) {
-    const top = [...known].sort((a, b) => (b.mean as number) - (a.mean as number))[0];
+  // לא משווים ממוצעים גולמיים בין תכונות שונות (אין נורמות) — מתייחסים לכל תכונה בתוך הסולם שלה בלבד.
+  const extreme = bf.find((s) => s.band === 'high' || s.band === 'low');
+  if (extreme) {
     out.push({
-      id: 'bf-top',
-      text: `הציון הגבוה ביותר שלך בשאלון האישיות הוא ב״${BIG_FIVE_NAMES[top.key]}״. באילו מצבים בשבוע האחרון זה בא לידי ביטוי — ובאילו לא?`,
+      id: 'bf-extreme',
+      text: `ב״${BIG_FIVE_NAMES[extreme.key]}״ התשובות שלך נוטות לקצה ה${extreme.band === 'high' ? 'גבוה' : 'נמוך'} של הסולם. באילו מצבים בשבוע האחרון זה בא לידי ביטוי — ובאילו לא?`,
     });
   }
   if (code) {
@@ -115,10 +128,12 @@ export function reflections(bf: ScaleScore<BigFiveTrait>[], ri: ScaleScore<Riase
       text: `דירגת נמוך את ${lowRi.map((s) => RIASEC_NAMES[s.key]).join(', ')}. האם זה משקף חוסר עניין, או מעט היכרות עם תחומים אלה?`,
     });
   }
-  out.push({
-    id: 'traditions',
-    text: 'קראת פרשנויות מסורתיות לתמונות שלך. האם אחת מהן ״הרגישה נכונה״? שימו לב: תחושת התאמה היא תופעה מוכרת (אפקט בַּרְנוּם) ואינה ראיה לנכונות.',
-  });
+  if (hasTraditions) {
+    out.push({
+      id: 'traditions',
+      text: 'קראת פרשנויות מסורתיות לתמונות שלך. האם אחת מהן ״הרגישה נכונה״? שימו לב: תחושת התאמה היא תופעה מוכרת (אפקט בַּרְנוּם) ואינה ראיה לנכונות.',
+    });
+  }
   return out;
 }
 
@@ -135,7 +150,9 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     id: 'traditions-linked',
     label: 'כל פרשנות מסורתית מסומנת כלא מאומתת',
     status: badTrad.length ? 'fail' : 'ok',
-    detail: badTrad.length ? `${badTrad.length} פרשנויות ללא קישור תקין` : `${allTraditions.length} פרשנויות נבדקו`,
+    detail: badTrad.length
+      ? `${badTrad.length} פרשנויות מקושרות לטענה חסרה או לטענה ברמת A/B`
+      : `${allTraditions.length} פרשנויות נבדקו`,
   });
 
   // 2. כל טענה ברמה A–C נשענת על מקור קיים.
@@ -176,14 +193,25 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     detail: aiActive ? 'ספק AI פעיל' : 'אין ספק AI חיצוני פעיל — לא הוצג ניתוח AI',
   });
 
-  // 5. ציונים מחושבים משאלונים בלבד (בדיקה מבנית: חישוב חוזר זהה).
-  const reBf = scoreScales(MINI_IPIP, session.ipip, BIG_FIVE_ORDER);
-  const same = JSON.stringify(reBf) === JSON.stringify(report.bigFive);
+  // 5. עקביות: הציונים בדוח תואמים חישוב חוזר מהתשובות השמורות (מגן מפני דוח ישן או ציונים שנערכו).
+  //    ההפרדה המבנית מתמונות נבדקת בבדיקת יחידה ייעודית (ציונים זהים עם תמונות ובלעדיהן).
+  const same =
+    JSON.stringify(scoreScales(MINI_IPIP, session.ipip, BIG_FIVE_ORDER)) === JSON.stringify(report.bigFive) &&
+    JSON.stringify(scoreScales(RIASEC_ITEMS, session.riasec, RIASEC_ORDER)) === JSON.stringify(report.riasec);
   checks.push({
     id: 'scores-from-questionnaires',
-    label: 'ציוני אישיות מחושבים מהשאלון בלבד',
+    label: 'הציונים תואמים את התשובות השמורות',
     status: same ? 'ok' : 'fail',
-    detail: same ? 'חישוב חוזר מהתשובות זהה לדוח' : 'אי־התאמה בין התשובות לציונים',
+    detail: same ? 'חישוב חוזר של שני השאלונים זהה לדוח' : 'אי־התאמה בין התשובות לציונים',
+  });
+
+  // 5ב. טענה ברמת A חייבת לפחות מקור אחד שאומת.
+  const weakA = used.filter((c) => c?.level === 'A' && !c.sourceIds.some((s) => sourceById(s)?.verification === 'verified-db'));
+  checks.push({
+    id: 'level-a-verified',
+    label: 'טענות ברמה A נשענות על מקור מאומת',
+    status: weakA.length ? 'fail' : 'ok',
+    detail: weakA.length ? `ללא מקור מאומת: ${weakA.map((c) => c!.id).join(', ')}` : 'תקין',
   });
 
   // 6. שלמות השאלונים.
@@ -247,8 +275,10 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
     };
   });
 
-  const hasVisual = channels.some((c) => c.hasImage);
-  const integration = integrate(bigFive, riasec, hasVisual);
+  const kinds = new Set<VisualKind>();
+  channels.filter((c) => c.hasImage).forEach((c) => kinds.add(channelById(c.channel).kind));
+  const integration = integrate(bigFive, riasec, [...kinds]);
+  const hasTraditions = channels.some((c) => c.traditions.length > 0);
 
   const claimSet = new Set<string>(['bf_instrument', 'bf_hebrew', 'riasec_model', 'riasec_items']);
   integration.forEach((n) => claimSet.add(n.claimId));
@@ -267,9 +297,10 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
     bigFive,
     riasec,
     hollandCode: code,
+    hollandTie: hollandTies(riasec),
     channels,
     integration,
-    reflections: reflections(bigFive, riasec, code),
+    reflections: reflections(bigFive, riasec, code, hasTraditions),
     claimsUsed: [...claimSet],
   };
   return { ...base, qa: runQA(base, session) };

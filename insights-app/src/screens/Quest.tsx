@@ -3,7 +3,7 @@ import type { ImageRecord, Session } from '../types';
 import { IPIP_SCALE_LABELS, MINI_IPIP, RIASEC_ITEMS, RIASEC_SCALE_LABELS } from '../data/questionnaires';
 import { progress } from '../engine/scoring';
 import StepNav from '../components/StepNav';
-import { LevelBadge, Progress } from '../components/ui';
+import { LevelBadge, Progress, radioKeys, rovingIndex } from '../components/ui';
 import { go } from '../router';
 
 const PAGE = 10;
@@ -64,12 +64,13 @@ export default function Quest({ session, images, which, update }: Props) {
                 <span className="muted small">{page * PAGE + k + 1}. </span>
                 {it.text}
               </div>
-              <div className="likert" role="radiogroup" aria-labelledby={`q-${it.id}`}>
+              <div className="likert" role="radiogroup" aria-labelledby={`q-${it.id}`} onKeyDown={radioKeys}>
                 {labels.map((l, i) => (
                   <button
                     key={l}
                     role="radio"
                     aria-checked={answers[it.id] === i + 1}
+                    tabIndex={rovingIndex(i, (answers[it.id] ?? 0) - 1)}
                     className={answers[it.id] === i + 1 ? 'on' : ''}
                     onClick={() => answer(it.id, i + 1)}
                   >

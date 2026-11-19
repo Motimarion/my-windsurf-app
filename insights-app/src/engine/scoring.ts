@@ -53,4 +53,11 @@ export function progress(items: { id: string }[], answers: LikertAnswers) {
   return { done, total: items.length, ratio: items.length ? done / items.length : 0 };
 }
 
+/** האם יש שוויון שמשפיע על הקוד: בין המקום השלישי לרביעי, או בתוך שלושת הראשונים. */
+export function hollandTies<K extends string>(scores: ScaleScore<K>[]): boolean {
+  if (scores.some((s) => s.mean === null)) return false;
+  const sorted = [...scores].sort((a, b) => (b.mean as number) - (a.mean as number));
+  return sorted.slice(0, 3).some((s, i) => sorted[i + 1] && sorted[i + 1].mean === s.mean);
+}
+
 const round2 = (n: number) => Math.round(n * 100) / 100;

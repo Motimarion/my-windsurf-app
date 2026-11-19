@@ -18,8 +18,8 @@ export const SOURCES: Source[] = [
   {
     id: 'baldasaro2012',
     citation:
-      'Baldasaro, R. E., Shanahan, M. J., & Bauer, D. J. (2012). Psychometric properties of the Mini-IPIP in a large, nationally representative sample of young adults. Journal of Personality Assessment.',
-    year: 2012,
+      'Baldasaro, R. E., Shanahan, M. J., & Bauer, D. J. (2013). Psychometric properties of the Mini-IPIP in a large, nationally representative sample of young adults. Journal of Personality Assessment, 95(1), 74–84.',
+    year: 2013,
     verification: 'verified-db',
     url: 'https://consensus.app/papers/details/w:5c397c34-20d3-442e-9540-d42a7afefb83/',
   },
@@ -56,7 +56,7 @@ export const SOURCES: Source[] = [
   },
   {
     id: 'taylor2015',
-    citation: 'Taylor, W. D., et al. (2015). Human Figure Drawings. In The Encyclopedia of Clinical Psychology. Wiley.',
+    citation: 'Taylor, W. D., et al. (2015). Human Figure Drawings. In The Encyclopedia of Clinical Psychology. Wiley. — רשומה נמצאה במאגר; פרטי מחברים/עורכים לאימות מול המקור.',
     year: 2015,
     verification: 'verified-db',
     url: 'https://consensus.app/papers/details/w:83333903-689e-43c1-b976-cc7a1ffc400b/',
@@ -66,7 +66,16 @@ export const SOURCES: Source[] = [
     citation:
       "Barrick, M. R., Mount, M. K., & Gupta, R. (2003). Meta-analysis of the relationship between the five-factor model of personality and Holland's occupational types. Personnel Psychology, 56(1), 45–74.",
     year: 2003,
-    verification: 'pending',
+    verification: 'verified-db',
+    url: 'https://consensus.app/papers/details/w:92ee721a-3058-40b5-9e03-78dfc2daa163/',
+  },
+  {
+    id: 'hurtado2018',
+    citation:
+      'Hurtado Rúa, S. M., Stead, G. B., & Poklar, A. E. (2018). Five-factor personality traits and RIASEC interest types: A multivariate meta-analysis. Journal of Career Assessment.',
+    year: 2018,
+    verification: 'verified-db',
+    url: 'https://consensus.app/papers/details/w:cacdfe60-64c5-45ce-b170-a38eacb7d143/',
   },
   {
     id: 'holland1997',
@@ -80,12 +89,13 @@ export const SOURCES: Source[] = [
     citation:
       'Armstrong, P. I., Allison, W., & Rounds, J. (2008). Development and initial validation of brief public domain RIASEC marker scales. Journal of Vocational Behavior, 73(2), 287–299.',
     year: 2008,
-    verification: 'pending',
+    verification: 'verified-db',
+    url: 'https://consensus.app/papers/details/w:66b781dc-2227-407c-884e-9ec53fefbe1e/',
   },
   {
-    id: 'koch1952',
-    citation: 'Koch, K. (1952). Der Baumtest (2nd ed.). Bern: Huber. — מקור מסורתי, לא מחקר תיקוף.',
-    year: 1952,
+    id: 'koch1949',
+    citation: 'Koch, K. (1949). Der Baumtest. Bern: Huber. (תרגום אנגלי: The Tree Test, 1952) — מקור מסורתי, לא מחקר תיקוף.',
+    year: 1949,
     verification: 'pending',
   },
   {
@@ -138,9 +148,9 @@ export const CLAIMS: ResearchClaim[] = [
     id: 'integ_bf_riasec',
     domain: 'integration',
     statement:
-      'מטא־אנליזה מצאה קשרים בעוצמה בינונית לכל היותר בין תכונות Big Five לטיפוסי Holland — בעיקר מוחצנות–יזמי ומוחצנות–חברתי, פתיחות–אמנותי ופתיחות–חקרני; קשרים חלשים יותר לנעימות–חברתי ולמצפוניות–מנהלי.',
-    level: 'A',
-    sourceIds: ['barrick2003'],
+      'מטא־אנליזות מצאו קשרים חלשים עד בינוניים בין תכונות Big Five לטיפוסי Holland — החזקים ביותר מוחצנות–יזמי (ρ≈.41) ופתיחות–אמנותי (ρ≈.39). מטא־אנליזה מאוחרת יותר מצאה אומדנים נמוכים יותר (עד ≈.36) שתלויים בכלי המדידה ובמדינה. המסקנה: אישיות ותחומי עניין קשורים, אך אינם תחליף זה לזה.',
+    level: 'B',
+    sourceIds: ['barrick2003', 'hurtado2018'],
   },
   {
     id: 'hw_personality',

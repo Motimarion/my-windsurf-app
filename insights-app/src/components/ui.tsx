@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import type { CheckStatus, EvidenceLevel } from '../types';
 import { LEVEL_LABELS } from '../data/evidence';
 
@@ -29,15 +29,49 @@ export function Progress({ ratio, label }: { ratio: number; label: string }) {
   );
 }
 
-export function Modal({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+/** קבוצת רדיו נגישה: רק הכפתור הנבחר (או הראשון) ברצף ה־Tab. */
+export const rovingIndex = (i: number, selected: number) => (i === (selected >= 0 ? selected : 0) ? 0 : -1);
+
+/** חיצים בתוך radiogroup: מעבר ובחירה. ב־RTL, חץ שמאלה = הבא. */
+export function radioKeys(e: KeyboardEvent<HTMLElement>) {
+  const keys: Record<string, number> = { ArrowLeft: 1, ArrowDown: 1, ArrowRight: -1, ArrowUp: -1 };
+  if (!(e.key in keys)) return;
+  const btns = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role=radio]:not(:disabled)'));
+  const i = btns.indexOf(document.activeElement as HTMLButtonElement);
+  if (i < 0) return;
+  e.preventDefault();
+  const next = btns[(i + keys[e.key] + btns.length) % btns.length];
+  next.focus();
+  next.click();
+}
+
+export function Modal({ children, onClose, labelId }: { children: ReactNode; onClose: () => void; labelId?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const h = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const prev = document.activeElement as HTMLElement | null;
+    const h = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') return onClose();
+      if (e.key !== 'Tab' || !ref.current) return;
+      // מלכודת פוקוס: Tab נשאר בתוך החלון
+      const f = ref.current.querySelectorAll<HTMLElement>('button, [href], input, [tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      const wrapTo = e.shiftKey ? (document.activeElement === first ? last : null) : document.activeElement === last ? first : null;
+      if (wrapTo) {
+        e.preventDefault();
+        wrapTo.focus();
+      }
+    };
     window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
+    return () => {
+      window.removeEventListener('keydown', h);
+      prev?.focus();
+    };
   }, [onClose]);
   return (
     <div className="modal-back" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div ref={ref} className="modal" role="dialog" aria-modal="true" aria-labelledby={labelId} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -56,8 +90,8 @@ export function ConfirmDelete({
   onClose: () => void;
 }) {
   return (
-    <Modal onClose={onClose}>
-      <h3>{title}</h3>
+    <Modal onClose={onClose} labelId="confirm-title">
+      <h3 id="confirm-title">{title}</h3>
       <p className="muted">{body}</p>
       <div className="row" style={{ justifyContent: 'flex-start' }}>
         <button className="btn danger" onClick={onConfirm}>

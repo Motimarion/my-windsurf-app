@@ -130,6 +130,11 @@ export default function ReportView({ session, images, toast }: { session: Sessio
               <div style={{ fontSize: '2.2rem', fontWeight: 700, letterSpacing: '0.2em', direction: 'ltr', textAlign: 'right' }}>
                 {report.hollandCode ?? '—'}
               </div>
+              {report.hollandTie && (
+                <div className="notice warn tiny" style={{ margin: '6px 0' }}>
+                  יש שוויון בציונים בין תחומים — הסדר בקוד נקבע לפי הסדר הקנוני R-I-A-S-E-C ואינו משקף הבדל אמיתי.
+                </div>
+              )}
               <table>
                 <tbody>
                   {report.riasec.map((s) => (

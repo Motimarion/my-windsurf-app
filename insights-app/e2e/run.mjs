@@ -28,8 +28,10 @@ try {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true, locale: 'he-IL' });
   const page = await ctx.newPage();
   const errors = [];
+  const external = [];
+  page.on('request', (r) => { const u = new URL(r.url()); if (!['localhost', ''].includes(u.hostname) && !u.protocol.startsWith('blob') && !u.protocol.startsWith('data')) external.push(u.hostname); });
   page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => m.type() === 'error' && !m.text().includes('fonts.g') && errors.push(m.text()));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
   await page.goto(BASE);
   check('html dir=rtl lang=he', (await page.getAttribute('html', 'dir')) === 'rtl' && (await page.getAttribute('html', 'lang')) === 'he');
@@ -107,6 +109,34 @@ try {
   await page.getByRole('radio', { name: 'גדול' }).click();
   check('manual observation selectable', (await page.getByRole('radio', { name: 'גדול' }).getAttribute('aria-checked')) === 'true');
 
+  // החלפת תמונה מאפסת סימונים ידניים
+  await page.locator('input[type=file]').first().setInputFiles({ name: 'hw2.png', mimeType: 'image/png', buffer: pngBuf });
+  await page.getByText('הסימונים הידניים אופסו').waitFor();
+  check('replacing image resets manual observations', (await page.getByRole('radio', { name: 'גדול' }).getAttribute('aria-checked')) === 'false');
+  await page.getByRole('radio', { name: 'גדול' }).click();
+  // ניווט מקלדת ברדיו: חץ שמאלה (ב־RTL = הבא)
+  await page.getByRole('radio', { name: 'גדול' }).focus();
+  await page.keyboard.press('ArrowRight');
+  check('arrow keys move selection in radiogroup', (await page.getByRole('radio', { name: 'בינוני' }).first().getAttribute('aria-checked')) === 'true');
+  await page.getByRole('radio', { name: 'גדול' }).click();
+  const stored = await page.evaluate(
+    (id) =>
+      new Promise((res) => {
+        const r = indexedDB.open('insights-report-db');
+        r.onsuccess = () => {
+          const q = r.result.transaction('images').objectStore('images').index('sessionId').getAll(id);
+          q.onsuccess = async () => {
+            const rec = q.result[0];
+            const head = new Uint8Array(await rec.blob.slice(0, 4096).arrayBuffer());
+            const hasExif = Array.from(head).some((v, i) => v === 0x45 && head[i + 1] === 0x78 && head[i + 2] === 0x69 && head[i + 3] === 0x66);
+            res({ count: q.result.length, mime: rec.blob.type, hasExif });
+          };
+        };
+      }),
+    sid,
+  );
+  check('stored image is re-encoded JPEG without EXIF, one per channel', stored.count === 1 && stored.mime === 'image/jpeg' && !stored.hasExif, JSON.stringify(stored));
+
   // קובץ לא חוקי
   await page.locator('input[type=file]').first().setInputFiles({ name: 'x.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1') });
   check('invalid file type rejected', await page.getByRole('alert').isVisible());
@@ -155,6 +185,7 @@ try {
   );
   check('images of deleted session removed from IndexedDB', leftovers === 0, `remaining=${leftovers}`);
   check('no JS errors (desktop)', errors.length === 0, errors.join(' | '));
+  check('no requests to external hosts', external.length === 0, [...new Set(external)].join(', '));
   await ctx.close();
 
   // ---------- 3. נייד ----------

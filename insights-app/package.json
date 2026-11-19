@@ -12,6 +12,7 @@
     "e2e": "node e2e/run.mjs"
   },
   "dependencies": {
+    "@fontsource/heebo": "^5.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
     "react": "^19.1.0",

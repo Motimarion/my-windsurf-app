@@ -78,6 +78,20 @@ describe('buildReport', () => {
     expect(r.qa.find((q) => q.id === 'questionnaires-complete')!.status).toBe('warn');
     expect(r.hollandCode).toBeNull();
   });
+  it('palm-only session does not cite drawing research', () => {
+    const palmOnly = [{ channel: 'palmLeft' as const, quality: okQuality }];
+    const r = buildReport(baseSession({ observations: { palmLeft: DEMO_OBSERVATIONS.palmLeft } }), palmOnly);
+    expect(r.claimsUsed).toContain('palm_lines');
+    expect(r.claimsUsed).not.toContain('drawing_signs');
+  });
+  it('traditions reflection prompt only appears when traditions exist', () => {
+    expect(buildReport(baseSession({ observations: {} }), []).reflections.some((x) => x.id === 'traditions')).toBe(false);
+    expect(buildReport(baseSession(), allImages).reflections.some((x) => x.id === 'traditions')).toBe(true);
+  });
+  it('every level-A claim has at least one verified source', () => {
+    for (const c of CLAIMS.filter((x) => x.level === 'A'))
+      expect(c.sourceIds.some((s) => SOURCES.find((x) => x.id === s)!.verification === 'verified-db'), c.id).toBe(true);
+  });
   it('palm/handwriting/drawing claims are attached only when images exist', () => {
     const r = buildReport(baseSession({ observations: {} }), []);
     expect(r.claimsUsed).not.toContain('hw_personality');
@@ -93,16 +107,19 @@ describe('integrate', () => {
   });
   it('high E + high Enterprising → consistent', () => {
     const { bf, ri } = answersFor({ E: 5 }, { E: 5 });
-    expect(integrate(bf, ri, false).find((n) => n.id === 'pair-E-E')!.kind).toBe('consistent');
+    expect(integrate(bf, ri, []).find((n) => n.id === 'pair-E-E')!.kind).toBe('consistent');
   });
   it('high Openness + low Artistic → divergent, never "contradiction"', () => {
     const { bf, ri } = answersFor({ I: 5 }, { A: 1 });
-    const n = integrate(bf, ri, false).find((x) => x.id === 'pair-I-A')!;
+    const n = integrate(bf, ri, []).find((x) => x.id === 'pair-I-A')!;
     expect(n.kind).toBe('divergent');
     expect(n.text).toContain('אין כאן סתירה');
   });
-  it('adds visual-separation note when images exist', () => {
+  it('adds a per-channel visual note citing the matching claim', () => {
     const { bf, ri } = answersFor({}, {});
-    expect(integrate(bf, ri, true).some((n) => n.id === 'visual-separate')).toBe(true);
+    const notes = integrate(bf, ri, ['palm']);
+    const v = notes.find((n) => n.id === 'visual-separate-palm')!;
+    expect(v.claimId).toBe('palm_lines');
+    expect(notes.some((n) => n.claimId === 'drawing_signs')).toBe(false);
   });
 });

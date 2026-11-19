@@ -213,6 +213,9 @@ th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
 
 .chart text { fill: var(--ink-2); font-family: inherit; }
 
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.file-btn:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+
 .modal-back { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: grid; place-items: center; z-index: 50; padding: 16px; }
 .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; max-width: 440px; width: 100%; box-shadow: var(--shadow); }
 

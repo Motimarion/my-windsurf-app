@@ -146,7 +146,7 @@ const T = (
 
 const PALM = 'כירומנטיה (קריאה בכף היד)';
 const GRAPH = 'גרפולוגיה קלאסית';
-const KOCH = 'מבחן העץ (Koch, 1952)';
+const KOCH = 'מבחן העץ (Koch, 1949)';
 const HTP = 'בית־עץ־אדם (Buck, 1948) / ציור דמות (Machover, 1949)';
 
 export const TRADITIONS: TraditionNote[] = [

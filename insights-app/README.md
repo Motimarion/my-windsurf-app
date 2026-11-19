@@ -19,9 +19,9 @@
 cd insights-app
 npm install
 npm run dev        # שרת פיתוח: http://localhost:5173
-npm test           # 40 בדיקות יחידה (Vitest)
+npm test           # 44 בדיקות יחידה (Vitest)
 npm run build      # בנייה לייצור → dist/
-npm run e2e        # 37 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+npm run e2e        # 41 בדיקות קצה־לקצה (Playwright; דורש build קודם)
 ```
 
 אין צורך במפתחות API, בשרת או במסד נתונים. כל הנתונים נשמרים ב־IndexedDB בדפדפן.
@@ -40,7 +40,7 @@ src/
     imageAnalysis.ts     שכבה א׳: איכות תמונה, Otsu, מסגרת תוחמת, ספירת שורות
     providers.ts         ממשק לספקי ראייה (Claude/Gemini — מוצגים כלא פעילים)
     scoring.ts           שכבה ד׳: ניקוד, ניקוד הפוך, קוד Holland
-    report.ts            שכבות ה׳+ו׳: אינטגרציה, נקודות להתבוננות, 9 בדיקות QA
+    report.ts            שכבות ה׳+ו׳: אינטגרציה, נקודות להתבוננות, 10 בדיקות QA
     ingest.ts            העלאה → ניתוח מקומי → שמירה
   storage/db.ts          IndexedDB: תהליכים ותמונות, מחיקה מלאה
   demo/synthetic.ts      משתמש סינתטי, תמונות שנוצרות ב־Canvas, תשובות דטרמיניסטיות

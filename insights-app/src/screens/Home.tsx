@@ -24,7 +24,7 @@ export default function Home({ toast }: { toast: (m: string) => void }) {
       await saveSession(s);
       for (const { channel, blob } of await demoImages()) {
         const { obs } = await ingestImage(id, channel, blob);
-        s = mergeComputed(s, channel, obs);
+        s = mergeComputed(s, channel, obs, true);
       }
       await saveSession(s);
       go({ name: 'hub', id });
@@ -50,7 +50,7 @@ export default function Home({ toast }: { toast: (m: string) => void }) {
         <span className="badge accent">גרסת מחקר והדגמה · MVP</span>
         <h1 style={{ marginTop: 12 }}>דוח תובנות משולב</h1>
         <p>
-          חמישה מקורות מידע — שני שאלונים מתוקפים בעולם, וצילומי כפות ידיים, כתב יד וציורים — בדוח אחד שמפריד
+          חמישה מקורות מידע — שאלון אישיות מוכר (בתרגום עברי שטרם תוקף), שאלון תחומי עניין להדגמה, וצילומי כפות ידיים, כתב יד וציורים — בדוח אחד שמפריד
           בבירור בין מה שנמדד, מה שנטען במסורת, ומה שנתמך במחקר.
         </p>
         <div className="row" style={{ marginTop: 18 }}>

@@ -62,33 +62,41 @@ export const saveSession = (s: Session) =>
 export const getImages = (sessionId: string) =>
   tx<ImageRecord[]>(['images'], 'readonly', (t) => t.objectStore('images').index('sessionId').getAll(sessionId));
 
-/** שומר תמונה לערוץ ומחליף תמונה קודמת באותו ערוץ (מזעור מידע). */
-export async function putImage(rec: ImageRecord) {
-  const existing = await getImages(rec.sessionId);
-  await tx(['images'], 'readwrite', (t) => {
-    const s = t.objectStore('images');
-    existing.filter((e) => e.channel === rec.channel).forEach((e) => s.delete(e.id));
-    s.put(rec);
+/** מוחק (בתוך טרנזקציה קיימת) את כל התמונות של תהליך — אופציונלית רק של ערוץ אחד. */
+function deleteImagesIn(t: IDBTransaction, sessionId: string, channel?: ChannelId, onDone?: () => void) {
+  const cur = t.objectStore('images').index('sessionId').openCursor(IDBKeyRange.only(sessionId));
+  cur.onsuccess = () => {
+    const c = cur.result;
+    if (!c) return onDone?.();
+    if (!channel || (c.value as ImageRecord).channel === channel) c.delete();
+    c.continue();
+  };
+}
+
+/**
+ * שומר תמונה לערוץ ומחליף תמונה קודמת באותו ערוץ (מזעור מידע).
+ * הכול בטרנזקציה אחת, ורק אם התהליך עדיין קיים — כך שמחיקה מקבילה לא משאירה תמונה "יתומה".
+ */
+export function putImage(rec: ImageRecord) {
+  return tx(['sessions', 'images'], 'readwrite', (t) => {
+    const g = t.objectStore('sessions').get(rec.sessionId);
+    g.onsuccess = () => {
+      if (!g.result) return t.abort();
+      // ה־put רק אחרי שהסמן סיים — אחרת הסמן עלול להגיע לרשומה החדשה ולמחוק אותה.
+      deleteImagesIn(t, rec.sessionId, rec.channel, () => t.objectStore('images').put(rec));
+    };
   });
 }
 
-export async function deleteImage(sessionId: string, channel: ChannelId) {
-  const existing = await getImages(sessionId);
-  await tx(['images'], 'readwrite', (t) => {
-    const s = t.objectStore('images');
-    existing.filter((e) => e.channel === channel).forEach((e) => s.delete(e.id));
-  });
-}
+export const deleteImage = (sessionId: string, channel: ChannelId) =>
+  tx(['images'], 'readwrite', (t) => deleteImagesIn(t, sessionId, channel));
 
 /** מחיקת תהליך וכל הנתונים הקשורים אליו (תמונות, תשובות, תצפיות) בטרנזקציה אחת. */
-export async function deleteSession(id: string) {
-  const imgs = await getImages(id);
-  await tx(['sessions', 'images'], 'readwrite', (t) => {
+export const deleteSession = (id: string) =>
+  tx(['sessions', 'images'], 'readwrite', (t) => {
     t.objectStore('sessions').delete(id);
-    const s = t.objectStore('images');
-    imgs.forEach((i) => s.delete(i.id));
+    deleteImagesIn(t, id);
   });
-}
 
 export const deleteAll = () =>
   tx(['sessions', 'images'], 'readwrite', (t) => {
