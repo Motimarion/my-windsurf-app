@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שש שאלות הזרימה — כירופולוגיה</title>
+<style>
+  /* שקף נלווה לשקף הזרימה: התשובות לשש השאלות של סעיף 03 (מצגת מפגש 4, שקף 20). ייצוא: node docs/slides/render.mjs */
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-400-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 600; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-600-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-800-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  :root { --page: #dfe5e9; --ink: #1d2730; --ink-2: #33404b; --muted: #5f6b76; --line: #c7d0d7; --code: #24303b; --engine: #a9581b; --prompt: #6447b0; font-family: 'Heebo', 'Assistant', 'Segoe UI', Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--ink); }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: var(--page); }
+  .panel { position: absolute; inset: 22px; background: #fff; border: 1px solid var(--line); border-radius: 22px; }
+  .abs { position: absolute; }
+  .kicker { right: 60px; top: 42px; font-size: 20px; font-weight: 600; color: var(--prompt); }
+  h1 { position: absolute; right: 60px; top: 66px; margin: 0; font-size: 46px; font-weight: 800; }
+  .sub { right: 60px; top: 128px; font-size: 18px; color: var(--muted); }
+  .grid { position: absolute; left: 60px; right: 60px; top: 190px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  .card { background: #fff; border: 1.5px solid var(--line); border-top: 7px solid var(--code); border-radius: 12px; padding: 18px 22px 20px; height: 352px; }
+  .card.engine { border-top-color: var(--engine); }
+  .q { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--code); color: #fff; font-weight: 800; font-size: 18px; display: grid; place-items: center; margin-top: 2px; }
+  .card.engine .num { background: var(--engine); }
+  h3 { margin: 0; font-size: 29px; font-weight: 800; line-height: 1.2; }
+  p { margin: 0; font-size: 23.5px; line-height: 1.5; color: var(--ink-2); }
+  p + p { margin-top: 8px; }
+  .hl { color: var(--prompt); }
+  .foot { right: 60px; left: 60px; top: 972px; font-size: 21px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 14px; }
+  .foot strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="panel"></div>
+  <div class="abs kicker">◆ מטלת הקורס, סעיף 03 · שש השאלות</div>
+  <h1>שש שאלות הזרימה: התשובות שלנו</h1>
+  <div class="abs sub">כירופולוגיה · אותן שש שאלות ממצגת מפגש 4</div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="q"><span class="num">1</span><h3>איך מפרקים את הקלט?</h3></div>
+      <p>לשני ערוצים עצמאיים: עד 5 תמונות, שכל אחת נקלטת ונבדקת בנפרד, ו־50 תשובות לשאלונים בסולם 1–5.</p>
+      <p>אין פרומפט חופשי. כל הקלט מובנה מראש.</p>
+    </div>
+    <div class="card">
+      <div class="q"><span class="num">2</span><h3>אילו תחנות יש, ומאיזה סוג?</h3></div>
+      <p>9 תחנות: מנוע אחד (תחנה 3, תיאור תמונה) ו־8 תחנות קוד, ולצידן סימון ידני של אדם.</p>
+      <p>מה שאפשר לחשב בקוד נשאר בקוד: מדידות, ניקוד, שליפה ובקרה.</p>
+    </div>
+    <div class="card engine">
+      <div class="q"><span class="num">3</span><h3>מה נכנס לבקשה של תחנת המנוע?</h3></div>
+      <p>תמונה אחת (עותק נקי בלי EXIF), שם הערוץ ורשימת הערכים המותרים.</p>
+      <p><span class="hl">הנחיה סמויה:</span> לתאר ולא לפרש, ערך מהרשימה, JSON בלבד. שאלונים, ציונים ופרשנויות לא נכנסים.</p>
+    </div>
+    <div class="card">
+      <div class="q"><span class="num">4</span><h3>אילו מאגרים וזיכרון?</h3></div>
+      <p>רשימה סגורה של מאפיינים, נוסחי השאלונים ומפתח הניקוד, מאגר ראיות מדורג A–D ומאגר מסורות.</p>
+      <p>זיכרון: IndexedDB במכשיר בלבד. אין שרת, ואין זיכרון בין משתמשים.</p>
+    </div>
+    <div class="card">
+      <div class="q"><span class="num">5</span><h3>איך נעים בין התחנות, ומי מחליט?</h3></div>
+      <p>הקוד. תהליך קבוע: רצף, ושני ערוצים שרצים במקביל.</p>
+      <p>קודם בדיקת איכות, ורק תמונה שעברה מגיעה למנוע: אוטומטית (Gemini API) או בגשר ידני. שער בקוד בודק את התשובה. המנוע לא משפיע על הסדר.</p>
+    </div>
+    <div class="card">
+      <div class="q"><span class="num">6</span><h3>איך מורכב הפלט?</h3></div>
+      <p>דוח במבנה של דוח אבחון: מה נמדד (שאלונים), מה נצפה (תיאור, עם המקור: אדם או מודל), ומה נטען במסורת (עם רמת ראיות).</p>
+      <p>תחנה 7 משלבת הכול לפי נושאים. בקרת איכות, ו־PDF.</p>
+    </div>
+  </div>
+
+  <div class="abs foot"><strong>מה ה־AI יכול ומה לא:</strong> מודל יכול לתאר תמונה בדיוק כזה או אחר, ואת הדיוק אנחנו מודדים מול סימון אנושי. הוא לא יכול לאמת תוקף פסיכולוגי של כף יד, כתב או ציור.</div>
+</div>
+</body>
+</html>

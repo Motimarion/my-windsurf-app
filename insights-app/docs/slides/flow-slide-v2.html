@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שקף זרימה v2 — כירופולוגיה, בתרשים</title>
+<style>
+  /* שקף 1920×1080 בפורמט של שקף 16 במצגת מפגש 4 ("הרמה שמצופה בשקף הזרימה במטלה").
+     כרטיס לכל תחנה: מספר, סוג, שם, שורת תיאור ושורת "הנחיה". מנוע = פס כתום, תחנת קוד = פס כהה.
+     ייצוא ל־PNG: node docs/slides/render.mjs */
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-400-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 600; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-600-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-800-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  :root {
+    --page: #dfe5e9;
+    --ink: #1d2730;
+    --ink-2: #33404b;
+    --muted: #5f6b76;
+    --line: #c7d0d7;
+    --code: #24303b;
+    --engine: #a9581b;
+    --human: #a8456e;
+    --prompt: #6447b0;
+    --prompt-fill: #efeafb;
+    --store: #3c7a5b;
+    --store-fill: #e3f1e9;
+    --io: #b14b78;
+    --io-fill: #fbe4ec;
+    font-family: 'Heebo', 'Assistant', 'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--ink); }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: var(--page); }
+  .panel { position: absolute; inset: 22px; background: #fff; border: 1px solid var(--line); border-radius: 22px; }
+  .abs { position: absolute; }
+
+  /* כותרת */
+  .kicker { right: 60px; top: 42px; font-size: 20px; font-weight: 600; color: var(--prompt); }
+  h1 { position: absolute; right: 60px; top: 66px; margin: 0; font-size: 46px; font-weight: 800; letter-spacing: -0.01em; }
+  .sub { right: 60px; top: 128px; font-size: 18px; color: var(--muted); }
+  .legend { left: 60px; top: 46px; display: flex; gap: 10px; align-items: center; direction: rtl; font-size: 17px; }
+  .lg { border: 1.5px solid var(--line); border-radius: 8px; padding: 2px 12px; background: #fff; white-space: nowrap; }
+  .lg.code { border-top: 5px solid var(--code); }
+  .lg.engine { border-top: 5px solid var(--engine); }
+  .lg.human { border-top: 5px solid var(--human); }
+  .lg.st { background: var(--store-fill); border-color: var(--store); border-radius: 50%; padding: 2px 16px; }
+  .lg.prompt { background: var(--prompt-fill); border-color: var(--prompt); color: var(--prompt); }
+  .lg.iol { background: var(--io-fill); border-color: var(--io); }
+  .lg.arrow { border: 0; padding: 0; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  .order { left: 60px; top: 98px; display: flex; gap: 10px; font-size: 18px; }
+  .pill { border: 1.5px solid var(--ink); border-radius: 999px; padding: 3px 14px; background: #fff; }
+  .pill.soft { border-color: var(--engine); color: var(--engine); }
+
+  /* מסלולים */
+  .track { right: 60px; font-size: 19px; font-weight: 600; color: var(--prompt); }
+
+  /* כרטיס תחנה */
+  .card { position: absolute; width: 270px; background: #fff; border: 1.5px solid var(--line); border-top: 7px solid var(--code); border-radius: 10px; padding: 10px 14px 12px; }
+  .card.engine { border-top-color: var(--engine); }
+  .card.human { border-top-color: var(--human); }
+  .head { display: flex; align-items: center; gap: 8px; font-size: 16px; color: var(--muted); line-height: 1.2; }
+  .card.engine .head { color: var(--engine); }
+  .card.human .head { color: var(--human); }
+  .num { flex: none; width: 27px; height: 27px; border-radius: 50%; background: var(--code); color: #fff; font-weight: 800; font-size: 15px; display: grid; place-items: center; }
+  .card.human .num { background: var(--human); font-size: 12px; }
+  .tag { margin-inline-start: auto; border: 1.5px solid var(--engine); color: var(--engine); border-radius: 999px; padding: 0 8px; font-size: 13px; white-space: nowrap; }
+  .card h3 { margin: 5px 0 3px; font-size: 23px; font-weight: 800; line-height: 1.15; }
+  .card p { margin: 0; font-size: 16.5px; line-height: 1.35; color: var(--ink-2); }
+  .card .prompt { margin-top: 6px; font-size: 15.5px; line-height: 1.35; color: var(--prompt); }
+
+  .io { position: absolute; width: 270px; background: var(--io-fill); border: 1.5px solid var(--io); border-radius: 10px; padding: 10px 14px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+  .io strong { font-size: 20px; }
+  .io span { font-size: 15.5px; color: var(--ink-2); margin-top: 2px; }
+  .store { position: absolute; background: var(--store-fill); border: 1.5px solid var(--store); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #234a36; line-height: 1.25; }
+  .store strong { font-size: 17px; }
+  .store span { font-size: 14.5px; }
+
+  .lbl { position: absolute; font-size: 15.5px; color: var(--muted); background: #fff; padding: 0 4px; white-space: nowrap; }
+  .foot { right: 60px; left: 60px; top: 1004px; font-size: 19px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 12px; }
+  .foot strong { color: var(--ink); }
+  svg.wires { position: absolute; inset: 0; width: 1920px; height: 1080px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="panel"></div>
+
+  <div class="abs kicker">◆ מטלת הקורס, סעיף 03 · שקף הזרימה</div>
+  <h1>כירופולוגיה, בתרשים</h1>
+  <div class="abs sub">מיומנויות וסוגיות ב־AI לאנשי למידה · HIT</div>
+
+  <div class="abs legend">
+    <span class="lg engine">מנוע</span>
+    <span class="lg code">תחנת קוד</span>
+    <span class="lg human">אדם</span>
+    <span class="lg st">מאגר</span>
+    <span class="lg prompt">הנחיה</span>
+    <span class="lg iol">קלט ופלט</span>
+    <span class="lg arrow">זרימה <svg width="46" height="12"><line x1="44" y1="6" x2="6" y2="6" stroke="#24303b" stroke-width="2"/><path d="M2 6 L10 1.5 L10 10.5 Z" fill="#24303b"/></svg></span>
+    <span class="lg arrow">מידע ממאגר <svg width="46" height="12"><line x1="44" y1="6" x2="6" y2="6" stroke="#3c7a5b" stroke-width="2" stroke-dasharray="5 4"/><path d="M2 6 L10 1.5 L10 10.5 Z" fill="#3c7a5b"/></svg></span>
+  </div>
+  <div class="abs order">
+    <span class="pill">מי מחליט על הסדר: הקוד</span>
+    <span class="pill soft">קודם בדיקת איכות, ורק אז המנוע (אוטומטי או בגשר ידני)</span>
+  </div>
+
+  <!-- מסלול 1: תמונות -->
+  <div class="abs track" style="top:166px">◆ ערוץ התמונות (רשות) · תיאור בלבד</div>
+  <div class="io" style="left:1590px; top:230px; height:112px"><strong>קלט: עד 5 תמונות</strong><span>כף יד ×2 · כתב יד · עץ · אדם</span></div>
+
+  <div class="card" style="left:1284px; top:200px; height:172px">
+    <div class="head"><span class="num">1</span>תחנת קוד</div>
+    <h3>קליטה ובדיקת איכות</h3>
+    <p>הסרת EXIF וקידוד מחדש. בדיקת תאורה, חדות וניגודיות. תמונה שנכשלה לא נשלחת.</p>
+  </div>
+
+  <div class="card" style="left:978px; top:200px; height:172px">
+    <div class="head"><span class="num">2</span>תחנת קוד</div>
+    <h3>מדידות פיקסלים</h3>
+    <p>גודל הציור ומיקומו על הדף (Otsu), ומספר השורות בכתב היד.</p>
+  </div>
+
+  <div class="card engine" style="left:672px; top:192px; height:206px">
+    <div class="head"><span class="num">3</span>מנוע ראייה ושפה<span class="tag">API או ידני</span></div>
+    <h3>תיאור תמונה</h3>
+    <p>Gemini API, או כל מודל בגשר ידני. בקשה: תמונה, שם הערוץ ורשימת הערכים. בלי שאלונים.</p>
+    <div class="prompt">הנחיה: תאר ואל תפרש · ערך מהרשימה · JSON בלבד</div>
+  </div>
+
+  <div class="card human" style="left:672px; top:424px; height:100px; padding-top:8px">
+    <div class="head"><span class="num">3א</span>אדם</div>
+    <h3 style="font-size:20px; margin:3px 0 1px">סימון ידני</h3>
+    <p style="font-size:15.5px">אותה רשימה, להשוואה למנוע</p>
+  </div>
+
+  <div class="card" style="left:366px; top:200px; height:172px">
+    <div class="head"><span class="num">4</span>תחנת קוד</div>
+    <h3>שער הרשימה הסגורה</h3>
+    <p>מקבל רק ערכים מהרשימה, דוחה כל השאר, ומשווה לסימון האנושי.</p>
+  </div>
+
+  <div class="store" style="left:388px; top:410px; width:226px; height:82px"><strong>רשימה סגורה</strong><span>מאפיינים וערכים מותרים</span></div>
+
+  <!-- מסלול 2: שאלונים -->
+  <div class="abs track" style="top:530px">◆ ערוץ השאלונים · המקור היחיד לציונים</div>
+  <div class="io" style="left:1590px; top:574px; height:104px"><strong>קלט: 50 תשובות</strong><span>Mini-IPIP (20) · RIASEC (30) · ליקרט 1–5</span></div>
+
+  <div class="card" style="left:366px; top:556px; height:150px">
+    <div class="head"><span class="num">5</span>תחנת קוד</div>
+    <h3>ניקוד שאלונים</h3>
+    <p>Big Five ו־RIASEC, ניקוד הפוך וקוד Holland.</p>
+  </div>
+
+  <div class="store" style="left:704px; top:716px; width:236px; height:76px"><strong>נוסחי השאלונים</strong><span>ומפתח הניקוד</span></div>
+  <div class="store" style="left:112px; top:596px; width:226px; height:112px"><strong>מאגר ראיות A–D</strong><span>ומאגר מסורות</span><span>("במסורת נטען ש...")</span></div>
+  <div class="store" style="left:1290px; top:716px; width:262px; height:76px"><strong>זיכרון: IndexedDB במכשיר</strong><span>תהליכים · תמונות · תשובות. אין שרת</span></div>
+
+  <!-- מסלול 3: הדוח -->
+  <div class="abs track" style="top:792px">◆ הרכבת הדוח</div>
+
+  <div class="card" style="left:60px; top:822px; height:162px">
+    <div class="head"><span class="num">6</span>תחנת קוד</div>
+    <h3>שליפת ראיות ומסורות</h3>
+    <p>כל פרשנות נשלפת מהמאגר, עם רמת הראיות שלה (C או D).</p>
+  </div>
+  <div class="card" style="left:366px; top:822px; height:162px">
+    <div class="head"><span class="num">7</span>תחנת קוד</div>
+    <h3>שילוב כל המקורות</h3>
+    <p>לפי נושאים: השאלון כעוגן, והמסורות על כף היד, הכתב והציורים לצידו.</p>
+  </div>
+  <div class="card" style="left:672px; top:822px; height:162px">
+    <div class="head"><span class="num">8</span>תחנת קוד</div>
+    <h3>בקרת איכות</h3>
+    <p>10 בדיקות, כולל "אין AI מדומה" וחישוב חוזר של הציונים.</p>
+  </div>
+  <div class="card" style="left:978px; top:822px; height:162px">
+    <div class="head"><span class="num">9</span>תחנת קוד</div>
+    <h3>הרכבת הדוח</h3>
+    <p>מה נמדד, מה נצפה ומה נטען במסורת, בנפרד. PDF.</p>
+  </div>
+  <div class="io" style="left:1284px; top:852px; height:102px"><strong>פלט: דוח במבנה דוח אבחון</strong><span>שלוש שכבות נפרדות, שילוב לפי נושאים, PDF</span></div>
+
+  <!-- תוויות על החיצים -->
+  <div class="lbl" style="left:1010px; top:451px">תמונה</div>
+  <div class="lbl" style="left:96px; top:408px">תצפיות</div>
+  <div class="lbl" style="left:1040px; top:599px">תשובות לשאלונים</div>
+  <div class="lbl" style="left:510px; top:752px">ציונים</div>
+  <div class="lbl" style="left:640px; top:258px; font-size:13.5px; padding:0 2px">JSON</div>
+
+  <svg class="wires" viewBox="0 0 1920 1080" aria-hidden="true">
+    <defs>
+      <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#24303b"/></marker>
+      <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3c7a5b"/></marker>
+    </defs>
+    <g fill="none" stroke="#24303b" stroke-width="2.2" marker-end="url(#a)">
+      <path d="M1590 286 H1557"/>
+      <path d="M1284 286 H1251"/>
+      <path d="M978 286 H945"/>
+      <path d="M672 286 H639"/>
+      <path d="M1131 372 V470 H945"/>
+      <path d="M672 470 H654 V340 H639"/>
+      <path d="M366 286 H86 V819"/>
+      <path d="M1590 626 H639"/>
+      <path d="M501 706 V819"/>
+      <path d="M330 903 H363"/>
+      <path d="M636 903 H669"/>
+      <path d="M942 903 H975"/>
+      <path d="M1248 903 H1281"/>
+    </g>
+    <g fill="none" stroke="#3c7a5b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#g)">
+      <path d="M501 410 V375"/>
+      <path d="M704 754 H592 V709"/>
+      <path d="M225 708 V819"/>
+    </g>
+  </svg>
+
+  <div class="abs foot"><strong>עיקרון:</strong> תחנה 3 היא המנוע היחיד, וכל השאר קוד רגיל. המנוע רק מתאר תמונה ולא רואה שאלונים, ציונים או פרשנויות. הציונים מחושבים רק מהשאלונים, ותמונה לא משנה ציון.</div>
+</div>
+</body>
+</html>
