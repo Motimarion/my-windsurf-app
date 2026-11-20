@@ -59,7 +59,7 @@ export default function App() {
             ◈
           </span>
           <span>
-            דוח תובנות משולב
+            כירופולוגיה
             <small>מחקר והדגמה — לא אבחון</small>
           </span>
         </button>

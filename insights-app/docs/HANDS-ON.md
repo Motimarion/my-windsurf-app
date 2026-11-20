@@ -1,4 +1,4 @@
-# דף התנסות: דוח תובנות משולב
+# דף התנסות: כירופולוגיה
 
 **זמן:** כ־20 דקות · **צריך:** טלפון או מחשב עם דפדפן, חשבון Gemini (או ChatGPT או Claude), דף לבן ועט.
 **קישור:** https://motimarion.github.io/my-windsurf-app/insights/

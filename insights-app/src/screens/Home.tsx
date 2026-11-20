@@ -48,7 +48,8 @@ export default function Home({ toast }: { toast: (m: string) => void }) {
     <>
       <section className="hero">
         <span className="badge accent">גרסת מחקר והדגמה · MVP</span>
-        <h1 style={{ marginTop: 12 }}>דוח תובנות משולב</h1>
+        <h1 style={{ marginTop: 12, marginBottom: 4 }}>כירופולוגיה</h1>
+        <p className="hero-tagline">אבחון משולב בקריאה בכף יד, ציור וכתב יד</p>
         <p>
           חמישה מקורות מידע — שאלון אישיות מוכר (בתרגום עברי שטרם תוקף), שאלון תחומי עניין להדגמה, וצילומי כפות ידיים, כתב יד וציורים — בדוח אחד שמפריד
           בבירור בין מה שנמדד, מה שנטען במסורת, ומה שנתמך במחקר.

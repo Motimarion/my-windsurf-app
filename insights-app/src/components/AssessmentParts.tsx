@@ -19,7 +19,7 @@ export function ReportHeader({ report, session }: { report: Report; session: Ses
     <div className="card">
       <div className="row spread">
         <div>
-          <span className="tiny muted">דוח תובנות משולב · במבנה של דוח אבחון פסיכו־דידקטי ותעסוקתי · גרסת הדגמה</span>
+          <span className="tiny muted">כירופולוגיה · דוח תובנות משולב, במבנה של דוח אבחון פסיכו־דידקטי ותעסוקתי · גרסת הדגמה</span>
           <h1 style={{ margin: '4px 0' }}>דוח תובנות: אישיות ותחומי עניין תעסוקתיים</h1>
         </div>
         {report.isDemo && <span className="badge warn">נתונים סינתטיים</span>}
@@ -244,7 +244,7 @@ export function SignatureCard({ report }: { report: Report }) {
   return (
     <div className="card small signature">
       <div>
-        <strong>הפקה:</strong> מערכת "דוח תובנות משולב", גרסת הדגמה · {fmtDate(report.generatedAt)}
+        <strong>הפקה:</strong> מערכת "כירופולוגיה", גרסת הדגמה · {fmtDate(report.generatedAt)}
       </div>
       <div className="muted">הדוח הופק אוטומטית. הוא לא נבדק ולא נחתם על ידי פסיכולוג, מאבחן דידקטי או יועץ תעסוקתי.</div>
     </div>

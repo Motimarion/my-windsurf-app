@@ -189,6 +189,7 @@ button { font: inherit; }
   border: 1px solid var(--line);
 }
 .hero p { color: var(--ink-2); max-width: 60ch; font-size: 1.05rem; }
+.hero p.hero-tagline { color: var(--accent); font-size: 1.25rem; font-weight: 600; margin-top: 0; }
 
 .steps { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: thin; }
 .step-pill {
