@@ -1,0 +1,17 @@
+{
+  "name": "chiropology-gemini-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "שרת קטן לגרסת הצרכן של כירופולוגיה: מעביר תמונה אחת ל־Gemini עם ההנחיה הסמויה, בלי לשמור אותה.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "functions-framework --target=describe"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^5.0.5"
+  }
+}

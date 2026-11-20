@@ -54,6 +54,8 @@ export function useAutoSettings(): [AutoSettings, (s: AutoSettings) => void] {
   return [s, saveAutoSettings];
 }
 
+const LOW_QUALITY = 'איכות התמונה נמוכה, ולכן היא לא נשלחה למודל. צלמו מחדש לפי הוראות הצילום.';
+
 export type Eligibility = { ok: true } | { ok: false; reason: string; quality?: boolean };
 
 /** האם לשלוח את התמונה אוטומטית. בדיקת האיכות קודמת לכול. */
@@ -63,7 +65,7 @@ export function autoEligibility(channel: ChannelId, quality: CheckStatus | undef
   if (!s.consentAuto) return { ok: false, reason: 'לא אושרה שליחה אוטומטית.' };
   if (!quality) return { ok: false, reason: 'אין תמונה.' };
   if (quality === 'fail')
-    return { ok: false, quality: true, reason: 'איכות התמונה נמוכה, ולכן היא לא נשלחה למודל. צלמו מחדש לפי הוראות הצילום.' };
+    return { ok: false, quality: true, reason: LOW_QUALITY };
   if (channelById(channel).kind === 'palm' && !s.paidTier)
     return {
       ok: false,
@@ -137,3 +139,63 @@ export async function callGemini(opts: {
   }
   return text;
 }
+
+// ---------- גרסת הצרכן: שליחה דרך השרת (server/gemini-proxy), בלי מפתח בדפדפן ----------
+
+/** בגרסת הצרכן אין מפתח בדפדפן: רק בדיקת האיכות וכתובת שרת מחליטות אם לשלוח. */
+export function consumerEligibility(quality: CheckStatus | undefined, proxyUrl: string): Eligibility {
+  if (!proxyUrl) return { ok: false, reason: 'שירות התיאור עדיין לא מחובר.' };
+  if (!quality) return { ok: false, reason: 'אין תמונה.' };
+  if (quality === 'fail') return { ok: false, quality: true, reason: LOW_QUALITY };
+  return { ok: true };
+}
+
+const PROXY_ERRORS: Record<string, string> = {
+  rate: 'נשלחו הרבה תמונות בזמן קצר. נסו שוב בעוד כמה דקות.',
+  daily: 'שירות התיאור הגיע למכסה היומית. נסו שוב מחר.',
+  quota: 'שירות התיאור עמוס כרגע. נסו שוב בעוד כמה דקות.',
+  origin: 'הכתובת הזו לא מורשית להשתמש בשירות התיאור.',
+  'personal-needs-paid': 'שירות התיאור עדיין לא מוגדר לצילומי כף יד.',
+  size: 'התמונה גדולה מדי. צלמו מחדש.',
+  mime: 'סוג הקובץ לא נתמך.',
+  channel: 'ערוץ לא מוכר.',
+  data: 'התמונה לא נקראה. נסו להעלות אותה שוב.',
+  config: 'שירות התיאור לא מוגדר. פנו למפעיל האתר.',
+  empty: 'המודל לא החזיר תיאור לתמונה הזו.',
+  upstream: 'שירות התיאור לא זמין כרגע. נסו שוב מאוחר יותר.',
+};
+
+export interface ProxyResult {
+  text: string;
+  model: string;
+}
+
+/** שולח לשרת של גרסת הצרכן תמונה אחת ושם ערוץ. ההנחיה הסמויה והרשימה הסגורה נמצאות בשרת. */
+export async function callProxy(opts: {
+  url: string;
+  channel: ChannelId;
+  blob: Blob;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
+}): Promise<ProxyResult> {
+  const f = opts.fetchImpl ?? fetch;
+  const data = await blobToBase64(opts.blob);
+  let res: Response;
+  try {
+    res = await f(opts.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: opts.channel, mimeType: opts.blob.type || 'image/jpeg', data }),
+      signal: opts.signal,
+    });
+  } catch {
+    throw new Error('אין חיבור לשירות התיאור. בדקו את החיבור לאינטרנט ונסו שוב.');
+  }
+  const payload: { text?: string; model?: string; error?: string } | null = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(PROXY_ERRORS[payload?.error ?? ''] ?? `שירות התיאור לא זמין כרגע (${res.status}). נסו שוב מאוחר יותר.`);
+  }
+  if (!payload?.text) throw new Error(PROXY_ERRORS.empty);
+  return { text: payload.text, model: payload.model ?? 'Gemini' };
+}
+

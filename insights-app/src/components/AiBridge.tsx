@@ -11,7 +11,15 @@ import {
   recordRun,
   type GateResult,
 } from '../engine/bridge';
-import { MODEL_SUGGESTIONS, autoEligibility, callGemini, useAutoSettings } from '../engine/autoAi';
+import {
+  MODEL_SUGGESTIONS,
+  autoEligibility,
+  callGemini,
+  callProxy,
+  consumerEligibility,
+  useAutoSettings,
+} from '../engine/autoAi';
+import { IS_CONSUMER, PROXY_URL } from '../edition';
 import { StatusBadge, radioKeys, rovingIndex } from './ui';
 
 interface Props {
@@ -49,7 +57,9 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
   const def = channelById(channel);
   const request = useMemo(() => buildRequest(channel), [channel]);
   const [settings, setSettings] = useAutoSettings();
-  const [mode, setMode] = useState<Mode>(settings.enabled ? 'auto' : 'manual');
+  const [modeState, setMode] = useState<Mode>(settings.enabled ? 'auto' : 'manual');
+  // בגרסת הצרכן אין גשר ידני ואין מפתח: התיאור תמיד אוטומטי, דרך השרת.
+  const mode: Mode = IS_CONSUMER ? 'auto' : modeState;
   const [agreed, setAgreed] = useState(false);
   const [model, setModel] = useState<string>(MODEL_CHOICES[0]);
   const [answer, setAnswer] = useState('');
@@ -68,7 +78,9 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
   const run = session.aiRuns?.find((r) => r.channel === channel && (!r.imageId || r.imageId === img?.id));
   const values = run?.values ?? [];
   const compare = run?.values ? compareWithHuman(channel, current, values) : null;
-  const elig = autoEligibility(channel, img?.quality.overall, settings);
+  const elig = IS_CONSUMER
+    ? consumerEligibility(img?.quality.overall, PROXY_URL)
+    : autoEligibility(channel, img?.quality.overall, settings);
   const autoModel = `Gemini API · ${settings.model.trim()}`;
 
   function record(r: GateResult, modelName: string, runMode: 'manual' | 'auto') {
@@ -97,11 +109,17 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
     started.current = img.id;
     setError(null);
     setSending(true);
-    callGemini({ key: settings.key, model: settings.model, channel, blob: img.blob })
-      .then((text) => {
-        const r = parseResponse(text, channel, autoModel);
+    const job = IS_CONSUMER
+      ? callProxy({ url: PROXY_URL, channel, blob: img.blob }).then((r) => ({ text: r.text, model: `Gemini · ${r.model}` }))
+      : callGemini({ key: settings.key, model: settings.model, channel, blob: img.blob }).then((text) => ({
+          text,
+          model: autoModel,
+        }));
+    job
+      .then(({ text, model: modelName }) => {
+        const r = parseResponse(text, channel, modelName);
         if (r.error) return setError(`התשובה של המודל לא עברה בשער: ${r.error}`);
-        record(r, autoModel, 'auto');
+        record(r, modelName, 'auto');
         toast(`Gemini תיאר את התמונה: התקבלו ${r.accepted.length}, נדחו ${r.rejected.length}`);
       })
       .catch((e: Error) => setError(e.message))
@@ -160,24 +178,31 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
         <span className="badge accent">תחנת מנוע ③</span>
       </div>
 
-      <div className="chips" role="radiogroup" aria-label="אופן השליחה למודל" onKeyDown={radioKeys} style={{ marginTop: 10 }}>
-        {MODES.map((m, i) => (
-          <button
-            key={m.id}
-            role="radio"
-            aria-checked={mode === m.id}
-            tabIndex={rovingIndex(i, MODES.findIndex((x) => x.id === mode))}
-            className={`chip ${mode === m.id ? 'on' : ''}`}
-            onClick={() => setMode(m.id)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      {!IS_CONSUMER && (
+        <div className="chips" role="radiogroup" aria-label="אופן השליחה למודל" onKeyDown={radioKeys} style={{ marginTop: 10 }}>
+          {MODES.map((m, i) => (
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={mode === m.id}
+              tabIndex={rovingIndex(
+                i,
+                MODES.findIndex((x) => x.id === mode),
+              )}
+              className={`chip ${mode === m.id ? 'on' : ''}`}
+              onClick={() => setMode(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {def.kind === 'palm' && (
         <div className="notice warn small" style={{ marginTop: 10 }}>
-          צילום כף יד הוא מידע ביומטרי. להתנסות בכיתה מומלץ להשתמש בציור או בכתב יד, ולא בכף היד.
+          {IS_CONSUMER
+            ? 'צילום כף יד הוא מידע ביומטרי. הוא נשלח לתיאור בלבד, והשרת לא שומר אותו.'
+            : 'צילום כף יד הוא מידע ביומטרי. להתנסות בכיתה מומלץ להשתמש בציור או בכתב יד, ולא בכף היד.'}
         </div>
       )}
 
@@ -186,84 +211,87 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
           <p className="small muted" style={{ marginTop: 0 }}>
             הסדר קבוע: קודם בדיקת איכות התמונה, ורק אם היא עברה, התמונה (העותק הנקי, בלי מיקום ובלי פרטי מכשיר) נשלחת אוטומטית
             ל־Gemini עם ההנחיה הסמויה. התשובה עוברת בשער הרשימה הסגורה.
+            {IS_CONSUMER && ' השרת לא שומר את התמונה.'}
           </p>
-          <details className="auto-settings" open={settingsOpen} onToggle={(e) => setSettingsOpen(e.currentTarget.open)}>
-            <summary className="small">
-              <strong>הגדרות שליחה אוטומטית</strong>{' '}
-              <span className="muted">{settings.enabled && settings.key ? '· פעילה' : '· כבויה'}</span>
-            </summary>
-            <label className="row small" style={{ marginTop: 8 }}>
-              <input type="checkbox" checked={settings.enabled} onChange={(e) => set({ enabled: e.currentTarget.checked })} />
-              <span>שליחה אוטומטית פעילה</span>
-            </label>
-            <label className="small" style={{ display: 'block', marginTop: 8 }}>
-              מפתח Gemini API (נשמר רק בלשונית הזו){' '}
-              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
-                איך משיגים מפתח ↗
-              </a>
-              <input
-                type="password"
-                aria-label="מפתח Gemini API"
-                autoComplete="off"
-                value={settings.key}
-                onChange={(e) => set({ key: e.currentTarget.value })}
-                style={{ ...inputStyle, marginTop: 4, direction: 'ltr' }}
-              />
-            </label>
-            <label className="small" style={{ display: 'block', marginTop: 8 }}>
-              מודל
-              <input
-                list="gemini-models"
-                aria-label="מודל Gemini"
-                value={settings.model}
-                onChange={(e) => set({ model: e.currentTarget.value })}
-                style={{ ...inputStyle, marginTop: 4, direction: 'ltr' }}
-              />
-              <datalist id="gemini-models">
-                {MODEL_SUGGESTIONS.map((m) => (
-                  <option key={m} value={m} />
-                ))}
-              </datalist>
-            </label>
-            <label className="row small" style={{ marginTop: 10, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-              <input
-                type="checkbox"
-                checked={settings.consentAuto}
-                onChange={(e) => set({ consentAuto: e.currentTarget.checked })}
-                style={{ marginTop: 4 }}
-              />
-              <span>
-                אני מסכים/ה שכל תמונה שאעלה ושתעבור את בדיקת האיכות תישלח אוטומטית ל־Google Gemini API, ותישמר ותטופל לפי תנאי
-                השירות של Google.
-              </span>
-            </label>
-            <label className="row small" style={{ marginTop: 8, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-              <input
-                type="checkbox"
-                checked={settings.paidTier}
-                onChange={(e) => set({ paidTier: e.currentTarget.checked })}
-                style={{ marginTop: 4 }}
-              />
-              <span>
-                המפתח שלי בפרויקט עם חיוב פעיל (Paid).{' '}
-                <span className="muted">
-                  נדרש לצילומי כף יד: בשכבה החינמית Google משתמשת בתוכן לשיפור המוצרים, בודקים אנושיים עשויים לקרוא אותו, והתנאים
-                  מבקשים לא לשלוח מידע אישי.
+          {!IS_CONSUMER && (
+            <details className="auto-settings" open={settingsOpen} onToggle={(e) => setSettingsOpen(e.currentTarget.open)}>
+              <summary className="small">
+                <strong>הגדרות שליחה אוטומטית</strong>{' '}
+                <span className="muted">{settings.enabled && settings.key ? '· פעילה' : '· כבויה'}</span>
+              </summary>
+              <label className="row small" style={{ marginTop: 8 }}>
+                <input type="checkbox" checked={settings.enabled} onChange={(e) => set({ enabled: e.currentTarget.checked })} />
+                <span>שליחה אוטומטית פעילה</span>
+              </label>
+              <label className="small" style={{ display: 'block', marginTop: 8 }}>
+                מפתח Gemini API (נשמר רק בלשונית הזו){' '}
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
+                  איך משיגים מפתח ↗
+                </a>
+                <input
+                  type="password"
+                  aria-label="מפתח Gemini API"
+                  autoComplete="off"
+                  value={settings.key}
+                  onChange={(e) => set({ key: e.currentTarget.value })}
+                  style={{ ...inputStyle, marginTop: 4, direction: 'ltr' }}
+                />
+              </label>
+              <label className="small" style={{ display: 'block', marginTop: 8 }}>
+                מודל
+                <input
+                  list="gemini-models"
+                  aria-label="מודל Gemini"
+                  value={settings.model}
+                  onChange={(e) => set({ model: e.currentTarget.value })}
+                  style={{ ...inputStyle, marginTop: 4, direction: 'ltr' }}
+                />
+                <datalist id="gemini-models">
+                  {MODEL_SUGGESTIONS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
+              </label>
+              <label className="row small" style={{ marginTop: 10, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+                <input
+                  type="checkbox"
+                  checked={settings.consentAuto}
+                  onChange={(e) => set({ consentAuto: e.currentTarget.checked })}
+                  style={{ marginTop: 4 }}
+                />
+                <span>
+                  אני מסכים/ה שכל תמונה שאעלה ושתעבור את בדיקת האיכות תישלח אוטומטית ל־Google Gemini API, ותישמר ותטופל לפי תנאי
+                  השירות של Google.
                 </span>
-              </span>
-            </label>
-            <div className="row" style={{ marginTop: 8 }}>
-              <button className="btn sm" onClick={() => setSettings({ ...settings, key: '', enabled: false })}>
-                מחיקת המפתח
-              </button>
-              <span className="tiny muted">מומלץ להגביל את המפתח בהגדרות Google לכתובת האתר.</span>
-            </div>
-          </details>
+              </label>
+              <label className="row small" style={{ marginTop: 8, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+                <input
+                  type="checkbox"
+                  checked={settings.paidTier}
+                  onChange={(e) => set({ paidTier: e.currentTarget.checked })}
+                  style={{ marginTop: 4 }}
+                />
+                <span>
+                  המפתח שלי בפרויקט עם חיוב פעיל (Paid).{' '}
+                  <span className="muted">
+                    נדרש לצילומי כף יד: בשכבה החינמית Google משתמשת בתוכן לשיפור המוצרים, בודקים אנושיים עשויים לקרוא אותו,
+                    והתנאים מבקשים לא לשלוח מידע אישי.
+                  </span>
+                </span>
+              </label>
+              <div className="row" style={{ marginTop: 8 }}>
+                <button className="btn sm" onClick={() => setSettings({ ...settings, key: '', enabled: false })}>
+                  מחיקת המפתח
+                </button>
+                <span className="tiny muted">מומלץ להגביל את המפתח בהגדרות Google לכתובת האתר.</span>
+              </div>
+            </details>
+          )}
 
-          {settings.enabled && !settings.paidTier && def.kind !== 'palm' && (
+          {!IS_CONSUMER && settings.enabled && !settings.paidTier && def.kind !== 'palm' && (
             <div className="notice small" style={{ marginTop: 10 }}>
-              מפתח בשכבה החינמית: Google עשויה להשתמש בתמונה לשיפור המוצרים, ובודקים אנושיים עשויים לראות אותה. העלו רק תוצר בלי שם
-              ובלי פרטים מזהים.
+              מפתח בשכבה החינמית: Google עשויה להשתמש בתמונה לשיפור המוצרים, ובודקים אנושיים עשויים לראות אותה. העלו רק תוצר בלי
+              שם ובלי פרטים מזהים.
             </div>
           )}
 
@@ -274,7 +302,7 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
                 <span className="badge accent">בדיקת האיכות עברה</span> שולח ל־Gemini…
               </p>
             )}
-            {img && !sending && !run && settings.enabled && !elig.ok && (
+            {img && !sending && !run && (IS_CONSUMER || settings.enabled) && !elig.ok && (
               <div className={`notice small ${'quality' in elig && elig.quality ? 'warn' : ''}`}>{elig.reason}</div>
             )}
             {img && !sending && !run && elig.ok && error && (
@@ -298,10 +326,15 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
           ) : (
             <>
               <label className="row small" style={{ marginTop: 10, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.currentTarget.checked)} style={{ marginTop: 4 }} />
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.currentTarget.checked)}
+                  style={{ marginTop: 4 }}
+                />
                 <span>
-                  הבנתי שאם אעביר את התמונה למודל חיצוני, היא תצא מהמכשיר ותישמר לפי תנאי השירות שבחרתי. אעביר רק תמונה שלי,
-                  ורק את העותק הנקי (בלי מיקום ובלי פרטי מכשיר).
+                  הבנתי שאם אעביר את התמונה למודל חיצוני, היא תצא מהמכשיר ותישמר לפי תנאי השירות שבחרתי. אעביר רק תמונה שלי, ורק
+                  את העותק הנקי (בלי מיקום ובלי פרטי מכשיר).
                 </span>
               </label>
 
