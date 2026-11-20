@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>מצגת ההדרכה — דוח תובנות משולב</title>
+<style>
+  /* 9 שקפים של 1920×1080 להדרכה (docs/TRAINING.md). ייצוא ל־PDF ו־PNG: node docs/slides/render-deck.mjs */
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-400-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 600; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-600-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-hebrew-800-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Heebo'; font-weight: 400; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  @font-face { font-family: 'Heebo'; font-weight: 800; src: url('../../node_modules/@fontsource/heebo/files/heebo-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2013-2014, U+2018-201E, U+2022, U+2026, U+2190-21FF; }
+  @page { size: 1920px 1080px; margin: 0; }
+  :root { --page: #dfe5e9; --ink: #1d2730; --ink-2: #33404b; --muted: #5f6b76; --line: #c7d0d7; --code: #24303b; --engine: #a9581b; --human: #a8456e; --prompt: #6447b0; --prompt-fill: #efeafb; --store: #3c7a5b; --store-fill: #e3f1e9; --io: #b14b78; --io-fill: #fbe4ec; font-family: 'Heebo', 'Assistant', 'Segoe UI', Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--ink); }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: var(--page); break-after: page; }
+  .panel { position: absolute; inset: 22px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 56px 70px; display: flex; flex-direction: column; }
+  .kicker { font-size: 22px; font-weight: 600; color: var(--prompt); }
+  h1 { margin: 6px 0 0; font-size: 58px; font-weight: 800; line-height: 1.15; }
+  h2 { margin: 0; font-size: 34px; font-weight: 800; }
+  .lead { font-size: 30px; color: var(--ink-2); margin-top: 14px; line-height: 1.45; }
+  .num { position: absolute; left: 70px; bottom: 44px; font-size: 18px; color: var(--muted); }
+  .grow { flex: 1; }
+  .cards { display: grid; gap: 28px; margin-top: 40px; }
+  .card { background: #fff; border: 1.5px solid var(--line); border-top: 8px solid var(--code); border-radius: 14px; padding: 26px 30px; }
+  .card p { margin: 10px 0 0; font-size: 26px; line-height: 1.45; color: var(--ink-2); }
+  .card .tag { font-size: 20px; color: var(--muted); }
+  .t-measure { border-top-color: var(--code); }
+  .t-observe { border-top-color: var(--engine); }
+  .t-claim { border-top-color: var(--prompt); background: var(--prompt-fill); }
+  .fill { position: absolute; inset: 22px; background: #fff; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; display: grid; place-items: center; }
+  .fill img { width: 100%; height: 100%; object-fit: contain; }
+  .steps { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 14px; }
+  .steps li { display: grid; grid-template-columns: 54px 120px 1fr; align-items: center; gap: 18px; font-size: 27px; padding: 12px 18px; border: 1.5px solid var(--line); border-radius: 12px; }
+  .steps .n { width: 46px; height: 46px; border-radius: 50%; background: var(--code); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: 22px; }
+  .steps li.engine { border-color: var(--engine); background: #fbf1e8; }
+  .steps li.engine .n { background: var(--engine); }
+  .steps .min { color: var(--muted); font-size: 22px; }
+  .eth { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 28px; margin-top: 30px; }
+  .eth div { font-size: 25px; line-height: 1.4; padding: 14px 18px; border-inline-start: 6px solid var(--prompt); background: #f7f5fc; border-radius: 8px; }
+  .eth strong { display: block; color: var(--prompt); font-size: 21px; }
+  .big3 { display: grid; gap: 22px; margin-top: 44px; }
+  .big3 div { font-size: 38px; font-weight: 800; padding: 22px 30px; border-radius: 14px; border: 1.5px solid var(--line); }
+  .big3 div span { display: block; font-size: 24px; font-weight: 400; color: var(--ink-2); margin-top: 6px; }
+  .blank { display: inline-block; min-width: 150px; border-bottom: 3px solid var(--ink); }
+  .callouts { display: grid; gap: 18px; align-content: center; }
+  .callouts div { font-size: 27px; line-height: 1.35; display: grid; grid-template-columns: 50px 1fr; gap: 14px; align-items: start; }
+  .callouts .n { width: 44px; height: 44px; border-radius: 50%; background: var(--engine); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: 21px; }
+  .shot { border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .shot img { display: block; width: 100%; }
+  .note { font-size: 22px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide"><div class="panel">
+  <div class="kicker">◆ הדרכה · מיומנויות וסוגיות ב־AI לאנשי למידה · HIT</div>
+  <div class="grow"></div>
+  <h1 style="font-size:84px">מה כף היד שלך אומרת עלייך?</h1>
+  <div class="lead" style="font-size:40px">ומה AI יכול לדעת מזה. התנסות ב"דוח תובנות משולב"</div>
+  <div class="grow"></div>
+  <div style="font-size:28px">מוטי מריונובסקי · [שם השותף או השותפה]</div>
+  <div class="note" style="margin-top:8px">שאלה לצ׳אט: מי ניסה פעם אפליקציה שקוראת כף יד או כתב יד?</div>
+</div><div class="num">1</div></section>
+
+<!-- 2 -->
+<section class="slide"><div class="panel">
+  <div class="kicker">◆ מה הכלי עושה</div>
+  <h1>תמונות ושאלונים נכנסים. דוח בשלוש שכבות יוצא</h1>
+  <div class="lead">קלט: עד 5 תמונות (כף יד, כתב יד, עץ, אדם) ושני שאלונים קצרים. הדוח לא מערבב בין השכבות.</div>
+  <div class="cards" style="grid-template-columns: repeat(3, 1fr)">
+    <div class="card t-measure"><span class="tag">שכבה 1</span><h2>מה נמדד</h2><p>Big Five ו־RIASEC, מתוך השאלונים בלבד. המקור היחיד לציונים.</p></div>
+    <div class="card t-observe"><span class="tag">שכבה 2</span><h2>מה נצפה</h2><p>תיאור של מה שרואים בתמונה, מרשימה סגורה. ליד כל ערך כתוב מי תיאר: אדם או מודל.</p></div>
+    <div class="card t-claim"><span class="tag">שכבה 3</span><h2>מה נטען במסורת</h2><p>"במסורת נטען ש...", תמיד עם רמת הראיות. לא ממצא עליכם.</p></div>
+  </div>
+</div><div class="num">2</div></section>
+
+<!-- 3 -->
+<section class="slide"><div class="panel" style="flex-direction:row; gap:48px; align-items:stretch">
+  <div style="flex:1.05; display:flex; flex-direction:column">
+    <div class="kicker">◆ הדגמה</div>
+    <h1>תחנת המנוע: בקשה, תשובה ושער</h1>
+    <div class="callouts grow" style="margin-top:30px">
+      <div><span class="n">1</span><span><strong>הבקשה</strong> שהקוד הרכיב: הנחיה סמויה ורשימת ערכים מותרים. כאן היא גלויה.</span></div>
+      <div><span class="n">2</span><span><strong>התשובה</strong> של Gemini, מודבקת חזרה. לפעמים עם "פרשנות" שלא ביקשנו.</span></div>
+      <div><span class="n">3</span><span><strong>השער</strong>: תחנת קוד שמקבלת רק ערכים מהרשימה ודוחה כל השאר, עם סיבה.</span></div>
+      <div><span class="n">4</span><span><strong>השוואה</strong> לסימון שלכם: כמה המודל הסכים עם אדם.</span></div>
+    </div>
+  </div>
+  <div class="shot" style="flex:0.95; align-self:center; max-height:930px"><img src="../review-images/03-engine-station.png" alt="כרטיס תחנת המנוע באפליקציה"></div>
+</div><div class="num">3</div></section>
+
+<!-- 4 -->
+<section class="slide"><div class="fill"><img src="flow-slide-v2.png" alt="שקף הזרימה"></div><div class="num">4</div></section>
+
+<!-- 5 -->
+<section class="slide"><div class="fill"><img src="flow-slide-qa.png" alt="שש שאלות הזרימה"></div><div class="num">5</div></section>
+
+<!-- 6 -->
+<section class="slide"><div class="panel" style="flex-direction:row; gap:56px">
+  <div style="flex:1.4">
+    <div class="kicker">◆ התנסות · 22 דקות</div>
+    <h1>עכשיו תורכם</h1>
+    <ul class="steps">
+      <li><span class="n">0</span><span class="min">1 דק'</span><span>תהליך חדש, הסכמה, כינוי במקום שם</span></li>
+      <li><span class="n">1</span><span class="min">4 דק'</span><span>מציירים עץ, מצלמים ומעלים לערוץ "עץ"</span></li>
+      <li><span class="n">2</span><span class="min">2 דק'</span><span>מסמנים בעצמכם מה רואים, מהרשימה</span></li>
+      <li class="engine"><span class="n">3</span><span class="min">6 דק'</span><span>תחנת המנוע: בקשה ל־Gemini, תשובה, שער</span></li>
+      <li><span class="n">4</span><span class="min">6 דק'</span><span>שני השאלונים (50 פריטים)</span></li>
+      <li><span class="n">5</span><span class="min">3 דק'</span><span>ניתוח ודוח: שלוש השכבות</span></li>
+    </ul>
+  </div>
+  <div style="flex:0.6; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px">
+    <img src="qr-insights.png" alt="קוד QR לאפליקציה" style="width:360px; height:360px">
+    <div style="font-size:23px; direction:ltr">motimarion.github.io/my-windsurf-app/insights</div>
+    <div class="note" style="text-align:center">Gemini חסום? אותה בקשה ב־ChatGPT או ב־Claude.<br>אין מודל? "הדגמה עם נתונים סינתטיים".</div>
+  </div>
+</div><div class="num">6</div></section>
+
+<!-- 7 -->
+<section class="slide"><div class="panel">
+  <div class="kicker">◆ מה ראינו</div>
+  <h1>הסכמה בין המודל לאדם: מה היא אומרת?</h1>
+  <div class="cards" style="grid-template-columns: 1fr 1fr; margin-top:50px">
+    <div class="card t-observe"><h2>מה השער דחה אצלנו</h2><p style="font-size:30px; margin-top:26px"><span class="blank"></span></p><p style="font-size:30px"><span class="blank"></span></p></div>
+    <div class="card t-observe"><h2>טווח ההסכמה בקבוצה</h2><p style="font-size:34px; margin-top:26px">מ־<span class="blank" style="min-width:90px"></span> עד <span class="blank" style="min-width:90px"></span> מתוך <span class="blank" style="min-width:90px"></span></p></div>
+  </div>
+  <div class="grow"></div>
+  <div class="card t-claim" style="font-size:34px; font-weight:800">הסכמה גבוהה = התיאור מדויק. היא <u>לא</u> אומרת שלשורשים בציור יש משמעות פסיכולוגית.</div>
+</div><div class="num">7</div></section>
+
+<!-- 8 -->
+<section class="slide"><div class="panel">
+  <div class="kicker">◆ דיון · שבע הקטגוריות</div>
+  <h1>שאלה אחת לכל קטגוריה</h1>
+  <div class="eth">
+    <div><strong>עבודה</strong>גרפולוגיה שימשה בסינון מועמדים. מה קורה כשמוסיפים לזה AI שנשמע בטוח?</div>
+    <div><strong>זכויות</strong>מי רשאי לתת "אבחון"? מה ההבדל בפועל בינו לבין "דוח תובנות"?</div>
+    <div><strong>פערים</strong>על מי המודל יטעה יותר: שפה שנייה, יד שמאל, מוגבלות מוטורית, מצלמה ישנה?</div>
+    <div><strong>פרטיות</strong>כף יד היא מידע ביומטרי. מה קורה לתמונה בשכבה החינמית?</div>
+    <div><strong>מיומנויות</strong>אם המודל מסמן במקומי, אני עדיין יודע להתבונן?</div>
+    <div><strong>עולם מקצועי</strong>מחליף יועצים? מכשיר אותם? או נותן לגיטימציה למה שלא הוכח?</div>
+    <div style="grid-column: span 2"><strong>עצמאות האדם</strong>דוח שנראה מקצועי הופך לתווית שאני מאמץ (אפקט ברנום). איך מגינים מזה?</div>
+  </div>
+</div><div class="num">8</div></section>
+
+<!-- 9 -->
+<section class="slide"><div class="panel">
+  <div class="kicker">◆ סיכום</div>
+  <h1>שלושה דברים לקחת</h1>
+  <div class="big3">
+    <div style="border-top:8px solid var(--engine)">ה־AI מתאר<span>הוא יכול לתאר תמונה בדיוק כזה או אחר, ואת הדיוק בודקים מול אדם.</span></div>
+    <div style="border-top:8px solid var(--prompt)">התוקף מגיע מהמחקר, לא מהמודל<span>כף יד, כתב וציור נשארים מסורת עם רמת ראיות. הציונים באים מהשאלונים.</span></div>
+    <div style="border-top:8px solid var(--code)">הקוד והאדם מחליטים<span>מה נכנס לבקשה, מה עובר בשער ומה מופיע בדוח.</span></div>
+  </div>
+  <div class="grow"></div>
+  <div class="lead" style="margin:0">לאנשי למידה: לבנות מערכות שבהן ה־AI מתאר, הקוד בודק והאדם מחליט.</div>
+</div><div class="num">9</div></section>
+
+</body>
+</html>
