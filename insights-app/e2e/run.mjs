@@ -69,6 +69,13 @@ try {
   check('traditions box labelled as not a finding', (await page.getByText('מה נטען במסורת — לא ממצא על האדם').count()) >= 4);
   check('evidence level badges present', (await page.locator('.badge.lvC, .badge.lvD').count()) > 3);
   check('no failed quality/QA badges in demo report', (await page.locator('.badge.fail').count()) === 0, String(await page.locator('.badge.fail').allTextContents()));
+  // שלב השילוב: כל המקורות לפי נושאים
+  check('integration stage shown in report', await page.getByText('התמונה המשולבת — כל המקורות לפי נושאים').isVisible());
+  const synthSummary = (await page.locator('.card', { hasText: 'סיכום השילוב' }).textContent()) || '';
+  check('integration summary compares traditions to questionnaire with chance baseline', /הושוו לשאלון/.test(synthSummary) && /בניחוש/.test(synthSummary), synthSummary.slice(0, 120));
+  check('integration combines palm, handwriting and drawing claims', (await page.locator('.synth-entry').count()) >= 3);
+  await page.locator('.section-title', { hasText: 'התמונה המשולבת' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${OUT}/desktop-synthesis.png`, fullPage: false });
   await page.screenshot({ path: `${OUT}/desktop-report.png`, fullPage: true });
 
   const [download] = await Promise.all([
@@ -186,7 +193,7 @@ try {
   await page.getByRole('button', { name: 'לצפייה בדוח ←' }).click();
   await page.getByText('משתתף בדיקה').first().waitFor();
   check('report marks AI values and the engine run', (await page.getByText('מודל AI (ChatGPT) · עבר בשער').count()) >= 1 && (await page.getByText(/תחנת המנוע: ChatGPT תיאר/).count()) === 1);
-  check('real report has traditions for handwriting', await page.getByText('בגרפולוגיה נטען שכתב גדול').isVisible());
+  check('real report has traditions for handwriting (channel + integration)', (await page.getByText('בגרפולוגיה נטען שכתב גדול').count()) === 2);
   check('real report not flagged as demo', (await page.getByText('נתונים סינתטיים').count()) === 0);
 
   // מחיקה

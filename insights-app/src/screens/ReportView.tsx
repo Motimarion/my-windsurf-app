@@ -8,6 +8,7 @@ import { CLAIMS, claimById, sourceById } from '../data/evidence';
 import { RiasecRadar, ScoreBars } from '../components/charts';
 import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge, fmtDate } from '../components/ui';
 import StepNav from '../components/StepNav';
+import SynthesisView from '../components/SynthesisView';
 import { exportPdf } from '../report/pdf';
 import { deleteSession } from '../storage/db';
 import { go } from '../router';
@@ -242,7 +243,10 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           <ClaimLine id="integ_bf_riasec" />
         </div>
 
-        <SectionTitle num="5">נקודות להתבוננות עצמית</SectionTitle>
+        <SectionTitle num="5">התמונה המשולבת — כל המקורות לפי נושאים</SectionTitle>
+        <SynthesisView synthesis={report.synthesis} />
+
+        <SectionTitle num="6">נקודות להתבוננות עצמית</SectionTitle>
         <div className="card">
           <ol className="small" style={{ margin: 0, paddingInlineStart: 18 }}>
             {report.reflections.map((r) => (
@@ -253,7 +257,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           </ol>
         </div>
 
-        <SectionTitle num="6">מגבלות מדעיות</SectionTitle>
+        <SectionTitle num="7">מגבלות מדעיות</SectionTitle>
         <div className="card small">
           <ul style={{ margin: 0, paddingInlineStart: 18 }}>
             <li>שאלונים בדיווח עצמי מושפעים ממצב רוח, מהקשר ומרצייה חברתית.</li>
@@ -265,7 +269,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           </ul>
         </div>
 
-        <SectionTitle num="7">נספח — מקורות ורמות ראיות</SectionTitle>
+        <SectionTitle num="8">נספח — מקורות ורמות ראיות</SectionTitle>
         <div className="card">
           <div className="table-wrap">
             <table>
@@ -304,7 +308,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           </div>
         </div>
 
-        <SectionTitle num="8">בקרת איכות הדוח</SectionTitle>
+        <SectionTitle num="9">בקרת איכות הדוח</SectionTitle>
         <div className="card">
           <ul className="analysis-list small">
             {report.qa.map((q) => (

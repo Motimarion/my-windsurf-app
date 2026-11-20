@@ -227,6 +227,11 @@ button { font: inherit; }
 }
 .code-box:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
+/* שלב השילוב בדוח */
+.synth-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.synth-entry { display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: start; padding-top: 8px; border-top: 1px solid var(--line); }
+.synth-icon { font-size: 1.1rem; line-height: 1.4; }
+
 /* תחנות המערכת במסך "על המערכת" — באותה שפת צבעים של שקף הזרימה */
 .stations { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .stations li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); border-top-width: 4px; background: var(--surface); }

@@ -26,6 +26,7 @@ import { CHANNELS, TRADITIONS, channelById, traditionsFor } from '../data/channe
 import { CLAIMS, SOURCES, claimById, sourceById } from '../data/evidence';
 import { hollandCode, hollandTies, scoreScales } from './scoring';
 import { PROVIDERS } from './providers';
+import { synthesize } from './synthesis';
 
 export interface ImageMeta {
   channel: ChannelId;
@@ -310,6 +311,7 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
     hollandTie: hollandTies(riasec),
     channels,
     integration,
+    synthesis: synthesize(bigFive, riasec, channels, session),
     reflections: reflections(bigFive, riasec, code, hasTraditions),
     claimsUsed: [...claimSet],
   };

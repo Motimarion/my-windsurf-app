@@ -169,6 +169,55 @@ export interface QACheck {
   detail: string;
 }
 
+// ---------- שלב השילוב — כל המקורות לפי נושאים ----------
+
+export type ThemeId = 'extraversion' | 'warmth' | 'order' | 'stability' | 'imagination' | 'other';
+
+/** כיוון: 1 = כלפי מעלה בנושא, ‎-1 = כלפי מטה, 0 = אמצע הסולם או בלי כיוון. */
+export type Direction = 1 | -1 | 0;
+
+/** השוואה של טענה מסורתית לשאלון: באותו כיוון, בכיוון הפוך, שאלון באמצע, או אין עם מה להשוות. */
+export type VsQuestionnaire = 'match' | 'mismatch' | 'neutral' | 'na';
+
+export interface SynthesisEntry {
+  channel: ChannelId;
+  note: TraditionNote;
+  dir: Direction;
+  vs: VsQuestionnaire;
+  /** מי תיאר את המאפיין שהמסורת נשענת עליו: אדם, חישוב, מודל AI או הדגמה. */
+  source?: Observation['source'];
+  model?: string;
+}
+
+export interface SynthesisTheme {
+  id: ThemeId;
+  title: string;
+  trait?: BigFiveTrait;
+  inverted?: boolean;
+  /** העוגן המדוד: הציון בשאלון. null כשאין לנושא עוגן או שהסולם לא חושב. */
+  band: ScaleScore<BigFiveTrait>['band'];
+  mean: number | null;
+  /** כיוון השאלון בנושא (אחרי היפוך לנוירוטיות). null כשאין ציון. */
+  dir: Direction | null;
+  riasec: { key: RiasecType; band: ScaleScore<RiasecType>['band'] }[];
+  entries: SynthesisEntry[];
+  /** האם הטענות המסורתיות בנושא מסכימות זו עם זו. */
+  agreement: 'same' | 'mixed' | 'single' | 'none';
+}
+
+export interface Synthesis {
+  themes: SynthesisTheme[];
+  /** טענות שהושוו לשאלון (שאלון לא באמצע). */
+  compared: number;
+  /** מתוכן: באותו כיוון כמו השאלון. */
+  matched: number;
+  /** טענות בנושא שבו השאלון באמצע הסולם. */
+  neutral: number;
+  /** טענות בלי מקבילה בשאלון. */
+  unanchored: number;
+  total: number;
+}
+
 export interface Report {
   sessionId: string;
   generatedAt: number;
@@ -187,6 +236,8 @@ export interface Report {
     traditions: TraditionNote[];
   }[];
   integration: IntegrationNote[];
+  /** שלב השילוב: כל המקורות לפי נושאים. לא משפיע על הציונים. */
+  synthesis: Synthesis;
   reflections: ReflectionPrompt[];
   claimsUsed: string[];
   qa: QACheck[];
