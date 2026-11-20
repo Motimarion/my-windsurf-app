@@ -96,6 +96,7 @@ try {
   check('integration stage shown in report', await page.getByText('סיכום ואינטגרציה: כל המקורות יחד').isVisible());
   check('assessment-format report: tools, process, findings, recommendations, not-assessed, signature', (await page.getByText('כלים שהועברו').isVisible()) && (await page.getByText('מהלך התהליך').isVisible()) && (await page.getByText('ממצאים: אישיות (Big Five, שאלון Mini-IPIP)').isVisible()) && (await page.getByText('תחומים שלא נבדקו', { exact: true }).isVisible()) && (await page.getByText('לא נבדק ולא נחתם על ידי פסיכולוג').isVisible()));
   check('report still states it is not a diagnosis', await page.getByText('זהו אינו אבחון.').isVisible());
+  check('course report has no consumer-only plain-language reading', (await page.getByText('פרשנות משולבת: הכול יחד').count()) === 0);
   const synthSummary = (await page.locator('.card', { hasText: 'סיכום השילוב' }).textContent()) || '';
   check('integration summary compares traditions to questionnaire with chance baseline', /הושוו לשאלון/.test(synthSummary) && /בניחוש/.test(synthSummary), synthSummary.slice(0, 120));
   check('integration combines palm, handwriting and drawing claims', (await page.locator('.synth-entry').count()) >= 3);

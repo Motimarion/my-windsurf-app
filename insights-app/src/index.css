@@ -309,3 +309,9 @@ th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
   .likert button { font-size: 0.7rem; }
   .brand small { display: none; }
 }
+
+/* פרשנות משולבת (גרסת הצרכן) */
+.reading h3 { font-size: 1rem; margin: 18px 0 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.reading p { margin: 0 0 8px; line-height: 1.8; }
+.reading .reading-lead { color: var(--muted); margin-bottom: 4px; }
+.reading .reading-closing { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 2px; }

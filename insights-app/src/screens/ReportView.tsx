@@ -9,6 +9,8 @@ import { RiasecRadar, ScoreBars } from '../components/charts';
 import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge } from '../components/ui';
 import StepNav from '../components/StepNav';
 import SynthesisView from '../components/SynthesisView';
+import ReadingCard from '../components/ReadingCard';
+import { IS_CONSUMER } from '../edition';
 import {
   InterestText,
   NotAssessedCard,
@@ -336,6 +338,13 @@ export default function ReportView({ session, images, toast }: { session: Sessio
             ))}
           </ul>
         </div>
+
+        {IS_CONSUMER && (
+          <>
+            <SectionTitle num="13">פרשנות משולבת: הכול יחד, בשפה פשוטה</SectionTitle>
+            <ReadingCard report={report} />
+          </>
+        )}
         <SignatureCard report={report} />
       </div>
 
