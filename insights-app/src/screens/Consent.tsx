@@ -7,6 +7,7 @@ import type { Session } from '../types';
 export default function Consent() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [label, setLabel] = useState('');
+  const [referral, setReferral] = useState('');
   const all = CONSENT_ITEMS.every((c) => checked[c.id]);
 
   async function start() {
@@ -16,6 +17,7 @@ export default function Consent() {
       id,
       // מזעור מידע: לא מבקשים שם. כינוי חופשי לזיהוי התהליך במכשיר בלבד.
       label: label.trim() || `תהליך ${new Date(now).toLocaleDateString('he-IL')}`,
+      ...(referral.trim() ? { referral: referral.trim() } : {}),
       isDemo: false,
       createdAt: now,
       updatedAt: now,
@@ -62,6 +64,26 @@ export default function Consent() {
           onChange={(e) => setLabel(e.target.value)}
           maxLength={40}
           placeholder="למשל: משתתף 07"
+          style={{
+            width: '100%',
+            minHeight: 44,
+            borderRadius: 10,
+            border: '1px solid var(--line)',
+            padding: '0 12px',
+            background: 'var(--surface)',
+            color: 'var(--ink)',
+            font: 'inherit',
+          }}
+        />
+      </label>
+
+      <label className="stack" style={{ display: 'block', marginTop: 12 }}>
+        <span className="small">מה תרצה/י לבדוק? (לא חובה; יופיע בדוח כ"שאלת הפנייה")</span>
+        <input
+          value={referral}
+          onChange={(e) => setReferral(e.target.value)}
+          maxLength={160}
+          placeholder="למשל: אילו כיוונים תעסוקתיים מתאימים לתחומי העניין שלי"
           style={{
             width: '100%',
             minHeight: 44,

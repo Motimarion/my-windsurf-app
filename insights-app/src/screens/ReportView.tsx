@@ -6,9 +6,22 @@ import { BIG_FIVE_DESCRIPTIONS, BIG_FIVE_NAMES, RIASEC_NAMES } from '../data/que
 import { channelById } from '../data/channels';
 import { CLAIMS, claimById, sourceById } from '../data/evidence';
 import { RiasecRadar, ScoreBars } from '../components/charts';
-import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge, fmtDate } from '../components/ui';
+import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge } from '../components/ui';
 import StepNav from '../components/StepNav';
 import SynthesisView from '../components/SynthesisView';
+import {
+  InterestText,
+  NotAssessedCard,
+  PersonalityText,
+  ProcessCard,
+  ProductsCard,
+  RecommendationsCard,
+  ReportHeader,
+  SignatureCard,
+  StrengthsCard,
+  SummaryCard,
+  ToolsCard,
+} from '../components/AssessmentParts';
 import { exportPdf } from '../report/pdf';
 import { deleteSession } from '../storage/db';
 import { go } from '../router';
@@ -74,22 +87,15 @@ export default function ReportView({ session, images, toast }: { session: Sessio
       </div>
 
       <div ref={sheet} className="report-sheet" style={{ margin: '0 auto' }}>
-        <div className="card">
-          <div className="row spread">
-            <div>
-              <span className="tiny muted">דוח תובנות משולב · גרסת מחקר והדגמה</span>
-              <h1 style={{ margin: '4px 0' }}>{session.label}</h1>
-              <span className="small muted">הופק {fmtDate(report.generatedAt)}</span>
-            </div>
-            {report.isDemo && <span className="badge warn">נתונים סינתטיים</span>}
-          </div>
-          <div className="notice warn small" style={{ marginTop: 12 }}>
-            <strong>זהו אינו אבחון.</strong> הדוח מציג תוצאות שאלונים בדיווח עצמי, תיאור של מאפיינים בתמונות ופרשנויות
-            מסורתיות — כל אחד בנפרד, עם דירוג הראיות המחקריות. אין להשתמש בו להחלטות על קבלה לעבודה, טיפול או השמה.
-          </div>
-        </div>
+        <ReportHeader report={report} session={session} />
 
-        <SectionTitle num="1">אישיות — Big Five (Mini-IPIP)</SectionTitle>
+        <SectionTitle num="1">כלים שהועברו</SectionTitle>
+        <ToolsCard report={report} session={session} />
+
+        <SectionTitle num="2">מהלך התהליך</SectionTitle>
+        <ProcessCard report={report} session={session} />
+
+        <SectionTitle num="3">ממצאים: אישיות (Big Five, שאלון Mini-IPIP)</SectionTitle>
         <div className="card">
           <ScoreBars scores={report.bigFive} names={BIG_FIVE_NAMES} />
           <div className="table-wrap" style={{ marginTop: 14 }}>
@@ -118,11 +124,12 @@ export default function ReportView({ session, images, toast }: { session: Sessio
             ״נמוך/בינוני/גבוה״ הם חלוקה תיאורית של הסולם (מתחת ל־2.5 / מעל 3.5) — לא נורמות. ארבעה פריטים לתכונה
             מספקים הערכה גסה בלבד.
           </p>
+          <PersonalityText report={report} />
           <ClaimLine id="bf_instrument" />
           <ClaimLine id="bf_hebrew" />
         </div>
 
-        <SectionTitle num="2">נטיות תעסוקתיות — RIASEC</SectionTitle>
+        <SectionTitle num="4">ממצאים: תחומי עניין תעסוקתיים (RIASEC)</SectionTitle>
         <div className="card">
           <div className="grid grid-2" style={{ alignItems: 'center' }}>
             <RiasecRadar scores={report.riasec} names={RIASEC_NAMES} />
@@ -149,11 +156,13 @@ export default function ReportView({ session, images, toast }: { session: Sessio
               </table>
             </div>
           </div>
+          <InterestText report={report} />
           <ClaimLine id="riasec_model" />
           <ClaimLine id="riasec_items" />
         </div>
 
-        <SectionTitle num="3">תצפיות חזותיות ופרשנויות מסורתיות</SectionTitle>
+        <SectionTitle num="5">ממצאים: תוצרי כף היד, הכתב והציורים</SectionTitle>
+        <ProductsCard report={report} />
         {visual.length === 0 && <div className="card muted">לא הועלו תמונות בתהליך זה.</div>}
         {visual.map((ch) => {
           const def = channelById(ch.channel);
@@ -227,7 +236,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           );
         })}
 
-        <SectionTitle num="4">השוואות בין המקורות</SectionTitle>
+        <SectionTitle num="6">השוואה בין שני השאלונים</SectionTitle>
         <div className="card">
           {report.integration.length === 0 && <p className="muted small">אין מספיק נתונים מלאים להשוואה.</p>}
           <ul style={{ margin: 0, paddingInlineStart: 0, listStyle: 'none' }}>
@@ -243,11 +252,14 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           <ClaimLine id="integ_bf_riasec" />
         </div>
 
-        <SectionTitle num="5">התמונה המשולבת — כל המקורות לפי נושאים</SectionTitle>
+        <SectionTitle num="7">סיכום ואינטגרציה: כל המקורות יחד</SectionTitle>
+        <SummaryCard report={report} />
         <SynthesisView synthesis={report.synthesis} />
 
-        <SectionTitle num="6">נקודות להתבוננות עצמית</SectionTitle>
+        <SectionTitle num="8">חוזקות ונקודות להתבוננות</SectionTitle>
+        <StrengthsCard report={report} />
         <div className="card">
+          <h3 style={{ marginTop: 0 }}>נקודות להתבוננות</h3>
           <ol className="small" style={{ margin: 0, paddingInlineStart: 18 }}>
             {report.reflections.map((r) => (
               <li key={r.id} style={{ marginBottom: 8 }}>
@@ -257,7 +269,10 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           </ol>
         </div>
 
-        <SectionTitle num="7">מגבלות מדעיות</SectionTitle>
+        <SectionTitle num="9">המלצות</SectionTitle>
+        <RecommendationsCard report={report} />
+
+        <SectionTitle num="10">מגבלות ותחומים שלא נבדקו</SectionTitle>
         <div className="card small">
           <ul style={{ margin: 0, paddingInlineStart: 18 }}>
             <li>שאלונים בדיווח עצמי מושפעים ממצב רוח, מהקשר ומרצייה חברתית.</li>
@@ -268,8 +283,9 @@ export default function ReportView({ session, images, toast }: { session: Sessio
             <li>המדידות האוטומטיות (גודל, מיקום, מספר שורות) רגישות לזווית הצילום ולחיתוך הדף.</li>
           </ul>
         </div>
+        <NotAssessedCard />
 
-        <SectionTitle num="8">נספח — מקורות ורמות ראיות</SectionTitle>
+        <SectionTitle num="11">נספח: מקורות ורמות ראיות</SectionTitle>
         <div className="card">
           <div className="table-wrap">
             <table>
@@ -308,7 +324,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           </div>
         </div>
 
-        <SectionTitle num="9">בקרת איכות הדוח</SectionTitle>
+        <SectionTitle num="12">בקרת איכות הדוח</SectionTitle>
         <div className="card">
           <ul className="analysis-list small">
             {report.qa.map((q) => (
@@ -319,6 +335,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
             ))}
           </ul>
         </div>
+        <SignatureCard report={report} />
       </div>
 
       {confirm && (

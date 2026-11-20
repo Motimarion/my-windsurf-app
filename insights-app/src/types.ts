@@ -81,6 +81,8 @@ export interface ConsentRecord {
 export interface Session {
   id: string;
   label: string;
+  /** שאלת הפנייה: מה הנבדק ביקש לבדוק (רשות, טקסט קצר). */
+  referral?: string;
   isDemo: boolean;
   createdAt: number;
   updatedAt: number;
