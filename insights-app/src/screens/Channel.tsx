@@ -5,8 +5,10 @@ import { channelById } from '../data/channels';
 import StepNav, { stepList } from '../components/StepNav';
 import { StatusBadge, radioKeys, rovingIndex } from '../components/ui';
 import { ingestImage, mergeComputed, validateFile } from '../engine/ingest';
+import { clearAi } from '../engine/bridge';
 import { deleteImage } from '../storage/db';
 import { go } from '../router';
+import AiBridge from '../components/AiBridge';
 
 interface Props {
   session: Session;
@@ -39,9 +41,9 @@ export default function Channel({ session, images, channel, update, reloadImages
     setBusy(true);
     try {
       const { obs: computed } = await ingestImage(session.id, channel, f);
-      update((s) => mergeComputed(s, channel, computed));
+      update((s) => clearAi(mergeComputed(s, channel, computed), channel));
       await reloadImages();
-      if (replacing) toast('התמונה הוחלפה — הסימונים הידניים אופסו, כי תיארו את התמונה הקודמת');
+      if (replacing) toast('התמונה הוחלפה — הסימונים הידניים וערכי ה־AI אופסו, כי תיארו את התמונה הקודמת');
     } catch (e) {
       setErr(`לא ניתן לקרוא את התמונה (${(e as Error).message}). נסו קובץ JPG או PNG.`);
     } finally {
@@ -54,7 +56,7 @@ export default function Channel({ session, images, channel, update, reloadImages
     update((s) => {
       const { [channel]: _removed, ...rest } = s.observations;
       void _removed;
-      return { ...s, observations: rest };
+      return clearAi({ ...s, observations: rest }, channel);
     });
     await reloadImages();
     toast('התמונה והתצפיות של ערוץ זה נמחקו');
@@ -91,7 +93,8 @@ export default function Channel({ session, images, channel, update, reloadImages
             ))}
           </ol>
           <div className="notice small" style={{ marginTop: 12 }}>
-            התמונה נשמרת ומנותחת במכשיר בלבד. היא לא נשלחת לשום שירות.
+            האפליקציה שומרת ומנתחת את התמונה במכשיר בלבד, ולא שולחת אותה לשום שירות. בתחנת ה־AI (רשות, למטה) אתם מחליטים
+            בעצמכם אם להעביר אותה למודל.
           </div>
         </div>
 
@@ -161,6 +164,7 @@ export default function Channel({ session, images, channel, update, reloadImages
                 <strong>{f.label}</strong>
                 {f.computed && <span className="badge accent">חישוב אוטומטי</span>}
                 {cur?.source === 'demo' && <span className="badge warn">ערך הדגמה</span>}
+                {cur?.source === 'ai' && <span className="badge accent">מודל AI{cur.model ? ` · ${cur.model}` : ''}</span>}
               </div>
               {f.computed ? (
                 <p className="small" style={{ margin: '6px 0 0' }}>
@@ -193,6 +197,8 @@ export default function Channel({ session, images, channel, update, reloadImages
           );
         })}
       </div>
+
+      <AiBridge key={img?.id ?? 'none'} session={session} channel={channel} img={img} update={update} toast={toast} />
 
       <div className="row spread no-print">
         <button className="btn ghost" onClick={() => go({ name: 'hub', id: session.id })}>

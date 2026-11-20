@@ -1,4 +1,4 @@
-export const CONSENT_VERSION = '2026-11-v1';
+export const CONSENT_VERSION = '2026-11-v2';
 
 export const CONSENT_ITEMS = [
   { id: 'adult', text: 'אני בן/בת 18 ומעלה ומשתתף/ת מרצוני.' },
@@ -17,5 +17,9 @@ export const CONSENT_ITEMS = [
   {
     id: 'local-data',
     text: 'הבנתי שהנתונים נשמרים במכשיר זה בלבד, ושאני יכול/ה למחוק אותם בכל רגע.',
+  },
+  {
+    id: 'ai-optional',
+    text: 'הבנתי שהשימוש במודל AI חיצוני הוא רשות. אם אבחר בו, אני מעביר/ה את התמונה בעצמי, והיא תישמר לפי תנאי השירות.',
   },
 ];

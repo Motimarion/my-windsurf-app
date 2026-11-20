@@ -47,6 +47,27 @@ export interface Observation {
   featureId: string;
   value: string;
   source: 'manual' | 'computed' | 'demo' | 'ai';
+  /** לערכי AI בלבד: שם המודל שהמשתמש העביר אליו את הבקשה (Gemini, ChatGPT…). */
+  model?: string;
+}
+
+/**
+ * תיעוד הרצה אחת של תחנת המנוע דרך "הגשר הידני":
+ * הקוד הרכיב בקשה, המשתמש העביר אותה למודל, והתשובה עברה בשער הרשימה הסגורה.
+ */
+export interface AiRun {
+  channel: ChannelId;
+  model: string;
+  at: number;
+  /** כמה ערכים עברו בשער וכמה נדחו. */
+  accepted: number;
+  rejected: number;
+  /** האם התשובה כללה טקסט מחוץ ל־JSON (פרשנות וכדומה) — השער מתעלם ממנו. */
+  extraText: boolean;
+  /** השוואה לסימון הידני: בכמה מאפיינים המודל והאדם בחרו אותו ערך. */
+  agreement: { agree: number; compared: number };
+  /** האם המשתמש אימץ את ערכי המודל לתצפיות שבדוח. */
+  adopted: boolean;
 }
 
 export type LikertAnswers = Record<string, number>; // מזהה פריט → 1..5
@@ -67,6 +88,8 @@ export interface Session {
   ipip: LikertAnswers;
   riasec: LikertAnswers;
   observations: Partial<Record<ChannelId, Observation[]>>;
+  /** הרצות של תחנת המנוע (AI) דרך הגשר הידני. שדה אופציונלי — תהליכים ישנים לא כוללים אותו. */
+  aiRuns?: AiRun[];
   analyzedAt?: number;
 }
 

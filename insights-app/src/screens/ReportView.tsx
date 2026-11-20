@@ -185,12 +185,25 @@ export default function ReportView({ session, images, toast }: { session: Sessio
                             <td className="small">
                               <strong>{o.value}</strong>
                             </td>
-                            <td className="tiny muted">{SOURCE_TEXT[o.source]}</td>
+                            <td className="tiny muted">
+                              {o.source === 'ai' ? `${SOURCE_TEXT.ai}${o.model ? ` (${o.model})` : ''} · עבר בשער` : SOURCE_TEXT[o.source]}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   )}
+                  {(() => {
+                    const run = session.aiRuns?.find((r) => r.channel === ch.channel);
+                    if (!run) return null;
+                    return (
+                      <p className="tiny muted" style={{ marginTop: 6 }}>
+                        תחנת המנוע: {run.model} תיאר את התמונה. התקבלו {run.accepted} ערכים ונדחו {run.rejected}
+                        {run.agreement.compared > 0 && `; הסכמה עם הסימון האנושי ${run.agreement.agree} מתוך ${run.agreement.compared}`}
+                        {run.adopted ? '; הערכים אומצו' : '; הערכים לא אומצו'}. זהו מדד לדיוק התיאור בלבד, לא לתוקף פסיכולוגי.
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
               {ch.traditions.length > 0 && (

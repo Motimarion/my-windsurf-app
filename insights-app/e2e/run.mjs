@@ -111,7 +111,7 @@ try {
 
   // החלפת תמונה מאפסת סימונים ידניים
   await page.locator('input[type=file]').first().setInputFiles({ name: 'hw2.png', mimeType: 'image/png', buffer: pngBuf });
-  await page.getByText('הסימונים הידניים אופסו').waitFor();
+  await page.getByText(/הסימונים הידניים.*אופסו/).waitFor();
   check('replacing image resets manual observations', (await page.getByRole('radio', { name: 'גדול' }).getAttribute('aria-checked')) === 'false');
   await page.getByRole('radio', { name: 'גדול' }).click();
   // ניווט מקלדת ברדיו: חץ שמאלה (ב־RTL = הבא)
@@ -119,6 +119,25 @@ try {
   await page.keyboard.press('ArrowRight');
   check('arrow keys move selection in radiogroup', (await page.getByRole('radio', { name: 'בינוני' }).first().getAttribute('aria-checked')) === 'true');
   await page.getByRole('radio', { name: 'גדול' }).click();
+
+  // תחנת המנוע דרך גשר ידני: בקשה ← תשובה מודבקת ← שער רשימה סגורה ← השוואה לאדם ← אימוץ
+  check('AI bridge: request hidden until separate consent', (await page.getByRole('button', { name: 'העתקת הבקשה' }).count()) === 0);
+  await page.locator('input[type=checkbox]').check();
+  const req = await page.getByLabel('הבקשה למודל: הנחיה סמויה ורשימת הערכים המותרים').inputValue();
+  check('AI bridge: request = hidden prompt + closed list, no computed features', req.includes('תפקידך לתאר בלבד') && req.includes('hw.slant') && !req.includes('hw.lines'));
+  await page.getByRole('radio', { name: 'ChatGPT' }).click();
+  await page.getByLabel('התשובה של המודל').fill(
+    'זה התיאור:\n```json\n{"observations":[{"featureId":"hw.size","value":"גדול"},{"featureId":"hw.slant","value":"זקופה"},{"featureId":"hw.spacing","value":"רחב מאוד"},{"featureId":"hw.lines","value":"4–8"}],"imageUsable":true}\n```\nהכתב מעיד על ביטחון עצמי.',
+  );
+  await page.getByRole('button', { name: 'בדיקה בשער הרשימה הסגורה' }).click();
+  await page.getByText('התקבלו 2').waitFor();
+  check('AI bridge: gate rejects out-of-list and computed values', await page.getByText('נדחו 2').isVisible());
+  check('AI bridge: text outside JSON ignored', await page.getByText('השער התעלם ממנו').isVisible());
+  check('AI bridge: agreement with human marking shown', await page.getByText('הסכמה עם הסימון שלכם: 1 מתוך 1').isVisible());
+  await page.screenshot({ path: `${OUT}/desktop-ai-bridge.png`, fullPage: true });
+  await page.getByRole('button', { name: 'אימוץ ערכי המודל לתצפיות' }).click();
+  check('AI bridge: adopted values badged with model', await page.getByText('מודל AI · ChatGPT').first().isVisible());
+
   const stored = await page.evaluate(
     (id) =>
       new Promise((res) => {
@@ -161,8 +180,12 @@ try {
   }
   check('riasec completed', await page.getByText('30 מתוך 30 נענו').isVisible());
   await page.getByRole('button', { name: 'לניתוח ←' }).click();
+  await page.getByRole('button', { name: 'לצפייה בדוח ←' }).waitFor({ timeout: 10000 });
+  const qa2 = await page.locator('.notice').first().textContent();
+  check('real flow with adopted AI values: zero QA failures', /0 כשלים/.test(qa2 || ''), qa2?.trim());
   await page.getByRole('button', { name: 'לצפייה בדוח ←' }).click();
   await page.getByText('משתתף בדיקה').first().waitFor();
+  check('report marks AI values and the engine run', (await page.getByText('מודל AI (ChatGPT) · עבר בשער').count()) >= 1 && (await page.getByText(/תחנת המנוע: ChatGPT תיאר/).count()) === 1);
   check('real report has traditions for handwriting', await page.getByText('בגרפולוגיה נטען שכתב גדול').isVisible());
   check('real report not flagged as demo', (await page.getByText('נתונים סינתטיים').count()) === 0);
 

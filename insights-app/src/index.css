@@ -220,6 +220,25 @@ button { font: inherit; }
 }
 .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
+/* תיבות הבקשה והתשובה של תחנת המנוע */
+.code-box {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface-2); color: var(--ink); font: inherit; font-size: 0.85rem; line-height: 1.55; resize: vertical;
+}
+.code-box:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* תחנות המערכת במסך "על המערכת" — באותה שפת צבעים של שקף הזרימה */
+.stations { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.stations li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); border-top-width: 4px; background: var(--surface); }
+.stations li.code { border-top-color: #2b3440; }
+.stations li.engine { border-top-color: #b3591a; }
+.stations li.human { border-top-color: #b04a76; }
+.stations .num { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
+.stations li.engine .num { background: #b3591a; color: #fff; }
+.stations .kind { font-size: 0.78rem; color: var(--muted); }
+.stations li.engine .kind { color: #b3591a; }
+.stations .prompt { font-size: 0.8rem; color: var(--trad); }
+
 .dropzone {
   border: 2px dashed var(--line); border-radius: var(--radius); padding: 22px; text-align: center;
   background: var(--surface-2);

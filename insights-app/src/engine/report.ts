@@ -183,14 +183,24 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     detail: invalid.length ? `ערכים לא חוקיים: ${invalid.join(', ')}` : 'כל הערכים תקינים',
   });
 
-  // 4. אין תצפיות "AI" כשאין ספק AI פעיל.
-  const aiActive = PROVIDERS.some((p) => p.sendsDataOffDevice && p.status === 'active');
-  const aiObs = report.channels.flatMap((c) => c.observations).filter((o) => o.source === 'ai');
+  // 4. אין פלט AI מדומה: כל ערך AI חייב להגיע מהרצה מתועדת של תחנת המנוע (גשר ידני),
+  //    שעברה בשער הרשימה הסגורה ושהמשתמש אימץ. ערך AI בלי הרצה כזו — כישלון.
+  const bridgeActive = PROVIDERS.some((p) => p.id === 'manual-bridge' && p.status === 'active');
+  const runs = session.aiRuns ?? [];
+  const aiByChannel = report.channels
+    .map((c) => ({ ch: c.channel, n: c.observations.filter((o) => o.source === 'ai').length }))
+    .filter((x) => x.n > 0);
+  const orphan = aiByChannel.filter((x) => !bridgeActive || !runs.some((r) => r.channel === x.ch && r.adopted));
+  const aiCount = aiByChannel.reduce((a, x) => a + x.n, 0);
   checks.push({
     id: 'no-phantom-ai',
     label: 'אין פלט AI מדומה',
-    status: aiObs.length && !aiActive ? 'fail' : 'ok',
-    detail: aiActive ? 'ספק AI פעיל' : 'אין ספק AI חיצוני פעיל — לא הוצג ניתוח AI',
+    status: orphan.length ? 'fail' : 'ok',
+    detail: orphan.length
+      ? `ערכי AI בלי הרצה מתועדת: ${orphan.map((x) => x.ch).join(', ')}`
+      : aiCount
+        ? `${aiCount} ערכי AI — כולם עברו בשער הרשימה הסגורה ותועדו`
+        : 'אין ערכי AI בדוח',
   });
 
   // 5. עקביות: הציונים בדוח תואמים חישוב חוזר מהתשובות השמורות (מגן מפני דוח ישן או ציונים שנערכו).
