@@ -12,7 +12,7 @@
 
 **מה הכלי שבחרנו (רצוי לשים גם לינק) בעדיפות ראשונה?**
 דוח תובנות משולב: מערכת שמשלבת מודל ראייה (Gemini, ChatGPT או Claude) עם שני שאלונים קצרים, ומפיקה דוח תובנות.
-https://motimarion.github.io/my-windsurf-app/insights/ [פעיל אחרי מיזוג בקשת הפרסום]
+https://motimarion.github.io/my-windsurf-app/insights/
 הקוד: https://github.com/Motimarion/my-windsurf-app/pull/1
 
 **מה הוא עושה ולמה בחרנו דווקא אותו?**

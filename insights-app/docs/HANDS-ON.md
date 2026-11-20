@@ -1,7 +1,7 @@
 # דף התנסות: דוח תובנות משולב
 
 **זמן:** כ־20 דקות · **צריך:** טלפון או מחשב עם דפדפן, חשבון Gemini (או ChatGPT או Claude), דף לבן ועט.
-**קישור:** https://motimarion.github.io/my-windsurf-app/insights/ (יעבוד אחרי מיזוג בקשת הפרסום ב־GitHub)
+**קישור:** https://motimarion.github.io/my-windsurf-app/insights/
 
 > זה כלי להדגמה ולמחקר, לא אבחון. משתמשים בכינוי ולא בשם, ומעלים רק תמונות שלכם.
 
