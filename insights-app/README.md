@@ -19,9 +19,9 @@
 cd insights-app
 npm install
 npm run dev        # שרת פיתוח: http://localhost:5173
-npm test           # 60 בדיקות יחידה (Vitest)
+npm test           # 79 בדיקות יחידה (Vitest)
 npm run build      # בנייה לייצור → dist/
-npm run e2e        # 49 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+npm run e2e        # 54 בדיקות קצה־לקצה (Playwright; דורש build קודם)
 node docs/slides/render.mjs   # ייצוא שקפי הזרימה ל־PNG
 ```
 
@@ -45,6 +45,8 @@ src/
     imageAnalysis.ts     שכבה א׳: איכות תמונה, Otsu, מסגרת תוחמת, ספירת שורות
     providers.ts         ספקי ראייה: מקומי, ידני, גשר ידני למודל AI (פעיל), API ישיר (לא פעיל)
     bridge.ts            תחנת מנוע ③: בניית הבקשה, שער הרשימה הסגורה, השוואה לאדם
+    synthesis.ts         שלב השילוב: כל המקורות לפי נושאים, מול השאלון
+    narrative.ts         ניסוח הדוח במבנה של דוח אבחון (בלי אבחנות)
     scoring.ts           שכבה ד׳: ניקוד, ניקוד הפוך, קוד Holland
     report.ts            שכבות ה׳+ו׳: אינטגרציה, נקודות להתבוננות, 10 בדיקות QA
     ingest.ts            העלאה → ניתוח מקומי → שמירה
