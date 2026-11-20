@@ -19,12 +19,17 @@
 cd insights-app
 npm install
 npm run dev        # שרת פיתוח: http://localhost:5173
-npm test           # 44 בדיקות יחידה (Vitest)
+npm test           # 60 בדיקות יחידה (Vitest)
 npm run build      # בנייה לייצור → dist/
-npm run e2e        # 41 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+npm run e2e        # 49 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+node docs/slides/render.mjs   # ייצוא שקפי הזרימה ל־PNG
 ```
 
 אין צורך במפתחות API, בשרת או במסד נתונים. כל הנתונים נשמרים ב־IndexedDB בדפדפן.
+תחנת ה־AI עובדת דרך גשר ידני: האפליקציה מרכיבה את הבקשה, והמשתמש מעביר אותה ל־Gemini, ChatGPT או Claude (ראו `docs/PROMPTS.md`).
+
+מסמכי מטלת הקורס: `docs/ASSIGNMENT.md` (דרישות ומיפוי), `docs/FORM-DRAFT.md` (טיוטה לטופס), `docs/HANDS-ON.md` (דף התנסות),
+`docs/slides/flow-slide-v2.png` ו־`flow-slide-qa.png` (סעיף 03).
 
 ## מבנה
 
@@ -38,7 +43,8 @@ src/
     consent.ts           טופס הסכמה מדעת (גרסה)
   engine/
     imageAnalysis.ts     שכבה א׳: איכות תמונה, Otsu, מסגרת תוחמת, ספירת שורות
-    providers.ts         ממשק לספקי ראייה (Claude/Gemini — מוצגים כלא פעילים)
+    providers.ts         ספקי ראייה: מקומי, ידני, גשר ידני למודל AI (פעיל), API ישיר (לא פעיל)
+    bridge.ts            תחנת מנוע ③: בניית הבקשה, שער הרשימה הסגורה, השוואה לאדם
     scoring.ts           שכבה ד׳: ניקוד, ניקוד הפוך, קוד Holland
     report.ts            שכבות ה׳+ו׳: אינטגרציה, נקודות להתבוננות, 10 בדיקות QA
     ingest.ts            העלאה → ניתוח מקומי → שמירה
