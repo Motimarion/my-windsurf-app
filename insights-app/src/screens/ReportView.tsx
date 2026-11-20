@@ -208,7 +208,8 @@ export default function ReportView({ session, images, toast }: { session: Sessio
                     if (!run) return null;
                     return (
                       <p className="tiny muted" style={{ marginTop: 6 }}>
-                        תחנת המנוע: {run.model} תיאר את התמונה. התקבלו {run.accepted} ערכים ונדחו {run.rejected}
+                        תחנת המנוע: {run.model} תיאר את התמונה
+                        {run.mode === 'auto' ? ' (נשלחה אוטומטית אחרי שבדיקת האיכות עברה)' : ''}. התקבלו {run.accepted} ערכים ונדחו {run.rejected}
                         {run.agreement.compared > 0 && `; הסכמה עם הסימון האנושי ${run.agreement.agree} מתוך ${run.agreement.compared}`}
                         {run.adopted ? '; הערכים אומצו' : '; הערכים לא אומצו'}. זהו מדד לדיוק התיאור בלבד, לא לתוקף פסיכולוגי.
                       </p>

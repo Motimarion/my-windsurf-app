@@ -5,7 +5,8 @@ import { channelById } from '../data/channels';
 import StepNav, { stepList } from '../components/StepNav';
 import { StatusBadge, radioKeys, rovingIndex } from '../components/ui';
 import { ingestImage, mergeComputed, validateFile } from '../engine/ingest';
-import { clearAi } from '../engine/bridge';
+import { clearAi, refreshAgreement } from '../engine/bridge';
+import { useAutoSettings } from '../engine/autoAi';
 import { deleteImage } from '../storage/db';
 import { go } from '../router';
 import AiBridge from '../components/AiBridge';
@@ -22,6 +23,8 @@ interface Props {
 export default function Channel({ session, images, channel, update, reloadImages, toast }: Props) {
   const def = channelById(channel);
   const img = images.find((i) => i.channel === channel);
+  const [auto] = useAutoSettings();
+  const autoOn = auto.enabled && !!auto.key.trim() && auto.consentAuto;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const urlItems = useMemo(() => (img ? [{ key: 'img' as const, blob: img.blob }] : []), [img]);
@@ -41,8 +44,9 @@ export default function Channel({ session, images, channel, update, reloadImages
     setBusy(true);
     try {
       const { obs: computed } = await ingestImage(session.id, channel, f);
-      update((s) => clearAi(mergeComputed(s, channel, computed), channel));
+      // קודם התמונה החדשה ורק אחר כך איפוס התוצאות, כדי שתחנת ה־AI לא תשלח שוב את התמונה הקודמת ברגע שבין שני העדכונים.
       await reloadImages();
+      update((s) => clearAi(mergeComputed(s, channel, computed), channel));
       if (replacing) toast('התמונה הוחלפה — הסימונים הידניים וערכי ה־AI אופסו, כי תיארו את התמונה הקודמת');
     } catch (e) {
       setErr(`לא ניתן לקרוא את התמונה (${(e as Error).message}). נסו קובץ JPG או PNG.`);
@@ -53,12 +57,12 @@ export default function Channel({ session, images, channel, update, reloadImages
 
   async function removeImage() {
     await deleteImage(session.id, channel);
+    await reloadImages();
     update((s) => {
       const { [channel]: _removed, ...rest } = s.observations;
       void _removed;
       return clearAi({ ...s, observations: rest }, channel);
     });
-    await reloadImages();
     toast('התמונה והתצפיות של ערוץ זה נמחקו');
   }
 
@@ -67,7 +71,7 @@ export default function Channel({ session, images, channel, update, reloadImages
       const list = (s.observations[channel] ?? []).filter((o) => o.featureId !== featureId);
       const cur = valueOf(featureId);
       const next: Observation[] = cur?.value === value ? list : [...list, { featureId, value, source: 'manual' }];
-      return { ...s, observations: { ...s.observations, [channel]: next } };
+      return refreshAgreement({ ...s, observations: { ...s.observations, [channel]: next } }, channel);
     });
   }
 
@@ -92,10 +96,18 @@ export default function Channel({ session, images, channel, update, reloadImages
               </li>
             ))}
           </ol>
-          <div className="notice small" style={{ marginTop: 12 }}>
-            האפליקציה שומרת ומנתחת את התמונה במכשיר בלבד, ולא שולחת אותה לשום שירות. בתחנת ה־AI (רשות, למטה) אתם מחליטים
-            בעצמכם אם להעביר אותה למודל.
-          </div>
+          {autoOn ? (
+            <div className="notice warn small" style={{ marginTop: 12 }}>
+              <strong>שליחה אוטומטית ל־Gemini פעילה.</strong> אחרי ההעלאה האפליקציה בודקת את איכות התמונה, ואם היא עברה, שולחת
+              אוטומטית את העותק הנקי ל־Google Gemini API.
+              {def.kind === 'palm' && !auto.paidTier && ' צילום כף יד לא יישלח בלי מפתח בפרויקט עם חיוב פעיל.'}
+            </div>
+          ) : (
+            <div className="notice small" style={{ marginTop: 12 }}>
+              האפליקציה שומרת ומנתחת את התמונה במכשיר בלבד, ולא שולחת אותה לשום שירות. בתחנת ה־AI (רשות, למטה) אתם מחליטים
+              בעצמכם אם להעביר אותה למודל, ידנית או אוטומטית.
+            </div>
+          )}
         </div>
 
         <div className="card">

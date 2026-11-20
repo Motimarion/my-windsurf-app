@@ -184,14 +184,16 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     detail: invalid.length ? `ערכים לא חוקיים: ${invalid.join(', ')}` : 'כל הערכים תקינים',
   });
 
-  // 4. אין פלט AI מדומה: כל ערך AI חייב להגיע מהרצה מתועדת של תחנת המנוע (גשר ידני),
-  //    שעברה בשער הרשימה הסגורה ושהמשתמש אימץ. ערך AI בלי הרצה כזו — כישלון.
-  const bridgeActive = PROVIDERS.some((p) => p.id === 'manual-bridge' && p.status === 'active');
+  // 4. אין פלט AI מדומה: כל ערך AI חייב להגיע מהרצה מתועדת של תחנת המנוע (גשר ידני או שליחה אוטומטית),
+  //    שעברה בשער הרשימה הסגורה ושהמשתמש אימץ, דרך ספק פעיל. ערך AI בלי הרצה כזו — כישלון.
+  const providerActive = (id: string) => PROVIDERS.some((p) => p.id === id && p.status === 'active');
   const runs = session.aiRuns ?? [];
+  const documented = (ch: string) =>
+    runs.some((r) => r.channel === ch && r.adopted && providerActive(r.mode === 'auto' ? 'gemini-api' : 'manual-bridge'));
   const aiByChannel = report.channels
     .map((c) => ({ ch: c.channel, n: c.observations.filter((o) => o.source === 'ai').length }))
     .filter((x) => x.n > 0);
-  const orphan = aiByChannel.filter((x) => !bridgeActive || !runs.some((r) => r.channel === x.ch && r.adopted));
+  const orphan = aiByChannel.filter((x) => !documented(x.ch));
   const aiCount = aiByChannel.reduce((a, x) => a + x.n, 0);
   checks.push({
     id: 'no-phantom-ai',

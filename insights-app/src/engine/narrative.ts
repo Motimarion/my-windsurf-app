@@ -50,9 +50,17 @@ export function toolsUsed(report: Report, session: Session): ToolRow[] {
       note: 'לא נכנס לציונים',
     });
   }
-  const models = [...new Set((session.aiRuns ?? []).map((r) => r.model))];
+  const aiRuns = session.aiRuns ?? [];
+  const models = [...new Set(aiRuns.map((r) => r.model))];
   if (models.length) {
-    rows.push({ name: `מודל AI: ${models.join(', ')}`, what: 'תיאור תמונה מרשימה סגורה, דרך גשר ידני ושער בקוד', claimIds: [], note: 'מדד לדיוק התיאור בלבד' });
+    const auto = aiRuns.some((r) => r.mode === 'auto');
+    const manual = aiRuns.some((r) => r.mode !== 'auto');
+    const how = auto && manual
+      ? 'בגשר ידני ובשליחה אוטומטית אחרי בדיקת איכות, ושער בקוד'
+      : auto
+        ? 'בשליחה אוטומטית אחרי בדיקת איכות, ושער בקוד'
+        : 'דרך גשר ידני ושער בקוד';
+    rows.push({ name: `מודל AI: ${models.join(', ')}`, what: `תיאור תמונה מרשימה סגורה, ${how}`, claimIds: [], note: 'מדד לדיוק התיאור בלבד' });
   }
   return rows;
 }
@@ -76,8 +84,9 @@ export function processLines(report: Report, session: Session): string[] {
   if (runs.length) {
     const agree = runs.reduce((a, r) => a + r.agreement.agree, 0);
     const compared = runs.reduce((a, r) => a + r.agreement.compared, 0);
+    const autoN = runs.filter((r) => r.mode === 'auto').length;
     out.push(
-      `מודל AI תיאר ${runs.length} תוצרים${compared ? `; הסכמה עם הסימון האנושי ב־${agree} מתוך ${compared} מאפיינים` : ''}.`,
+      `מודל AI תיאר ${runs.length} תוצרים${autoN ? ` (${autoN === runs.length ? 'כולם נשלחו' : `${autoN} מהם נשלחו`} אוטומטית, אחרי שבדיקת האיכות עברה)` : ''}${compared ? `; הסכמה עם הסימון האנושי ב־${agree} מתוך ${compared} מאפיינים` : ''}.`,
     );
   } else out.push('לא נעשה שימוש במודל AI.');
   out.push('לא התקיימה פגישה ולא נערכה תצפית התנהגותית. אף בודק לא פגש את הנבדק, ולכן אין בדוח התרשמות של בודק.');

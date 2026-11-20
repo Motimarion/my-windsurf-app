@@ -104,3 +104,48 @@ describe('דוח במבנה של דוח אבחון — בלי אבחנות', () 
     expect(processLines(buildReport(s, images), s).join(' ')).toContain('אף בודק לא פגש את הנבדק');
   });
 });
+
+describe('תיאור התהליך כשהתמונה נשלחה אוטומטית', () => {
+  it('הדוח אומר שהשליחה הייתה אוטומטית ושקדמה לה בדיקת איכות', () => {
+    const base = buildReport(
+      {
+        id: 'a',
+        label: '',
+        isDemo: false,
+        createdAt: 0,
+        updatedAt: 0,
+        consent: null,
+        ipip: {},
+        riasec: {},
+        observations: {},
+      },
+      [],
+    );
+    const s: Session = {
+      id: 'a',
+      label: '',
+      isDemo: false,
+      createdAt: 0,
+      updatedAt: 0,
+      consent: null,
+      ipip: {},
+      riasec: {},
+      observations: {},
+      aiRuns: [
+        {
+          channel: 'palmRight',
+          model: 'Gemini API · gemini-3.8-flash',
+          at: 1,
+          accepted: 2,
+          rejected: 1,
+          extraText: false,
+          agreement: { agree: 0, compared: 0 },
+          adopted: false,
+          mode: 'auto',
+        },
+      ],
+    };
+    expect(processLines(base, s).join(' ')).toContain('נשלחו אוטומטית, אחרי שבדיקת האיכות עברה');
+    expect(toolsUsed(base, s).find((t) => t.name.startsWith('מודל AI'))!.what).toContain('בשליחה אוטומטית אחרי בדיקת איכות');
+  });
+});

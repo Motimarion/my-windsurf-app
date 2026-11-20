@@ -14,11 +14,14 @@ export interface VisionProvider {
   sendsDataOffDevice: boolean;
   /** התמונה יוצאת רק אם המשתמש עצמו מעביר אותה (האפליקציה לא שולחת דבר). */
   userTransfers?: boolean;
+  /** כבוי כברירת מחדל; שולח רק אחרי שהמשתמש הפעיל אותו. */
+  optIn?: boolean;
   describe?: (blob: Blob, channel: ChannelId) => Promise<Observation[]>;
 }
 
 /** טקסט לעמודה "מידע יוצא מהמכשיר" בטבלאות. */
-export const dataLeavesText = (p: VisionProvider) => (p.userTransfers ? 'רק אם המשתמש מעביר' : p.sendsDataOffDevice ? 'כן' : 'לא');
+export const dataLeavesText = (p: VisionProvider) =>
+  p.userTransfers ? 'רק אם המשתמש מעביר' : p.optIn ? 'רק אם הופעל, אחרי בדיקת איכות' : p.sendsDataOffDevice ? 'כן' : 'לא';
 
 export const PROVIDERS: VisionProvider[] = [
   {
@@ -51,10 +54,11 @@ export const PROVIDERS: VisionProvider[] = [
     note: 'לא מחובר. נדרש: שרת ביניים (backend) שמחזיק מפתח API, הסכמה מפורשת לשליחת תמונות לשירות חיצוני, מדיניות שמירת נתונים, ואותה הנחיה סמויה שבגשר הידני.',
   },
   {
-    id: 'gemini-vision',
-    name: 'Gemini דרך API (חיבור ישיר)',
-    status: 'inactive',
+    id: 'gemini-api',
+    name: 'Gemini דרך API (מפתח אישי, שליחה אוטומטית)',
+    status: 'active',
     sendsDataOffDevice: true,
-    note: 'לא מחובר. אותן דרישות כמו לחיבור ישיר ל־Claude. מיועד לבדיקה צולבת של דיוק התיאור — לא לאימות תוקף פסיכולוגי.',
+    optIn: true,
+    note: 'כבוי כברירת מחדל. מפעילים בכרטיס ה־AI עם מפתח API אישי והסכמה. אחרי בדיקת האיכות, כל תמונה שעברה נשלחת אוטומטית מהדפדפן ל־Google עם אותה הנחיה סמויה, והתשובה עוברת באותו שער. צילום כף יד נשלח רק עם מפתח בפרויקט עם חיוב פעיל, לפי תנאי Gemini API.',
   },
 ];

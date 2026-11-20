@@ -68,6 +68,14 @@ export interface AiRun {
   agreement: { agree: number; compared: number };
   /** האם המשתמש אימץ את ערכי המודל לתצפיות שבדוח. */
   adopted: boolean;
+  /** ידני (גשר) או אוטומטי (API עם מפתח אישי). */
+  mode?: 'manual' | 'auto';
+  /** התמונה שתוארה — כדי שלא תישלח פעמיים. */
+  imageId?: string;
+  /** הערכים שעברו בשער ומה נדחה — נשמרים כדי להציג את ההשוואה גם אחרי רענון. */
+  values?: Observation[];
+  rejectedItems?: { featureId: string; value: string; reason: string }[];
+  imageUsable?: boolean;
 }
 
 export type LikertAnswers = Record<string, number>; // מזהה פריט → 1..5

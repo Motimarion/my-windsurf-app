@@ -29,7 +29,30 @@ try {
   const page = await ctx.newPage();
   const errors = [];
   const external = [];
-  page.on('request', (r) => { const u = new URL(r.url()); if (!['localhost', ''].includes(u.hostname) && !u.protocol.startsWith('blob') && !u.protocol.startsWith('data')) external.push(u.hostname); });
+  // בקשות ל־Gemini מותרות רק אחרי שהמשתמש הפעיל שליחה אוטומטית (ובבדיקה הן מוחלפות בתשובה מדומה).
+  let autoEnabled = false;
+  const geminiCalls = [];
+  page.on('request', (r) => {
+    const u = new URL(r.url());
+    if (u.hostname === 'generativelanguage.googleapis.com' && autoEnabled) return r.method() === 'POST' && geminiCalls.push(r);
+    if (!['localhost', ''].includes(u.hostname) && !u.protocol.startsWith('blob') && !u.protocol.startsWith('data')) external.push(u.hostname);
+  });
+  const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+  await page.route('https://generativelanguage.googleapis.com/**', (route) =>
+    route.request().method() === 'OPTIONS'
+      ? route.fulfill({ status: 204, headers: CORS })
+      : route.fulfill({
+          status: 200,
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidates: [{ content: { parts: [{ text: JSON.stringify({ observations: [
+              { featureId: 'palm.lineClarity', value: 'ברורים' },
+              { featureId: 'palm.headLineShape', value: 'מעוקל' },
+              { featureId: 'palm.lifeLineArc', value: 'ארוכה מאוד' },
+            ], imageUsable: true }) }] } }],
+          }),
+        }),
+  );
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
@@ -139,7 +162,7 @@ try {
     'זה התיאור:\n```json\n{"observations":[{"featureId":"hw.size","value":"גדול"},{"featureId":"hw.slant","value":"זקופה"},{"featureId":"hw.spacing","value":"רחב מאוד"},{"featureId":"hw.lines","value":"4–8"}],"imageUsable":true}\n```\nהכתב מעיד על ביטחון עצמי.',
   );
   await page.getByRole('button', { name: 'בדיקה בשער הרשימה הסגורה' }).click();
-  await page.getByText('התקבלו 2').waitFor();
+  await page.locator('.badge', { hasText: 'התקבלו 2' }).waitFor();
   check('AI bridge: gate rejects out-of-list and computed values', await page.getByText('נדחו 2').isVisible());
   check('AI bridge: text outside JSON ignored', await page.getByText('השער התעלם ממנו').isVisible());
   check('AI bridge: agreement with human marking shown', await page.getByText('הסכמה עם הסימון שלכם: 1 מתוך 1').isVisible());
@@ -168,6 +191,58 @@ try {
   // קובץ לא חוקי
   await page.locator('input[type=file]').first().setInputFiles({ name: 'x.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1') });
   check('invalid file type rejected', await page.getByRole('alert').isVisible());
+
+  // ---------- שליחה אוטומטית של כף יד ל־Gemini: קודם בדיקת איכות ----------
+  const shot = async (html, w = 900, h = 1200) => {
+    const p2 = await ctx.newPage();
+    await p2.setViewportSize({ width: w, height: h });
+    await p2.setContent(html);
+    const b = await p2.screenshot();
+    await p2.close();
+    return b;
+  };
+  const palmPng = await shot(`<body style="margin:0;background:#3f454e"><svg width="900" height="1200" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="450" cy="760" rx="250" ry="300" fill="#e2b38f"/>
+    ${[0, 1, 2, 3].map((i) => `<rect x="${250 + i * 110}" y="${190 + Math.abs(1.5 - i) * 50}" width="85" height="380" rx="40" fill="#e2b38f"/>`).join('')}
+    <rect x="650" y="640" width="80" height="260" rx="40" fill="#e2b38f" transform="rotate(-35 690 770)"/>
+    <path d="M250 640 Q450 600 650 660" stroke="#6b3f2a" stroke-width="7" fill="none"/>
+    <path d="M240 730 Q430 720 600 790" stroke="#6b3f2a" stroke-width="7" fill="none"/>
+    <path d="M330 640 Q270 820 380 1010" stroke="#6b3f2a" stroke-width="7" fill="none"/></svg></body>`);
+  const darkPng = await shot('<body style="margin:0;background:#050505;color:#0b0b0b;font:20px serif;padding:40px">x</body>');
+
+  await page.goto(`${BASE}#/s/${sid}/c/palmRight`);
+  await page.getByRole('radio', { name: 'אוטומטי (Gemini API)' }).click();
+  autoEnabled = true;
+  await page.getByLabel('מפתח Gemini API').fill('test-key');
+  await page.getByText('שליחה אוטומטית פעילה').click();
+  await page.getByText('אני מסכים/ה שכל תמונה שאעלה').click();
+  await page.locator('input[type=file]:not([capture])').setInputFiles({ name: 'palm.png', mimeType: 'image/png', buffer: palmPng });
+  await page.getByText('בדיקת איכות').first().waitFor();
+  await page.getByText('צילום כף יד הוא מידע אישי. לפי תנאי Gemini API').waitFor();
+  check('auto: palm is not sent without a paid-tier key', geminiCalls.length === 0);
+  const palmQuality = (await page.locator('.badge', { hasText: /איכות (טובה|סבירה)|מומלץ לצלם מחדש/ }).first().textContent())?.trim();
+  check('auto: palm quality checked before any sending', /איכות (טובה|סבירה)/.test(palmQuality || ''), palmQuality);
+  await page.getByText('המפתח שלי בפרויקט עם חיוב פעיל').click();
+  await page.locator('.badge', { hasText: 'התקבלו 2' }).waitFor({ timeout: 10000 });
+  check('auto: palm sent once after quality check, gate accepted 2 and rejected 1', geminiCalls.length === 1 && (await page.locator('.badge', { hasText: 'נדחו 1' }).isVisible()));
+  const call = geminiCalls[0];
+  const body = JSON.parse(call.postData() || '{}');
+  check(
+    'auto: request has key header, hidden prompt, closed list and the clean JPEG',
+    call.headers()['x-goog-api-key'] === 'test-key' &&
+      body.systemInstruction?.parts?.[0]?.text?.includes('תפקידך לתאר בלבד') &&
+      body.contents?.[0]?.parts?.[0]?.text?.includes('palm.lineClarity') &&
+      body.contents?.[0]?.parts?.[1]?.inlineData?.mimeType === 'image/jpeg',
+  );
+  await page.screenshot({ path: `${OUT}/desktop-auto-palm.png`, fullPage: true });
+  await page.reload();
+  await page.locator('.badge', { hasText: 'התקבלו 2' }).waitFor();
+  check('auto: result persists after reload and is not sent again', geminiCalls.length === 1);
+
+  // תמונה כהה מדי: בדיקת האיכות נכשלת, ולכן היא לא נשלחת
+  await page.locator('input[type=file]').first().setInputFiles({ name: 'dark.png', mimeType: 'image/png', buffer: darkPng });
+  await page.getByText('איכות התמונה נמוכה, ולכן היא לא נשלחה למודל').waitFor();
+  check('auto: low-quality image is blocked before sending', geminiCalls.length === 1);
 
   // שאלון: עונים על חצי, טוענים מחדש, ההתקדמות נשמרה
   await page.goto(`${BASE}#/s/${sid}/q/ipip`);

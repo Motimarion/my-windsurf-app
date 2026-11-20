@@ -19,14 +19,16 @@
 cd insights-app
 npm install
 npm run dev        # שרת פיתוח: http://localhost:5173
-npm test           # 79 בדיקות יחידה (Vitest)
+npm test           # 92 בדיקות יחידה (Vitest)
 npm run build      # בנייה לייצור → dist/
-npm run e2e        # 54 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+npm run e2e        # 60 בדיקות קצה־לקצה (Playwright; דורש build קודם)
 node docs/slides/render.mjs   # ייצוא שקפי הזרימה ל־PNG
 ```
 
-אין צורך במפתחות API, בשרת או במסד נתונים. כל הנתונים נשמרים ב־IndexedDB בדפדפן.
-תחנת ה־AI עובדת דרך גשר ידני: האפליקציה מרכיבה את הבקשה, והמשתמש מעביר אותה ל־Gemini, ChatGPT או Claude (ראו `docs/PROMPTS.md`).
+אין צורך בשרת או במסד נתונים. כל הנתונים נשמרים ב־IndexedDB בדפדפן.
+תחנת ה־AI עובדת בשני מצבים (ראו `docs/PROMPTS.md`): **גשר ידני** (ברירת המחדל, בלי מפתח): האפליקציה מרכיבה את הבקשה,
+והמשתמש מעביר אותה ל־Gemini, ChatGPT או Claude. **שליחה אוטומטית** (רשות): עם מפתח Gemini API אישי, שנשמר רק בלשונית,
+כל תמונה שעברה את בדיקת האיכות נשלחת אוטומטית. צילום כף יד נשלח רק עם מפתח בפרויקט עם חיוב פעיל.
 
 מסמכי מטלת הקורס: `docs/ASSIGNMENT.md` (דרישות ומיפוי), `docs/FORM-DRAFT.md` (טיוטה לטופס), `docs/HANDS-ON.md` (דף התנסות),
 `docs/slides/flow-slide-v2.png` ו־`flow-slide-qa.png` (סעיף 03).
@@ -43,8 +45,9 @@ src/
     consent.ts           טופס הסכמה מדעת (גרסה)
   engine/
     imageAnalysis.ts     שכבה א׳: איכות תמונה, Otsu, מסגרת תוחמת, ספירת שורות
-    providers.ts         ספקי ראייה: מקומי, ידני, גשר ידני למודל AI (פעיל), API ישיר (לא פעיל)
+    providers.ts         ספקי ראייה: מקומי, ידני, גשר ידני למודל AI, Gemini API (רשות), Claude API (לא פעיל)
     bridge.ts            תחנת מנוע ③: בניית הבקשה, שער הרשימה הסגורה, השוואה לאדם
+    autoAi.ts            שליחה אוטומטית ל־Gemini API: תנאים (קודם בדיקת איכות), בקשה, טיפול בשגיאות
     synthesis.ts         שלב השילוב: כל המקורות לפי נושאים, מול השאלון
     narrative.ts         ניסוח הדוח במבנה של דוח אבחון (בלי אבחנות)
     scoring.ts           שכבה ד׳: ניקוד, ניקוד הפוך, קוד Holland

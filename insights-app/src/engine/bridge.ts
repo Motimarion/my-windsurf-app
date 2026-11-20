@@ -191,3 +191,12 @@ export function clearAi(s: Session, channel: ChannelId): Session {
     observations: obs ? { ...s.observations, [channel]: obs.filter((o) => o.source !== 'ai') } : s.observations,
   };
 }
+
+/** אחרי שינוי בסימון האנושי: מחשב מחדש את ההסכמה בין המודל לאדם, לפי הערכים השמורים של ההרצה. */
+export function refreshAgreement(s: Session, channel: ChannelId): Session {
+  const runs = s.aiRuns ?? [];
+  const run = runs.find((r) => r.channel === channel);
+  if (!run?.values || run.adopted) return s;
+  const { agreement } = compareWithHuman(channel, s.observations[channel] ?? [], run.values);
+  return { ...s, aiRuns: runs.map((r) => (r === run ? { ...r, agreement } : r)) };
+}

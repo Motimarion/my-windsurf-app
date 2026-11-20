@@ -187,6 +187,14 @@ describe('בקרת איכות: אין פלט AI מדומה', () => {
     expect(qa(s).status).toBe('ok');
   });
 
+  it('ערך AI מהרצה אוטומטית (Gemini API) שאומצה — תקין', () => {
+    const s = session({
+      observations: { drawingTree: [{ featureId: 'tree.roots', value: 'מצוירים', source: 'ai', model: 'Gemini API · gemini-3.8-flash' }] },
+      aiRuns: [run({ mode: 'auto', model: 'Gemini API · gemini-3.8-flash' })],
+    });
+    expect(qa(s).status).toBe('ok');
+  });
+
   it('ערך AI בלי הרצה, או עם הרצה שלא אומצה — נכשל', () => {
     const obs = { drawingTree: [{ featureId: 'tree.roots', value: 'מצוירים', source: 'ai' as const }] };
     expect(qa(session({ observations: obs })).status).toBe('fail');
