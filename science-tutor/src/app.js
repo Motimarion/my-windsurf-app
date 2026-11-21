@@ -106,6 +106,9 @@ function gradePart(p, ans){
 }
 function gradeQuestion(parts, answers){
   const res = parts.map((p,i)=>gradePart(p,answers[i]));
+  // שאלות פתוחות מרובות (״כתבו שלוש שאלות״): תשובה שחוזרת על תשובה קודמת אינה נחשבת תשובה נוספת
+  const seen=[];
+  parts.forEach((p,i)=>{ if(p.type!=='open') return; const t=norm(answers[i]); if(t && seen.includes(t) && res[i].status==='ok'){ res[i].status='partial'; res[i].hint='כתבתם את אותה תשובה פעמיים. נסו לכתוב תשובה אחרת.'; res[i].missing.push({id:'distinct', desc:'שונה מתשובה קודמת'}); } seen.push(t); });
   if(res.some(r=>r.status==='empty')) return {status:'empty', parts:res};
   const ok=res.filter(r=>r.status==='ok').length;
   let status;

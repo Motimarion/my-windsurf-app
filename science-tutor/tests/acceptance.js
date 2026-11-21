@@ -152,6 +152,16 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   const sw = await m.evaluate(() => document.documentElement.scrollWidth); ok(sw <= 375, 'אין גלילה אופקית ברוחב 375px (' + sw + ')');
   await m.screenshot({ path: OUT + '/7-mobile-chart.png', fullPage: true });
 
+  console.log('6. מחוון: כל תשובה לדוגמה מתקבלת');
+  const bank = await m.evaluate(() => { const T = window.__sciTutor; const bad = [];
+    const right = p => ({mc:p.answer, multi:p.answers, tf:p.items&&p.items.map(i=>i.a), match:p.items&&p.items.map(i=>i.a), order:p.items&&p.items.map((x,k)=>String(k+1)), chain:p.answer, grid:p.rows&&p.rows.map(r=>r.a), num:String(p.answer), fill:p.model, open:p.model})[p.type];
+    T.QUESTIONS.forEach(q => [q, q.transfer].forEach(it => { const g = T.gradeQuestion(it.parts, it.parts.map(right)); if (g.status !== 'correct') bad.push(it.id + ':' + g.status); }));
+    const d05 = T.QUESTIONS.find(q => q.id === 'd05'); const same = 'כמה עלים אוכל חילזון ביום?';
+    const dup = T.gradeQuestion(d05.parts, [d05.parts[0].model, 0, same, same, 'האם חילזון זוחל מהר אחרי גשם?']);
+    return { bad, dup: dup.status, n: T.QUESTIONS.length * 2 }; });
+  ok(bank.bad.length === 0, 'כל ' + bank.n + ' השאלות מקבלות את התשובה לדוגמה שלהן' + (bank.bad.length ? ': ' + bank.bad : ''));
+  ok(bank.dup === 'partial', 'שאלה שנכתבה פעמיים אינה נספרת כשתי שאלות');
+
   ok(errors.length === 0, 'אין שגיאות JavaScript' + (errors.length ? ': ' + errors.join(' | ') : ''));
   // שמירה על חומרי המקור: מחרוזות ייחודיות מהמבחן המקורי אינן בקוד
   const html = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');
