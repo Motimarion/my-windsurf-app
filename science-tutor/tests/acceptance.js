@@ -143,6 +143,14 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   ok(fs.readFileSync(OUT + '/export2.csv', 'utf8').includes('ניסוח סביר'), 'החלטת המורה וההערה נשמרות בקובץ המיוצא');
   await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07|4');
   ok(await page.isVisible('text=מיומנויות שטרם נרכשו'), 'דוח תלמיד מוצג');
+  ok(await page.isVisible('text=המלצות הוראה') && await page.locator('text=/הוראה מחודשת/').count() > 0, 'דוח התלמיד כולל המלצות הוראה');
+  await page.selectOption('#tGrade', '4'); await page.selectOption('#tTopic', 'מיון בעלי חיים');
+  await page.click('[data-tab="map"]');
+  const mapRows = await page.locator('table.data tbody tr').count();
+  ok(mapRows === 6, 'סינון לפי נושא: 6 שאלות ב״מיון בעלי חיים״ (' + mapRows + ')');
+  await page.click('[data-tab="class"]');
+  ok(await page.locator('table.data td', { hasText: 'מאפייני חיים וצרכי קיום' }).count() === 0 && await page.locator('table.data td', { hasText: 'מיון בעלי חיים' }).count() > 0, 'סקירת הכיתה מציגה רק את הנושא המסונן');
+  await page.selectOption('#tTopic', 'all'); await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07|4');
   await page.screenshot({ path: OUT + '/6-teacher-student.png', fullPage: true });
 
   console.log('5. מסך טלפון/Chromebook צר');

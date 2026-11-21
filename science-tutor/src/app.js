@@ -151,7 +151,7 @@ function solutionHTML(parts){
 }
 
 /* ---------- מצב ---------- */
-const S = { view:'login', student:null, grade:null, teacher:false, tTab:'class', tGrade:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
+const S = { view:'login', student:null, grade:null, teacher:false, tTab:'class', tGrade:'all', tTopic:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
 function pkey(){ return S.student+'|'+S.grade; }
 function getProg(){ const p=db.progress; if(!p[pkey()]) p[pkey()]={student:S.student, grade:S.grade, idx:0, q:{}, started:nowISO()}; return p; }
 function qstate(prog, qid){ const P=prog[pkey()]; if(!P.q[qid]) P.q[qid]={stage:'main', tries:0, hints:0, hintTypes:[], explainReq:0, revealed:false, tTries:0, tHints:0, done:false, mastery:'', review:false, hadUncertain:false}; return P.q[qid]; }
@@ -403,7 +403,16 @@ function effective(rows){
   Object.values(map).forEach(m=>{ if(m.override&&m.override.teacher_mastery) m.level=m.override.teacher_mastery; m.pending = m.review && !m.override; });
   return map;
 }
-function teacherRows(){ const g=S.tGrade; return db.attempts.filter(r=>g==='all'||r.grade===String(g)); }
+function teacherRows(){ const g=S.tGrade, t=S.tTopic; return db.attempts.filter(r=>(g==='all'||r.grade===String(g)) && (t==='all'||(QBYID[r.base_question_id]&&QBYID[r.base_question_id].topic===t))); }
+function topicsFor(g){ return [...new Set(QUESTIONS.filter(q=>g==='all'||q.grade===Number(g)).map(q=>q.topic))]; }
+// המלצת הוראה שקופה: נגזרת מרמת השליטה, מהטעות שזוהתה ומההסבר של השאלה
+function recommendation(m,q){
+  const mis=[...m.mis][0]; const first=strip(q.explain).split('. ')[0];
+  if(m.level==='needs_teacher') return {pri:1, text:'הוראה מחודשת (עדיף בקבוצה קטנה): '+q.skill+'.'+(mis?' טעות שזוהתה: '+mis+'.':'')+' נקודת פתיחה מוצעת: '+first+'.'};
+  if(m.level==='after_teaching') return {pri:2, text:'תרגול נוסף לחיזוק — הצליח רק אחרי הסבר: '+q.skill+'.'+(mis?' לשים לב: '+mis+'.':'')};
+  if(m.pending) return {pri:3, text:'לבדוק את התשובה הפתוחה לפני שמסיקים מסקנה: '+q.skill+'.'};
+  return null;
+}
 function lvlBadge(l){ return l?'<span class="lvl '+l+'">'+LEVELS[l]+'</span>':'<span class="lvl none">טרם הושלם</span>'; }
 function stackBar(c,total){ if(!total) return '<span class="muted small">אין נתונים</span>'; return '<div class="stack" title="'+LEVEL_ORDER.map(l=>LEVELS[l]+': '+c[l]).join(' · ')+'">'+LEVEL_ORDER.map(l=>'<span style="width:'+(c[l]/total*100)+'%;background:'+LEVEL_COLORS[l]+'"></span>').join('')+'</div>'; }
 function legend(){ return '<div class="legend">'+LEVEL_ORDER.map(l=>'<span><i style="background:'+LEVEL_COLORS[l]+'"></i>'+LEVELS[l]+'</span>').join('')+'</div>'; }
@@ -412,7 +421,8 @@ function pct(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
 function renderTeacher(){
   const tabs=[['class','סקירת כיתה'],['student','דוח תלמיד'],['open','תשובות פתוחות לבדיקה'],['map','טבלת קישור ומיומנויות'],['data','ייבוא, ייצוא והגדרות']];
   let h=topbar()+'<div class="wrap"><div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">מסך מורה</h2>'+
-    '<label>שכבה: <select id="tGrade"><option value="all">כל השכבות</option>'+[4,5,6].map(g=>'<option value="'+g+'"'+(String(S.tGrade)===String(g)?' selected':'')+'>כיתה '+GRADE_NAMES[g]+'</option>').join('')+'</select></label></div>'+
+    '<label>שכבה: <select id="tGrade"><option value="all">כל השכבות</option>'+[4,5,6].map(g=>'<option value="'+g+'"'+(String(S.tGrade)===String(g)?' selected':'')+'>כיתה '+GRADE_NAMES[g]+'</option>').join('')+'</select></label> '+
+    '<label>נושא: <select id="tTopic"><option value="all">כל הנושאים</option>'+topicsFor(S.tGrade).map(t=>'<option'+(S.tTopic===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label></div>'+
     '<div class="tabs">'+tabs.map(t=>'<button data-tab="'+t[0]+'" class="'+(S.tTab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>'+
     '<div class="note">הסיווג כאן הוא סיווג להוראה בתרגול ההכנה — לא ציון מיפוי ולא ציון רשמי. ניקוד ההכנה אינו זהה לניקוד המחוזי.</div></div>';
   const rows=teacherRows();
@@ -463,10 +473,12 @@ function teacherStudent(rows){
   if(done.length<Math.max(4,Math.ceil(list.length/4))) h+='<div class="banner warn">אין מספיק מידע כדי להסיק על שליטה כללית — התלמיד השלים מעט שאלות.</div>';
   const sec=(title,l)=>{ const qs=by(l); return '<h4 style="margin-bottom:4px">'+lvlBadge(l)+' '+title+' ('+qs.length+')</h4>'+(qs.length?'<ul class="small">'+qs.map(q=>'<li>'+esc(q.skill)+'</li>').join('')+'</ul>':'<p class="muted small">—</p>'); };
   h+=sec('פתר לבד','independent')+sec('הצריך רמז','after_hint')+sec('הצליח ביישום אחרי הסבר','after_teaching')+sec('מיומנויות שטרם נרכשו','needs_teacher');
+  const recs=list.map(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; return m&&recommendation(m,q); }).filter(Boolean).sort((a,b)=>a.pri-b.pri);
+  h+='</div><div class="card"><h3 style="margin-top:0">🧭 המלצות הוראה</h3>'+(recs.length?'<ol class="small">'+recs.map(r=>'<li>'+esc(r.text)+'</li>').join('')+'</ol><p class="note">ההמלצות נגזרות מרמת השליטה ומהטעויות שזוהו. הן הצעה בלבד, וההחלטה בידי המורה.</p>':'<p class="muted">אין כרגע המלצה מיוחדת — התלמיד הצליח בשאלות שהשלים לבד או אחרי רמז.</p>');
   h+='</div><div class="card"><h3 style="margin-top:0">פירוט לפי שאלה</h3><div class="scroll"><table class="data"><thead><tr><th>שאלה</th><th>מיומנות</th><th>רמה</th><th>ניסיונות</th><th>רמזים</th><th>הוצג פתרון</th><th>בדיקת מורה</th><th>תשובה אחרונה</th></tr></thead><tbody>'+
     list.map(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; if(!m) return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge('')+'</td><td colspan="5" class="muted small">לא נוסתה</td></tr>';
       const last=m.rows[m.rows.length-1]; const maxH=Math.max(...m.rows.filter(r=>r.is_transfer!=='yes').map(r=>Number(r.hints_used||0)),0);
-      return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge(m.level)+(m.override?' <span class="small">(מורה)</span>':'')+'</td><td>'+m.rows.length+'</td><td>'+maxH+'</td><td>'+(m.revealed?'כן':'לא')+'</td><td>'+(m.pending?'⏳ ממתין':m.review?'✓ נבדק':'—')+'</td><td class="small">'+esc(last.answer_text).slice(0,160)+'</td></tr>'; }).join('')+
+      return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge(m.level)+(m.override?' <span class="small">(מורה)</span>':'')+'</td><td>'+m.rows.length+'</td><td>'+maxH+'</td><td>'+(m.revealed?'כן':'לא')+'</td><td>'+(m.pending?'⏳ ממתין':m.review?'✓ נבדק':'—')+'</td><td class="small">'+esc(String(last.answer_text).slice(0,160))+'</td></tr>'; }).join('')+
     '</tbody></table></div></div>';
   return h;
 }
@@ -493,7 +505,7 @@ function teacherOpen(rows){
 function teacherMap(){
   return '<div class="card"><h3 style="margin-top:0">טבלת קישור: שכבה → שאלה במבחן המקור → מיומנות → שאלה חדשה → מחוון</h3><p class="note">טקסט מבחני המקור והמחוון הרשמי אינם כלולים באפליקציה. מספר השאלה במקור מופיע לצורך התמצאות המורה בלבד. המחוון לכל שאלה חדשה הוא מחוון הכנה (לא רשמי).</p>'+
     '<div class="scroll"><table class="data"><thead><tr><th>שכבה</th><th>שאלה במקור</th><th>מיומנות</th><th>שאלה חדשה</th><th>שאלת העברה</th><th>סוג</th><th>מחוון</th></tr></thead><tbody>'+
-    QUESTIONS.filter(q=>S.tGrade==='all'||String(q.grade)===String(S.tGrade)).map(q=>'<tr><td>'+GRADE_NAMES[q.grade]+'</td><td>'+q.src+'</td><td class="small">'+esc(q.skill)+'</td><td>'+q.id+'</td><td>'+q.transfer.id+'</td><td class="small">'+q.parts.map(p=>p.type).join('+')+'</td><td class="small">R-'+q.id+' ('+RUBRIC_VERSION+')</td></tr>').join('')+'</tbody></table></div></div>';
+    QUESTIONS.filter(q=>(S.tGrade==='all'||String(q.grade)===String(S.tGrade))&&(S.tTopic==='all'||q.topic===S.tTopic)).map(q=>'<tr><td>'+GRADE_NAMES[q.grade]+'</td><td>'+q.src+'</td><td class="small">'+esc(q.skill)+'</td><td>'+q.id+'</td><td>'+q.transfer.id+'</td><td class="small">'+q.parts.map(p=>p.type).join('+')+'</td><td class="small">R-'+q.id+' ('+RUBRIC_VERSION+')</td></tr>').join('')+'</tbody></table></div></div>';
 }
 function teacherData(){
   const n=db.attempts.length;
@@ -539,7 +551,8 @@ document.addEventListener('click', e=>{
   else if(a==='wipe'){ if(confirm('למחוק את כל ניסיונות התלמידים, ההתקדמות והחלטות המורה במכשיר הזה? מומלץ לייצא קובץ לפני כן.') && confirm('האם אתם בטוחים? אי אפשר לבטל את המחיקה.')){ db.saveAttempts([]); db.saveOverrides({}); db.saveProgress({}); render(); } }
 });
 document.addEventListener('change', e=>{
-  if(e.target.id==='tGrade'){ S.tGrade=e.target.value==='all'?'all':Number(e.target.value); render(); }
+  if(e.target.id==='tGrade'){ S.tGrade=e.target.value==='all'?'all':Number(e.target.value); if(!topicsFor(S.tGrade).includes(S.tTopic)) S.tTopic='all'; render(); }
+  else if(e.target.id==='tTopic'){ S.tTopic=e.target.value; render(); }
   else if(e.target.id==='tStudent'){ S.tStudent=e.target.value; render(); }
   else if(e.target.id==='showAllOpen'){ S.showAllOpen=e.target.checked; render(); }
   else if(e.target.id==='importFile'){ readFiles(e.target.files); }
