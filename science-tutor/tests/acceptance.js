@@ -162,6 +162,24 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   ok(bank.bad.length === 0, 'כל ' + bank.n + ' השאלות מקבלות את התשובה לדוגמה שלהן' + (bank.bad.length ? ': ' + bank.bad : ''));
   ok(bank.dup === 'partial', 'שאלה שנכתבה פעמיים אינה נספרת כשתי שאלות');
 
+  console.log('7. מחוון: תשובות שגויות טיפוסיות לא מתקבלות, וניסוחים נכונים כן');
+  const probes = [
+    ['d03',1,'כדי לאכול את השועל','wrong'], ['d03',1,'הוא מתגונן בעזרת הקוצים','ok'], ['d03',1,'השועל לא יכול לתפוס אותו כי הוא דוקר','ok'],
+    ['d11',2,'שניהם עפים','wrong'], ['d11',2,'שניהם מניקים את הגורים','ok'],
+    ['d14',1,'יש להם ריאות','wrong'], ['d14',1,'מטילים ביצים','wrong'], ['d14',1,'יש להם פרווה','ok'],
+    ['d15',1,'הדבורה יכולה להיות בשתי הקבוצות','ok'], ['d16',2,'לבנות עוד בתים','wrong'],
+    ['h09',3,'קרקע חולית כי המים עוברים מהר','wrong'], ['h09',3,'חרסיתית כי המים נשארים בה','ok'],
+    ['h10',3,'כן כי היא עשתה ניסוי','wrong'], ['h10',3,'לא, כי ניסוי אחד לא מספיק','ok'], ['h10',3,'צריך לחזור על הניסוי כמה פעמים','ok'],
+    ['h11',1,'כי המים עוברים מהר בחרסית','wrong'], ['h11',1,'בחולית המים עוברים מהר ובחרסית לאט','ok'], ['h11',1,'הגרגרים קטנים וצפופים','ok'],
+    ['v05',1,'לא נגמרים','partial'], ['v05',1,'לא נגמרים ולא מזהמים','ok'],
+    ['v06',3,'כי זה כיף','wrong'], ['v06',3,'כדי לוודא שזה לא קרה במקרה','ok'],
+    ['v12',4,'להתקין לוחות סולאריים על הגגות','ok'], ['v12',5,'בעיר א יש יותר מבעיר ב','ok'], ['v12',5,'התרשים יפה','wrong'] ];
+  const pr = await m.evaluate(ps => ps.map(([id,i,t,exp]) => { const q = window.__sciTutor.QUESTIONS.find(x => x.id === id); const g = window.__sciTutor.gradePart(q.parts[i], t); return [id+'['+i+'] «'+t+'»', g.status, exp]; }), probes);
+  const badP = pr.filter(x => x[1] !== x[2]);
+  ok(badP.length === 0, pr.length + ' תשובות לדוגמה (נכונות ושגויות) סווגו כמצופה' + (badP.length ? ': ' + badP.map(x => x[0]+' → '+x[1]+' (ציפינו '+x[2]+')').join('; ') : ''));
+  const misRec = await m.evaluate(() => { const q = window.__sciTutor.QUESTIONS.find(x => x.id === 'h11'); return window.__sciTutor.gradePart(q.parts[1], 'כי המים עוברים מהר בחרסית').mis[0] || ''; });
+  ok(misRec.length > 0, 'טעות מושגית מתועדת לדוח המורה: ' + misRec);
+
   ok(errors.length === 0, 'אין שגיאות JavaScript' + (errors.length ? ': ' + errors.join(' | ') : ''));
   // שמירה על חומרי המקור: מחרוזות ייחודיות מהמבחן המקורי אינן בקוד
   const html = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');

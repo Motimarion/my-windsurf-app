@@ -99,7 +99,9 @@ function gradePart(p, ans){
       if(r.met.length>=need) r.status='ok';
       else if(r.met.length>0) r.status='partial';
       else if(len>=20) r.status='uncertain';
-      if(r.status!=='ok' && r.missing[0]) r.hint=r.missing[0].hint||'';
+      // טעות מושגית מוכרת: כשאף רכיב לא הוכח והתשובה מכילה את הטעות — שגוי, עם תיעוד הטעות
+      if(r.met.length===0 && p.contra){ const c=p.contra.find(c=>c.any.some(k=>kwMatch(ans,k))); if(c){ r.status='wrong'; r.mis.push(c.mis); r.hint=c.hint; } }
+      if(r.status!=='ok' && !r.hint && r.missing[0]) r.hint=r.missing[0].hint||'';
       break; }
   }
   return r;
