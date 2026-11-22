@@ -10,6 +10,7 @@
  *   ANTHROPIC_API_KEY  — חובה. המפתח מ־console.anthropic.com.
  *   CLASS_KEY          — חובה. קוד כיתה שמופיע בקישור לתלמידים (למשל: madaim-4b-2026).
  *   DAILY_LIMIT        — לא חובה. מספר בדיקות מרבי ביום (ברירת מחדל: 3000).
+ *   SHEET_ID           — לא חובה. מזהה הגיליון, רק אם הסקריפט נוצר כפרויקט נפרד ולא מתוך הגיליון.
  *
  * פריסה: Deploy ← New deployment ← Web app ← Execute as: Me ← Who has access: Anyone.
  */
@@ -30,13 +31,22 @@ function doPost(e) {
   const classKey = props.getProperty('CLASS_KEY');
   if (!classKey || String(req.key || '') !== classKey) return json_({ ok: false, error: 'bad_key' });
   try {
-    if (req.action === 'ping') return json_({ ok: true, model: MODEL, sheet: SpreadsheetApp.getActiveSpreadsheet().getName(), hasApiKey: !!props.getProperty('ANTHROPIC_API_KEY') });
+    if (req.action === 'ping') return json_({ ok: true, model: MODEL, sheet: ss_().getName(), hasApiKey: !!props.getProperty('ANTHROPIC_API_KEY') });
     if (req.action === 'grade') return json_(grade_(req, props));
     if (req.action === 'log') return json_(log_(req));
     return json_({ ok: false, error: 'bad_action' });
   } catch (err) {
     return json_({ ok: false, error: 'server_error', message: String(err && err.message || err).slice(0, 200) });
   }
+}
+
+/** הגיליון של הסקריפט: הגיליון שבו נוצר, או הגיליון שב־SHEET_ID. */
+function ss_() {
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
+  if (!id) throw new Error('missing_sheet_id');
+  return SpreadsheetApp.openById(id);
 }
 
 function doGet() {
@@ -135,7 +145,7 @@ function log_(req) {
   if (!columns.length || !rows.length) return { ok: true, saved: 0 };
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = ss_();
     let sh = ss.getSheetByName(SHEET_NAME);
     if (!sh) { sh = ss.insertSheet(SHEET_NAME); sh.setRightToLeft(true); }
     let head = sh.getLastRow() ? sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String) : [];
