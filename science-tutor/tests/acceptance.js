@@ -100,17 +100,21 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   await click(page, 'next');
   // d04: נכון; d05: מקרה 5 — תשובה פתוחה דו־משמעית
   await fill(page, 'right'); await click(page, 'check'); await click(page, 'next');
-  await fill(page, 'right', null, 'אני חושב שהחיה הזאת מעניינת מאוד ויפה'); await click(page, 'check');
+  await fill(page, 'right', null, 'x');
+  await page.evaluate(() => { const t = ['אני חושב שהחיה הזאת מעניינת מאוד ויפה', 'בא לי לדעת עוד דברים עליו', 'ממש מעניין אותי הנושא הזה']; document.querySelectorAll('#qform textarea').forEach((el, k) => el.value = t[k]); });
+  await click(page, 'check');
   rows = await rowsOf(page, 'ד3-11'); const amb = rows.at(-1);
-  ok(amb.correctness === 'uncertain' && amb.teacher_review === 'yes' && amb.confidence === 'נמוכה', 'מקרה 5 — תשובה דו־משמעית → לא ודאי, ודאות נמוכה, לבדיקת מורה');
+  ok(amb.correctness === 'accepted_pending' && amb.teacher_review === 'yes' && amb.confidence === 'נמוכה' && amb.grader === 'rules', 'מקרה 5 — תשובה חופשית שלא זוהתה → מתקבלת, ודאות נמוכה, לבדיקת מורה (' + amb.correctness + ')');
+  ok(await page.isVisible('text=התשובה שלכם התקבלה ונשמרה'), 'מקרה 5 — התלמיד רואה שהתשובה התקבלה ולא נפסלה');
   ok(amb.answer_text.includes('אני חושב שהחיה הזאת מעניינת מאוד ויפה'), 'מקרה 5 — הטקסט המקורי של התלמיד נשמר כפי שנכתב');
-  // מקרה 6: אחרי חשיפת פתרון
-  for (let t = 0; t < 2; t++) { await fill(page, 'wrong'); await click(page, 'check'); }
+  // מקרה 6: אחרי חשיפת פתרון (בשאלה הבאה)
+  await click(page, 'next');
+  for (let t = 0; t < 3; t++) { await fill(page, 'wrong'); await click(page, 'check'); }
   await click(page, 'toTransfer'); await fill(page, 'right'); await click(page, 'check');
   rows = await rowsOf(page, 'ד3-11'); ok(rows.at(-1).is_transfer === 'yes' && rows.at(-1).solution_revealed === 'yes' && rows.at(-1).mastery_level === 'after_teaching', 'מקרה 6 — תשובה אחרי חשיפת פתרון → שאלת העברה, הבין לאחר הוראה');
   // המשך אחרי טעינה מחדש
   await page.reload();
-  ok(await page.isVisible('text=שאלה 6 מתוך 16') || await page.isVisible('text=שאלה 5 מתוך 16'), 'אחרי רענון הדף התלמיד ממשיך מהמקום שבו עצר');
+  ok(await page.isVisible('text=שאלה 6 מתוך 16') || await page.isVisible('text=שאלה 7 מתוך 16'), 'אחרי רענון הדף התלמיד ממשיך מהמקום שבו עצר');
   await click(page, 'logout');
 
   console.log('4. מסך מורה, ייצוא, מחיקה, ייבוא ותיקון ידני');
@@ -181,12 +185,109 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
     ['h11',1,'כי המים עוברים מהר בחרסית','wrong'], ['h11',1,'בחולית המים עוברים מהר ובחרסית לאט','ok'], ['h11',1,'הגרגרים קטנים וצפופים','ok'],
     ['v05',1,'לא נגמרים','partial'], ['v05',1,'לא נגמרים ולא מזהמים','ok'],
     ['v06',3,'כי זה כיף','wrong'], ['v06',3,'כדי לוודא שזה לא קרה במקרה','ok'],
-    ['v12',4,'להתקין לוחות סולאריים על הגגות','ok'], ['v12',5,'בעיר א יש יותר מבעיר ב','ok'], ['v12',5,'התרשים יפה','wrong'] ];
+    ['v12',4,'להתקין לוחות סולאריים על הגגות','ok'],
+    // ניסוחים טבעיים של תלמידים שחייבים להתקבל
+    ['d03',1,'הקוצים מגינים עליו','ok'], ['d03',1,'השועל ייפגע מהקוצים','ok'], ['d03',1,'כדי שהשועל לא יאכל אותו','partial'],
+    ['d11',2,'הם יולדים גורים','ok'], ['d11',2,'שניהם מטילים ביצים ומגדלים גורים','wrong'], ['d14',1,'יולדים גורים ולא ביצים','ok'],
+    ['d15',1,'יש חיות שעפות וגם יש להן 6 רגליים','ok'], ['d15',1,'אי אפשר לדעת לאיזו קבוצה לשים','ok'], ['d16',2,'לעשות שמורה','ok'],
+    ['h10',3,'לא כי צריך לעשות את הניסוי עוד הרבה פעמים','ok'], ['h10',3,'כן, ניסוי אחד מספיק','wrong'], ['h11',1,'החרסית לא נותנת למים לעבור','ok'],
+    ['h12',0,'האם אור משפיע על הצמח?','partial'], ['v05',1,'יש להם המון והם לא עושים עשן','ok'],
+    ['v06',2,'תנועה הפכה לתנועה','ok'], ['v06',3,'אולי זה היה מזל','ok'],
+    ['v12',4,'שהעירייה תבנה שדה סולארי','ok'], ['v12',4,'לתת לאנשים כסף כדי שיקנו לוחות סולאריים','ok'], ['v12',5,'בעיר ד יש הכי מעט','ok'], ['v12',5,'בעיר א יש יותר מבעיר ב','ok'], ['v12',5,'התרשים יפה','wrong'] ];
   const pr = await m.evaluate(ps => ps.map(([id,i,t,exp]) => { const q = window.__sciTutor.QUESTIONS.find(x => x.id === id); const g = window.__sciTutor.gradePart(q.parts[i], t); return [id+'['+i+'] «'+t+'»', g.status, exp]; }), probes);
   const badP = pr.filter(x => x[1] !== x[2]);
   ok(badP.length === 0, pr.length + ' תשובות לדוגמה (נכונות ושגויות) סווגו כמצופה' + (badP.length ? ': ' + badP.map(x => x[0]+' → '+x[1]+' (ציפינו '+x[2]+')').join('; ') : ''));
   const misRec = await m.evaluate(() => { const q = window.__sciTutor.QUESTIONS.find(x => x.id === 'h11'); return window.__sciTutor.gradePart(q.parts[1], 'כי המים עוברים מהר בחרסית').mis[0] || ''; });
   ok(misRec.length > 0, 'טעות מושגית מתועדת לדוח המורה: ' + misRec);
+
+  console.log('8. בדיקה בעזרת Claude (חיבור מדומה) ונפילה חזרה לבדיקה לפי מילים');
+  const ai = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  ai.on('pageerror', e => errors.push(e.message));
+  await ai.addInitScript(() => {
+    window.__prompts = [];
+    const sample = async () => ({ text: '' });
+    sample.json = async (prompt) => {
+      window.__prompts.push(prompt);
+      if (prompt.includes('MOCKFAIL')) throw { code: 'rate_limited', message: 'busy' };
+      const idx = [...prompt.matchAll(/PART (\d+)/g)].map(m => Number(m[1]));
+      const wrong = prompt.includes('MOCKWRONG');
+      return { parts: idx.map(i => wrong
+        ? { index: i, status: 'wrong', met: [], misconception: 'בלבול מדומה', hint: 'רמז מדומה מ־Claude', reason: 'נימוק מדומה: שגוי', confidence: 'high' }
+        : { index: i, status: 'ok', met: [], misconception: '', hint: '', reason: 'נימוק מדומה: התשובה נכונה במשמעותה', confidence: 'high' }) };
+    };
+    window.claude = { use: async (n) => n === 'sample' ? sample : null };
+  });
+  await ai.goto(URL); await ai.waitForTimeout(100);
+  await ai.fill('#sid', 'ד9-01'); await ai.click('[data-grade="4"]'); await ai.fill('#sid', 'ד9-01'); await ai.click('[data-act="start"]');
+  for (let i = 0; i < 2; i++) { await fill(ai, 'right'); await ai.click('[data-act="check"]'); await ai.click('[data-act="next"]'); }
+  // d03: ניסוח שהכללים לא מזהים — Claude מקבל
+  await fill(ai, 'right', null, 'הוא נהיה כמו כדור קשה ואי אפשר לגעת בו');
+  await ai.click('[data-act="check"]'); await ai.waitForSelector('[data-act="next"]');
+  let ar = await rowsOf(ai, 'ד9-01'); let last = ar.at(-1);
+  ok(last.grader === 'ai' && last.correctness === 'correct' && last.grader_reason.includes('נימוק מדומה'), 'Claude קיבל ניסוח שהכללים לא מזהים, והנימוק נשמר למורה');
+  ok(last.teacher_review === 'no', 'תשובה ש־Claude בטוח בה אינה נשלחת לבדיקת מורה');
+  const pr0 = await ai.evaluate(() => window.__prompts.at(-1));
+  ok(pr0.includes('Rubric components') && pr0.includes('spikes') && pr0.includes('<<<\nהוא נהיה כמו כדור קשה'), 'Claude מקבל את רכיבי המחוון ואת תשובת התלמיד בתוך סימון מופרד');
+  await ai.click('[data-act="next"]');
+  await fill(ai, 'right'); await ai.click('[data-act="check"]'); await ai.click('[data-act="next"]');
+  // d05: Claude קובע שגוי — התלמיד מקבל את הרמז של Claude
+  await fill(ai, 'right', null, 'x');
+  await ai.evaluate(() => { const t = ['MOCKWRONG אחת', 'MOCKWRONG שתיים', 'MOCKWRONG שלוש']; document.querySelectorAll('#qform textarea').forEach((el, k) => el.value = t[k]); });
+  await ai.click('[data-act="check"]'); await ai.waitForSelector('text=רמז מדומה מ־Claude');
+  ar = await rowsOf(ai, 'ד9-01'); last = ar.at(-1);
+  ok(last.grader === 'ai' && last.correctness !== 'correct' && last.misconception.includes('בלבול מדומה'), 'Claude קבע שגוי: הרמז והטעות שזיהה מוצגים ונשמרים');
+  // תקלה בחיבור — נפילה חזרה לכללים
+  await fill(ai, 'right', null, 'x');
+  await ai.evaluate(() => { const t = ['MOCKFAIL כמה ביצים מטיל חילזון?', 'MOCKFAIL האם חילזון אוכל עלים?', 'MOCKFAIL איך החילזון זוחל?']; document.querySelectorAll('#qform textarea').forEach((el, k) => el.value = t[k]); });
+  await ai.click('[data-act="check"]'); await ai.waitForTimeout(300);
+  ar = await rowsOf(ai, 'ד9-01'); last = ar.at(-1);
+  ok(last.grader === 'rules' && last.correctness === 'correct', 'כשהחיבור ל־Claude נכשל, הבדיקה חוזרת לכללים והתשובה עדיין מתקבלת');
+  await ai.screenshot({ path: OUT + '/8-ai.png', fullPage: true });
+
+  console.log('9. שרת המורה (Apps Script מדומה): קישור לתלמידים, בדיקה בעזרת Claude ושמירה בגיליון');
+  const SRV = 'https://script.google.com/macros/s/TESTDEPLOY/exec';
+  const srvCalls = [];
+  const sp = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  sp.on('pageerror', e => errors.push(e.message));
+  await sp.route(SRV, async route => {
+    const body = JSON.parse(route.request().postData()); srvCalls.push(body);
+    let out = { ok: false, error: 'bad_key' };
+    if (body.key === 'class-77') {
+      if (body.action === 'ping') out = { ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true };
+      if (body.action === 'log') out = { ok: true, saved: body.rows.length };
+      if (body.action === 'grade') out = { ok: true, parts: body.parts.map(p => ({ index: p.index, status: 'ok', met: [], misconception: '', hint: '', reason: 'נימוק מהשרת', confidence: 'high' })) };
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
+  });
+  await sp.goto(URL + '?server=' + encodeURIComponent(SRV) + '&key=class-77');
+  ok(!(await sp.evaluate(() => location.search)).includes('key='), 'הקישור לתלמידים נקלט, וקוד הכיתה הוסר משורת הכתובת');
+  ok((await sp.evaluate(() => window.__sciTutor.serverCfg())).key === 'class-77', 'הגדרות השרת נשמרו במכשיר');
+  await sp.fill('#sid', 'ד8-02'); await sp.click('[data-grade="4"]'); await sp.fill('#sid', 'ד8-02'); await sp.click('[data-act="start"]');
+  for (let i = 0; i < 2; i++) { await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.click('[data-act="next"]'); }
+  await fill(sp, 'right', null, 'הוא נהיה כמו כדור קשה ואי אפשר לגעת בו');
+  await sp.click('[data-act="check"]'); await sp.waitForSelector('[data-act="next"]');
+  const sr = (await rowsOf(sp, 'ד8-02')).at(-1);
+  ok(sr.grader === 'ai-server' && sr.correctness === 'correct' && sr.grader_reason.includes('נימוק מהשרת'), 'השרת בדק בעזרת Claude, והתשובה החופשית התקבלה');
+  const gcall = srvCalls.find(c => c.action === 'grade');
+  ok(gcall && gcall.parts[0].criteria.length > 0 && gcall.parts[0].answer.includes('כדור קשה'), 'לשרת נשלחו רכיבי המחוון ותשובת התלמיד');
+  await sp.evaluate(() => window.__sciTutor.flushSync()); await sp.waitForTimeout(600);
+  const logged = srvCalls.filter(c => c.action === 'log').flatMap(c => c.rows);
+  ok(logged.length === 3 && logged.every(r => r.student_id === 'ד8-02') && srvCalls.find(c => c.action === 'log').columns.includes('grader'), 'כל 3 הניסיונות נשלחו לגיליון (' + logged.length + ')');
+  ok(await sp.evaluate(() => JSON.parse(localStorage.getItem('sciTutor.syncQueue.v1') || '[]').length) === 0, 'תור השליחה התרוקן אחרי שליחה מוצלחת');
+  // תקלה בשרת: התשובה עדיין נבדקת לפי מילים, והניסיון נשמר בתור לשליחה מאוחרת
+  await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 500, body: 'error' }));
+  await sp.click('[data-act="next"]'); await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.click('[data-act="next"]');
+  await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.waitForSelector('[data-act="next"]');
+  const sr2 = (await rowsOf(sp, 'ד8-02')).at(-1);
+  ok(sr2.grader === 'rules' && sr2.correctness === 'correct', 'כשהשרת לא זמין, הבדיקה חוזרת לכללים');
+  ok(await sp.evaluate(() => JSON.parse(localStorage.getItem('sciTutor.syncQueue.v1') || '[]').length) === 2, 'ניסיונות שלא נשלחו נשמרים בתור לשליחה מאוחרת');
+  // מסך המורה: בדיקת חיבור והקישור לתלמידים
+  await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
+  await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
+  await sp.click('[data-tab="data"]'); await sp.click('[data-act="saveServer"]'); await sp.waitForSelector('text=החיבור עובד');
+  const link = await sp.inputValue('#stLink');
+  ok(link.startsWith('https://motimarion.github.io/my-windsurf-app/science-tutor/?server=') && link.includes('key=class-77'), 'מסך המורה מציג קישור מוכן לתלמידים');
+  await sp.screenshot({ path: OUT + '/9-server-settings.png', fullPage: true });
 
   ok(errors.length === 0, 'אין שגיאות JavaScript' + (errors.length ? ': ' + errors.join(' | ') : ''));
   // שמירה על חומרי המקור: מחרוזות ייחודיות מהמבחן המקורי אינן בקוד
