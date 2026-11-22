@@ -244,6 +244,51 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   ok(last.grader === 'rules' && last.correctness === 'correct', 'כשהחיבור ל־Claude נכשל, הבדיקה חוזרת לכללים והתשובה עדיין מתקבלת');
   await ai.screenshot({ path: OUT + '/8-ai.png', fullPage: true });
 
+  console.log('9. שרת המורה (Apps Script מדומה): קישור לתלמידים, בדיקה בעזרת Claude ושמירה בגיליון');
+  const SRV = 'https://script.google.com/macros/s/TESTDEPLOY/exec';
+  const srvCalls = [];
+  const sp = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  sp.on('pageerror', e => errors.push(e.message));
+  await sp.route(SRV, async route => {
+    const body = JSON.parse(route.request().postData()); srvCalls.push(body);
+    let out = { ok: false, error: 'bad_key' };
+    if (body.key === 'class-77') {
+      if (body.action === 'ping') out = { ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true };
+      if (body.action === 'log') out = { ok: true, saved: body.rows.length };
+      if (body.action === 'grade') out = { ok: true, parts: body.parts.map(p => ({ index: p.index, status: 'ok', met: [], misconception: '', hint: '', reason: 'נימוק מהשרת', confidence: 'high' })) };
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
+  });
+  await sp.goto(URL + '?server=' + encodeURIComponent(SRV) + '&key=class-77');
+  ok(!(await sp.evaluate(() => location.search)).includes('key='), 'הקישור לתלמידים נקלט, וקוד הכיתה הוסר משורת הכתובת');
+  ok((await sp.evaluate(() => window.__sciTutor.serverCfg())).key === 'class-77', 'הגדרות השרת נשמרו במכשיר');
+  await sp.fill('#sid', 'ד8-02'); await sp.click('[data-grade="4"]'); await sp.fill('#sid', 'ד8-02'); await sp.click('[data-act="start"]');
+  for (let i = 0; i < 2; i++) { await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.click('[data-act="next"]'); }
+  await fill(sp, 'right', null, 'הוא נהיה כמו כדור קשה ואי אפשר לגעת בו');
+  await sp.click('[data-act="check"]'); await sp.waitForSelector('[data-act="next"]');
+  const sr = (await rowsOf(sp, 'ד8-02')).at(-1);
+  ok(sr.grader === 'ai-server' && sr.correctness === 'correct' && sr.grader_reason.includes('נימוק מהשרת'), 'השרת בדק בעזרת Claude, והתשובה החופשית התקבלה');
+  const gcall = srvCalls.find(c => c.action === 'grade');
+  ok(gcall && gcall.parts[0].criteria.length > 0 && gcall.parts[0].answer.includes('כדור קשה'), 'לשרת נשלחו רכיבי המחוון ותשובת התלמיד');
+  await sp.evaluate(() => window.__sciTutor.flushSync()); await sp.waitForTimeout(600);
+  const logged = srvCalls.filter(c => c.action === 'log').flatMap(c => c.rows);
+  ok(logged.length === 3 && logged.every(r => r.student_id === 'ד8-02') && srvCalls.find(c => c.action === 'log').columns.includes('grader'), 'כל 3 הניסיונות נשלחו לגיליון (' + logged.length + ')');
+  ok(await sp.evaluate(() => JSON.parse(localStorage.getItem('sciTutor.syncQueue.v1') || '[]').length) === 0, 'תור השליחה התרוקן אחרי שליחה מוצלחת');
+  // תקלה בשרת: התשובה עדיין נבדקת לפי מילים, והניסיון נשמר בתור לשליחה מאוחרת
+  await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 500, body: 'error' }));
+  await sp.click('[data-act="next"]'); await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.click('[data-act="next"]');
+  await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.waitForSelector('[data-act="next"]');
+  const sr2 = (await rowsOf(sp, 'ד8-02')).at(-1);
+  ok(sr2.grader === 'rules' && sr2.correctness === 'correct', 'כשהשרת לא זמין, הבדיקה חוזרת לכללים');
+  ok(await sp.evaluate(() => JSON.parse(localStorage.getItem('sciTutor.syncQueue.v1') || '[]').length) === 2, 'ניסיונות שלא נשלחו נשמרים בתור לשליחה מאוחרת');
+  // מסך המורה: בדיקת חיבור והקישור לתלמידים
+  await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
+  await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
+  await sp.click('[data-tab="data"]'); await sp.click('[data-act="saveServer"]'); await sp.waitForSelector('text=החיבור עובד');
+  const link = await sp.inputValue('#stLink');
+  ok(link.startsWith('https://motimarion.github.io/my-windsurf-app/science-tutor/?server=') && link.includes('key=class-77'), 'מסך המורה מציג קישור מוכן לתלמידים');
+  await sp.screenshot({ path: OUT + '/9-server-settings.png', fullPage: true });
+
   ok(errors.length === 0, 'אין שגיאות JavaScript' + (errors.length ? ': ' + errors.join(' | ') : ''));
   // שמירה על חומרי המקור: מחרוזות ייחודיות מהמבחן המקורי אינן בקוד
   const html = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');
