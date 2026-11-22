@@ -25,7 +25,9 @@ const byGrade = g => QUESTIONS.filter(q=>q.grade===g);
 let storageOK = true; const mem = {};
 try{ localStorage.setItem('__sciTutorTest','1'); localStorage.removeItem('__sciTutorTest'); }catch(e){ storageOK=false; }
 function sget(k,def){ if(k in mem) return mem[k]; try{ const v=localStorage.getItem(k); mem[k] = v==null?def:JSON.parse(v); }catch(e){ storageOK=false; mem[k]=def; } return mem[k]; }
-function sset(k,v){ mem[k]=v; try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ storageOK=false; } }
+let storageFull=false;
+function sset(k,v){ mem[k]=v; try{ localStorage.setItem(k,JSON.stringify(v)); storageFull=false; }catch(e){ storageOK=false; if(e && (e.name==='QuotaExceededError'||e.code===22||/quota/i.test(e.message||''))){ storageFull=true; try{ alert('⚠️ הזיכרון של הדפדפן במכשיר הזה מלא, והנתונים האחרונים לא נשמרו. ייצאו את הנתונים לקובץ (מסך מורה ← ייצוא), ואחר כך מחקו נתונים ישנים.'); }catch(_){} } } }
+window.addEventListener('storage', e=>{ if(e.key && e.key in mem) delete mem[e.key]; else if(e.key===null) Object.keys(mem).forEach(k=>delete mem[k]); });
 const db = {
   get attempts(){ return sget(KEY.attempts,[]); },
   get overrides(){ return sget(KEY.overrides,{}); },
@@ -43,7 +45,48 @@ function nowISO(){ return new Date().toISOString(); }
 const FINALS = {'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'};
 function normCore(s){ return String(s||'').replace(/[֑-ׇ]/g,'').replace(/[ךםןףץ]/g,c=>FINALS[c]).replace(/[״׳"'`]/g,'').replace(/[־\-–—]/g,' ').replace(/[^א-תa-zA-Z0-9?\s]/g,' ').toLowerCase(); }
 function norm(s){ return normCore(s).replace(/\s+/g,' ').trim(); }
-function kwMatch(text, kw){ const t=' '+norm(text)+' '; const k=normCore(kw).replace(/\s+/g,' ').replace(/^ /,''); return k.trim()!=='' && t.includes(k); }
+/* התאמת מילות מפתח: לפי תחילת מילה (עם תחיליות ו/ה/ב/ל/מ/ש/כ), ולא בתוך מילה אחרת.
+   שורש קצר (עד 3 אותיות) מתאים רק למילה עצמה או לסיומת רגילה — כך ״חלב״ לא נמצא ב״חלבון״ ו״גל״ לא ב״גלגל״.
+   מילת מפתח שמסתיימת ברווח (״מה ״) מתאימה רק למילה שלמה.
+   מילה שלפניה ״לא״/״אין״ אינה נספרת, אלא אם מילת המפתח עצמה מתחילה בשלילה (״לא נגמר״). */
+const PREFIXES = ['','ו','ה','ב','ל','מ','ש','כ','וה','וב','ול','ומ','וש','וכ','שה','שב','של','שמ','כש','מה','לה','בה','כה'];
+const SUFFIXES = ['','ימ','ות','ה','ת','י','יה','ית','יות','ו','נו','כמ','יימ'];
+const NEG = new Set(['לא','אין','אינ','אינמ','אינה','אינו','אינני','בלי','ללא','אף','מעולמ','אסור','לאסור','שלא','למנוע','להפסיק']);
+const NEG_GAP = new Set(['כל','ממש','היה','היתה','הייתה','היו','להמ','לו','לה','זה','המ','היא','הוא','יש','בכלל','באמת','עוד']);
+const NOT_WORDS = new Set(['שמימ','שמיימ','בשמימ','לשמימ','חולה','חולימ','חולת','חולנ','לכנ','ולכנ']);
+function tokens(text){ const n=norm(text).replace(/\?/g,' ').replace(/\s+/g,' ').trim(); return n?n.split(' '):[]; }
+function negatedAt(toks, i, win){
+  for(let j=i-1, used=0; j>=0 && used<(win||1); j--){ const w=toks[j]; if(NEG.has(w)||NEG.has(w.replace(/^[וש]/,''))||NEG.has(w.replace(/^וש/,''))) return true; if(win>1 || NEG_GAP.has(w)) { used++; continue; } return false; }
+  return false; }
+function wordHits(tok, k, whole){
+  if(NOT_WORDS.has(tok)) return false;
+  for(const pre of PREFIXES){ if(pre && !tok.startsWith(pre)) continue; const rest=tok.slice(pre.length); if(rest.length<k.length) continue;
+    if(!rest.startsWith(k)) continue; const tail=rest.slice(k.length);
+    if(whole || k.length<=3){ if(SUFFIXES.includes(tail)) return true; } else return true; }
+  return false; }
+function kwFind(text, kw, win){
+  const raw=String(kw||''); const k=normCore(raw).replace(/\s+/g,' ').trim(); if(!k) return false;
+  if(!/[א-תa-z]/.test(k)) return (' '+norm(text)+' ').includes(k) || String(text||'').includes(raw.trim());
+  const whole=/\s$/.test(raw); const kws=k.split(' '); const toks=tokens(text);
+  const selfNeg=NEG.has(kws[0]);
+  for(let i=0;i+kws.length<=toks.length;i++){
+    let ok=true; for(let j=0;j<kws.length;j++){ const t=toks[i+j], w=kws[j];
+      if(j===0){ if(!wordHits(t,w, whole && kws.length===1)){ ok=false; break; } }
+      else if(j===kws.length-1){ if(!(t.startsWith(w) && (!whole || t===w)) ){ ok=false; break; } }
+      else if(t!==w){ ok=false; break; } }
+    if(ok && (selfNeg || !negatedAt(toks,i,win))) return true; }
+  return false; }
+function kwMatch(text, kw){ return kwFind(text, kw, 1); }
+/* מספר מתוך תשובה חופשית: ״ב-18״, ״כ-50״, ״27-9=18״, ״50%״, ״שמונה עשרה״ */
+const NUM_WORDS = {'אפס':0,'אחת':1,'אחד':1,'שתיימ':2,'שניימ':2,'שתי':2,'שני':2,'שלוש':3,'שלושה':3,'ארבע':4,'ארבעה':4,'חמש':5,'חמישה':5,'שש':6,'שישה':6,'שבע':7,'שבעה':7,'שמונה':8,'תשע':9,'תשעה':9,'עשר':10,'עשרה':10,'עשרימ':20,'שלושימ':30,'ארבעימ':40,'חמישימ':50,'שישימ':60,'שבעימ':70,'שמונימ':80,'תשעימ':90,'מאה':100,'מאתיימ':200};
+function parseNumAnswer(ans){
+  const s=String(ans==null?'':ans).replace(/[‎‏]/g,'');
+  const nums=[...s.matchAll(/\d+(?:[.,]\d+)?/g)].map(m=>parseFloat(m[0].replace(',','.')));
+  if(nums.length){ const eq=s.lastIndexOf('='); if(eq>=0){ const after=s.slice(eq).match(/\d+(?:[.,]\d+)?/); if(after) return parseFloat(after[0].replace(',','.')); } return nums[nums.length-1]; }
+  let total=0, any=false, unit=0;
+  for(let w of tokens(s)){ if(!(w in NUM_WORDS)) w=w.replace(/^ו/,''); if(!(w in NUM_WORDS)) continue;
+    const v=NUM_WORDS[w]; any=true; if(v===10 && unit>0 && unit<10){ total+=10+unit; unit=0; continue; } if(v<10){ total+=unit; unit=v; } else { total+=unit+v; unit=0; } }
+  return any? total+unit : NaN; }
 function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
 function rng(seed){ let a=seed>>>0; return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function shuffled(arr, seedStr){ const r=rng(hashStr(seedStr)); const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -51,14 +94,18 @@ function download(name, text, type){ const blob=new Blob([text],{type:type||'tex
 function today(){ return new Date().toISOString().slice(0,10); }
 
 /* ---------- CSV ---------- */
-function csvCell(v){ v = v==null?'':String(v); return '"'+v.replace(/"/g,'""')+'"'; }
+/* הגנה מנוסחאות ב־Excel/Sheets: ערך שמתחיל ב־= + - @ מקבל גרש בהתחלה (ומוסר בייבוא) */
+function safeCell(v){ v = v==null?'':String(v); return /^[=+\-@\t\r]/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? "'"+v : v; }
+function unFormula(v){ return /^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v; }
+function csvCell(v){ v = safeCell(v); return '"'+v.replace(/"/g,'""')+'"'; }
 function toCSV(rows){ const lines=[COLUMNS.join(',')]; rows.forEach(r=>lines.push(COLUMNS.map(c=>csvCell(r[c])).join(','))); return '﻿'+lines.join('\r\n'); }
 function parseCSV(text){
   text = text.replace(/^﻿/,''); const rows=[]; let row=[], cell='', q=false;
+  const firstLine=text.split(/\r?\n/)[0]||''; const SEP = (firstLine.split(';').length>firstLine.split(',').length) ? ';' : ',';
   for(let i=0;i<text.length;i++){ const c=text[i];
     if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=c; }
     else if(c==='"') q=true;
-    else if(c===','){ row.push(cell); cell=''; }
+    else if(c===SEP){ row.push(cell); cell=''; }
     else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(cell); rows.push(row); row=[]; cell=''; }
     else cell+=c; }
   if(cell!==''||row.length){ row.push(cell); rows.push(row); }
@@ -70,7 +117,8 @@ function importRows(list){
   const all=db.attempts; const idx={}; all.forEach((r,i)=>idx[r.attempt_id]=i); const ov=db.overrides; let added=0, updated=0, skipped=0;
   list.forEach(r=>{
     if(!r.attempt_id||!r.student_id||!r.base_question_id){ skipped++; return; }
-    const clean={}; COLUMNS.forEach(c=>clean[c]=r[c]==null?'':String(r[c]));
+    const clean={}; COLUMNS.forEach(c=>clean[c]=r[c]==null?'':unFormula(String(r[c])));
+    clean.mastery_level=levelKey(clean.mastery_level); clean.teacher_mastery=levelKey(clean.teacher_mastery);
     if(clean.teacher_override||clean.teacher_mastery){ const cur=ov[clean.attempt_id]; if(!cur||String(cur.updated_at)<String(clean.updated_at)) ov[clean.attempt_id]={teacher_override:clean.teacher_override,teacher_mastery:clean.teacher_mastery,teacher_note:clean.teacher_note,updated_at:clean.updated_at}; }
     if(clean.attempt_id in idx){ const cur=all[idx[clean.attempt_id]]; if(String(cur.updated_at)<String(clean.updated_at)){ all[idx[clean.attempt_id]]=clean; updated++; } }
     else { idx[clean.attempt_id]=all.length; all.push(clean); added++; }
@@ -92,8 +140,8 @@ function gradePart(p, ans){
     case 'order': { let all=true; p.items.forEach((it,i)=>{ if(Number(ans[i])!==i+1) all=false; }); if(all) r.status='ok'; else if(p.mis) r.mis.push(p.mis); break; }
     case 'chain': { const all=p.answer.every((a,i)=>ans[i]===a); if(all) r.status='ok'; else if(p.mis) r.mis.push(p.mis); break; }
     case 'grid': { let all=true; p.rows.forEach((row,i)=>{ const bad=row.a.some((a,j)=>!ans[i]||ans[i][j]!==a); if(bad){ all=false; if(row.mis) r.mis.push(row.mis);} }); if(all) r.status='ok'; else if(!r.mis.length&&p.mis) r.mis.push(p.mis); break; }
-    case 'num': { const v=parseFloat(String(ans).replace(',','.').replace(/[^\d.\-]/g,'')); if(!isNaN(v)&&Math.abs(v-p.answer)<1e-9) r.status='ok'; break; }
-    case 'fill': { if(p.accept.some(k=>kwMatch(ans,k))) r.status='ok'; else if(p.open && norm(ans).length>=2) r.status='uncertain'; break; }
+    case 'num': { const v=parseNumAnswer(ans); if(!isNaN(v)&&Math.abs(v-p.answer)<1e-9) r.status='ok'; break; }
+    case 'fill': { const rj=(p.reject||[]).find(c=>c.any.some(k=>kwFind(ans,k,3))); if(rj){ r.mis.push(rj.mis); r.hint=rj.hint||''; } else if(isEmptyAns(ans)) {} else if(p.accept.some(k=>kwMatch(ans,k))) r.status='ok'; else if(p.open && norm(ans).length>=2) r.status='uncertain'; break; }
     case 'open': {
       p.criteria.forEach(c=>{ (c.any.some(k=>kwMatch(ans,k))?r.met:r.missing).push(c); });
       const need=p.need||p.criteria.length; const len=norm(ans).length;
@@ -101,7 +149,9 @@ function gradePart(p, ans){
       else if(r.met.length>0) r.status='partial';
       else if(len>=20) r.status='uncertain';
       // טעות מושגית מוכרת: כשאף רכיב לא הוכח והתשובה מכילה את הטעות — שגוי, עם תיעוד הטעות
-      if(r.met.length===0 && p.contra){ const c=p.contra.find(c=>c.any.some(k=>kwMatch(ans,k))); if(c){ r.status='wrong'; r.mis.push(c.mis); r.hint=c.hint; } }
+      if(isEmptyAns(ans)){ r.status='wrong'; r.met=[]; r.missing=p.criteria.slice(); }
+      // טעות מושגית מוכרת: כשאף רכיב לא הוכח (או כשהטעות מסומנת always) והתשובה מכילה אותה בלי שלילה — שגוי, עם תיעוד הטעות
+      if(p.contra){ const c=p.contra.find(c=>(c.always||r.met.length===0) && c.any.some(k=>kwFind(ans,k,3))); if(c){ r.status='wrong'; r.mis.push(c.mis); r.hint=c.hint; } }
       if(r.status!=='ok' && !r.hint && r.missing[0]) r.hint=r.missing[0].hint||'';
       break; }
   }
@@ -153,7 +203,9 @@ function solutionHTML(parts){
 
 /* ---------- מצב ---------- */
 const S = { view:'login', student:null, grade:null, cls:'', teacher:false, tTab:'class', tGrade:'all', tTopic:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
-function pkey(){ return S.student+'|'+S.grade; }
+function pkey(){ return S.student+'|'+S.grade+'|'+(S.cls||''); }
+/* זהות תלמיד במסך המורה: שם + כיתה, כדי ששני תלמידים באותו שם בכיתות שונות לא יתמזגו */
+function sid(r){ return String(r.student_id||'')+(r.class_name?' · '+r.class_name:''); }
 function getProg(){ const p=db.progress; if(!p[pkey()]) p[pkey()]={student:S.student, grade:S.grade, idx:0, q:{}, started:nowISO()}; return p; }
 function qstate(prog, qid){ const P=prog[pkey()]; if(!P.q[qid]) P.q[qid]={stage:'main', tries:0, hints:0, hintTypes:[], explainReq:0, revealed:false, tTries:0, tHints:0, done:false, mastery:'', review:false, hadUncertain:false}; return P.q[qid]; }
 function currentQ(){ const P=db.progress[pkey()]; const list=byGrade(S.grade); return list[P.idx]||null; }
@@ -235,7 +287,7 @@ function startStudent(){
   if(id.length<2) return fail('נא להקליד את השם המלא.');
   if(!S.grade) return fail('בחרו שכבה (כיתה ד׳, ה׳ או ו׳).');
   const cls=($('#cls').value||'').trim(); if(!cls) return fail('בחרו את מספר הכיתה.');
-  S.student=id.replace(/\s+/g,' '); S.cls=cls; const p=getProg(); p[pkey()].cls=cls; db.saveProgress(p);
+  S.student=id.replace(/\s+/g,' '); S.cls=cls; const p=getProg(); db.saveProgress(p);
   try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade, cls:S.cls})); }catch(e){}
   goCurrent();
 }
@@ -259,6 +311,7 @@ function renderQuestion(){
   if(item.table) h+=tableHTML(item.table);
   if(item.chart) h+=chartSVG(item.chart);
   h+='<form id="qform" onsubmit="return false">'+parts.map((p,i)=>renderPart(p,i,parts.length,seed,S.lastAnswers&&S.lastAnswers.id===item.id?S.lastAnswers.a:null)).join('')+'</form>';
+  if(!isT && st.revealed && !st.done && !S.feedback) S.feedback = teachBox(q);
   h+='<div id="fb">'+(S.feedback||'')+'</div>';
   if(S.rephraseShown) h+='<div class="feedback hint"><h3>💬 הסבר אחר לשאלה</h3>'+(isT?'קראו שוב לאט, וסמנו לעצמכם את המילים החשובות בשאלה. מה בדיוק שואלים?':q.rephrase)+'</div>';
   const finished = st.done; const awaiting = !isT && st.revealed && !st.done;
@@ -316,7 +369,8 @@ let AI = null, aiOff = false;
 try{ if(window.claude && window.claude.use) window.claude.use('sample').then(x=>{ AI=x||null; }).catch(()=>{}); }catch(e){}
 const AI_CONF = {high:'גבוהה', medium:'בינונית', low:'נמוכה'};
 function isOpenPart(p){ return p.type==='open' || (p.type==='fill' && p.open); }
-const EMPTY_ANS = ['לא יודע','לא יודעת','אין לי מושג','לא זוכר','לא זוכרת','סתם','אין','כלום','משהו','בלה'];
+const EMPTY_ANS = ['לא יודע','לא יודעת','לא יודעים','אין לי מושג','לא זוכר','לא זוכרת','סתם','אין','כלום','משהו','בלה','אני לא יודע','אני לא יודעת','לא','לא בטוח','לא בטוחה','?'];
+function isEmptyAns(t){ const n=norm(t); return !n || EMPTY_ANS.some(e=>n===norm(e)); }
 function substantive(t){
   const n=norm(t); if(n.length<6) return false;
   if(EMPTY_ANS.some(e=>n===norm(e))) return false;
@@ -335,7 +389,7 @@ function aiPrompt(q, item, idxs, answers){
     const contra = (p.contra||[]).map(c=>'- '+c.mis).join('\n');
     return 'PART '+i+'\nPart question: '+strip(p.q||item.prompt)+'\nRubric components (ids):\n'+crit+'\nComponents needed for "ok": '+need+
       '\nModel answer (one acceptable example, not the only one): '+(p.model||'')+(contra?'\nKnown misconceptions:\n'+contra:'')+
-      '\nSTUDENT ANSWER (between the markers):\n<<<\n'+String(answers[i]||'').slice(0,600)+'\n>>>';
+      '\nSTUDENT ANSWER (between the markers):\n<<<\n'+String(answers[i]||'').slice(0,600).replace(/<{3,}|>{3,}/g,' ')+'\n>>>';
   }).join('\n\n');
   return 'You grade open answers in a Hebrew science practice app for grade '+S.grade+' in Israel (children aged '+(S.grade+5)+'-'+(S.grade+6)+'). Topic: '+q.topic+'. Skill: '+q.skill+'.\nQuestion context:\n'+ctx+'\n\n'+parts+'\n\n'+
     'Grade each part like a fair, kind elementary science teacher:\n'+
@@ -362,7 +416,7 @@ function applyGradeList(item, idxs, list, g, tag){
     const crit = p.type==='open' ? p.criteria : [{id:'answer', desc:'תשובה מתאימה', hint:''}];
     const metIds = Array.isArray(r.met)?r.met.map(String):[]; const res=g.parts[i];
     // תשובה שהכללים כבר קיבלו (למשל ״מים״ מהים) נשארת נכונה. Claude יכול לשנות אותה רק כשהוא בטוח שהיא שגויה.
-    if(res.status==='ok' && r.status!=='ok' && !(r.status==='wrong' && r.confidence==='high')){
+    if(res.status==='ok' && r.status!=='ok' && !(r.status==='wrong' && (r.confidence==='high'||r.confidence==='medium'))){
       res.ai = {reason:'הכללים קיבלו את התשובה. הערת Claude: '+String(r.reason||'').slice(0,260), conf:'גבוהה'}; used=true; return; }
     res.status=r.status;
     res.met = r.status==='ok' ? crit.slice() : crit.filter(c=>metIds.includes(c.id));
@@ -380,7 +434,7 @@ const SERVER_KEY = 'sciTutor.server.v1', QUEUE_KEY = 'sciTutor.syncQueue.v1';
 function serverCfg(){ const c=sget(SERVER_KEY,null); return c&&c.url&&c.key?c:null; }
 (function readServerFromLink(){
   try{ const u=new URL(location.href); const url=u.searchParams.get('server'), key=u.searchParams.get('key');
-    if(url && key && /^https:\/\/script\.google(usercontent)?\.com\//.test(url)){ sset(SERVER_KEY,{url, key}); u.searchParams.delete('server'); u.searchParams.delete('key'); history.replaceState(null,'',u.pathname+u.search+u.hash); } }catch(e){}
+    if(url && key && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)){ sset(SERVER_KEY,{url, key}); u.searchParams.delete('server'); u.searchParams.delete('key'); history.replaceState(null,'',u.pathname+u.search+u.hash); } }catch(e){}
 })();
 async function serverCall(body, ms){
   const c=serverCfg(); if(!c) throw {code:'no_server'};
@@ -431,7 +485,7 @@ function acceptFree(item, answers, g, attemptNo){
     : (g.okCount>0||res.some(r=>r.status==='partial'||r.status==='uncertain')) ? 'partial' : 'incorrect';
 }
 function setChecking(on){
-  $$('#qcard .actions .btn').forEach(b=>b.disabled=on);
+  S.checking=on; $$('#qcard .actions .btn, header.top .btn, #qform input, #qform textarea, #qform select').forEach(b=>b.disabled=on);
   const fb=$('#fb'); if(on&&fb) fb.innerHTML='<div class="feedback hint" role="status"><h3>⏳ בודקים את התשובה…</h3>רגע אחד.</div>';
 }
 async function check(){
@@ -506,7 +560,7 @@ function renderDone(){
     '<p>כל הניסיונות שלכם נשמרו במכשיר. אם המורה ביקשה — שמרו גם קובץ התקדמות ושלחו לה.</p>'+
     '<div class="actions" style="justify-content:center"><button class="btn" data-act="saveMine">💾 שמירת קובץ התקדמות</button><button class="btn ghost" data-act="logout">סיום</button></div></div></div>';
 }
-function saveMine(){ const rows=exportRows(db.attempts.filter(r=>r.student_id===S.student && r.grade===String(S.grade))); download('progress_'+S.student.replace(/[^\wא-ת-]/g,'_')+'_grade'+S.grade+'_'+today()+'.csv', toCSV(rows)); }
+function saveMine(){ const rows=exportRows(db.attempts.filter(r=>r.student_id===S.student && r.grade===String(S.grade) && (r.class_name||'')===classLabel(S.grade,S.cls))); download('progress_'+S.student.replace(/[^\wא-ת-]/g,'_')+'_grade'+S.grade+'_'+today()+'.csv', toCSV(rows)); }
 
 /* ---------- מסך מורה ---------- */
 function renderPin(){
@@ -529,7 +583,7 @@ function effective(rows){
   // לכל תלמיד+שאלה: רמת השליטה הסופית (כולל החלטת מורה), ניסיונות, רמזים
   const ov=db.overrides; const map={};
   rows.slice().sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp))).forEach(r=>{
-    const k=r.student_id+'|'+r.grade+'|'+r.base_question_id; const m=map[k]||(map[k]={student:r.student_id, grade:r.grade, qid:r.base_question_id, rows:[], level:'', auto:'', review:false, override:null, revealed:false, mis:new Set()});
+    const k=sid(r)+'|'+r.grade+'|'+r.base_question_id; const m=map[k]||(map[k]={student:sid(r), grade:r.grade, qid:r.base_question_id, rows:[], level:'', auto:'', review:false, override:null, revealed:false, mis:new Set()});
     m.rows.push(r); if(r.mastery_level){ m.level=r.mastery_level; m.auto=r.mastery_level; }
     if(r.teacher_review==='yes') m.review=true;
     if(r.solution_revealed==='yes') m.revealed=true;
@@ -549,13 +603,54 @@ function recommendation(m,q){
   if(m.pending) return {pri:3, text:'לבדוק את התשובה הפתוחה לפני שמסיקים מסקנה: '+q.skill+'.'};
   return null;
 }
-function lvlBadge(l){ return l?'<span class="lvl '+l+'">'+LEVELS[l]+'</span>':'<span class="lvl none">טרם הושלם</span>'; }
+function lvlBadge(l){ l=levelKey(l); return l?'<span class="lvl '+l+'">'+LEVELS[l]+'</span>':'<span class="lvl none">טרם הושלם</span>'; }
+/* רמת שליטה: רק מפתחות מוכרים; תווית בעברית (למשל שהוקלדה בגיליון) מתורגמת למפתח. כל ערך אחר — ריק. */
+function levelKey(l){ l=String(l==null?'':l).trim(); if(!l) return ''; if(LEVELS[l]) return l; const k=Object.keys(LEVELS).find(k=>LEVELS[k]===l||norm(LEVELS[k])===norm(l)); return k||''; }
 function stackBar(c,total){ if(!total) return '<span class="muted small">אין נתונים</span>'; return '<div class="stack" title="'+LEVEL_ORDER.map(l=>LEVELS[l]+': '+c[l]).join(' · ')+'">'+LEVEL_ORDER.map(l=>'<span style="width:'+(c[l]/total*100)+'%;background:'+LEVEL_COLORS[l]+'"></span>').join('')+'</div>'; }
 function legend(){ return '<div class="legend">'+LEVEL_ORDER.map(l=>'<span><i style="background:'+LEVEL_COLORS[l]+'"></i>'+LEVELS[l]+'</span>').join('')+'</div>'; }
+/* ---------- ציונים לפי הניקוד של משימת המקור ----------
+   לכל שאלת בסיס: הניקוד של המשימה (6 או 8). ״ציון כמו במבחן״ = הניסיון הראשון, בלי רמזים ובלי עזרה.
+   ״ציון אחרי תרגול״ = הניסיון הטוב ביותר לפני שהוצג פתרון. החלטת מורה (נכון/שגוי) גוברת. שאלה שלא נענתה = 0. */
+const BANDS=[[95,'מצוין'],[85,'טוב מאוד'],[75,'טוב'],[65,'כמעט טוב'],[55,'מספיק'],[0,'לא מספיק']];
+function band(x){ return (BANDS.find(b=>x>=b[0])||BANDS[BANDS.length-1])[1]; }
+function rowPoints(r){ const ov=db.overrides[r.attempt_id]; const c=(ov&&ov.teacher_override)||r.teacher_override||''; const max=Number(r.max_points)||0;
+  if(c==='correct') return max; if(c==='incorrect') return 0; return Math.min(max, Number(r.awarded_points)||0); }
+function studentScore(rowsOfStudent, grade, topic){
+  const qs=byGrade(Number(grade)).filter(q=>!topic||topic==='all'||q.topic===topic); const main=rowsOfStudent.filter(r=>r.is_transfer!=='yes');
+  let max=0, first=0, best=0, answered=0; const byTopic={};
+  qs.forEach(q=>{ const rs=main.filter(r=>r.base_question_id===q.id).sort((a,b)=>Number(a.attempt_order)-Number(b.attempt_order)||String(a.timestamp).localeCompare(String(b.timestamp)));
+    const f=rs[0]?rowPoints(rs[0]):0; const b=rs.filter(r=>r.solution_revealed!=='yes').reduce((m,r)=>Math.max(m,rowPoints(r)),0);
+    max+=q.points; first+=f; best+=Math.max(b,f); if(rs.length) answered++;
+    const t=byTopic[q.topic]||(byTopic[q.topic]={max:0,first:0,best:0}); t.max+=q.points; t.first+=f; t.best+=Math.max(b,f); });
+  const sc=v=>max?Math.round(v/max*100):0;
+  return {first:sc(first), best:sc(best), answered, total:qs.length, byTopic}; }
+function scoreTable(rows){
+  const groups={}; rows.forEach(r=>{ const k=sid(r)+'|'+r.grade; (groups[k]||(groups[k]={name:r.student_id, cls:r.class_name||GRADE_NAMES[r.grade]||r.grade, grade:r.grade, rows:[]})).rows.push(r); });
+  return Object.values(groups).map(g=>Object.assign(g, studentScore(g.rows, g.grade, S.tTopic))).sort((a,b)=>String(a.cls).localeCompare(String(b.cls),'he')||a.name.localeCompare(b.name,'he')); }
+function teacherScores(rows){
+  if(!rows.length) return '<div class="card">עדיין אין נתונים. ייבאו את קובץ התשובות (מהגיליון או ממכשירי התלמידים) בלשונית ״ייבוא, ייצוא והגדרות״.</div>';
+  const list=scoreTable(rows); const firsts=list.map(x=>x.first); const avg=v=>v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;
+  const med=v=>{ if(!v.length) return 0; const a=v.slice().sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2); };
+  const dist=BANDS.slice().reverse().map(([lo,name],i,arr)=>{ const hi=i<arr.length-1?arr[i+1][0]-1:100; const n=firsts.filter(x=>x>=lo&&x<=hi).length; return {name, range:lo+'–'+hi, n}; }).reverse();
+  const maxN=Math.max(1,...dist.map(d=>d.n));
+  let h='<div class="card"><h3 style="margin-top:0">📊 ציונים לפי הניקוד של משימת המקור</h3>'+
+    '<p class="small">הציון מחושב לפי הניקוד של כל שאלה במשימה (6 נקודות לשאלה בכיתה ד׳, 8 בכיתות ה׳–ו׳), ומומר לציון מתוך 100. <b>ציון כמו במבחן</b> — לפי הניסיון הראשון בלבד, בלי רמזים. <b>אחרי תרגול</b> — הניסיון הטוב ביותר לפני שהוצג פתרון. שאלה שלא נענתה מקבלת 0.'+(S.tTopic&&S.tTopic!=='all'?' <b>מוצג רק הנושא: '+esc(S.tTopic)+'</b>.':'')+'</p>'+
+    '<div class="stat"><div class="box"><div class="num">'+list.length+'</div>תלמידים</div><div class="box"><div class="num">'+avg(firsts)+'</div>ממוצע (כמו במבחן)</div><div class="box"><div class="num">'+med(firsts)+'</div>חציון</div><div class="box"><div class="num">'+avg(list.map(x=>x.best))+'</div>ממוצע אחרי תרגול</div></div>'+
+    '<h4>התפלגות הציונים (כמו במבחן)</h4><table class="data"><thead><tr><th>טווח</th><th>הערכה</th><th>תלמידים</th><th style="width:50%"></th></tr></thead><tbody>'+
+    dist.map(d=>'<tr><td>'+d.range+'</td><td>'+d.name+'</td><td>'+d.n+' ('+pct(d.n,list.length)+')</td><td><div style="height:14px;border-radius:4px;background:var(--brand);width:'+Math.round(d.n/maxN*100)+'%"></div></td></tr>').join('')+'</tbody></table></div>';
+  const topics=[...new Set(list.flatMap(x=>Object.keys(x.byTopic)))];
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">ציון לכל תלמיד</h3><button class="btn small ghost" data-act="exportScores">⬇️ ייצוא ציונים ל־Excel</button></div><div class="scroll"><table class="data"><thead><tr><th>שם</th><th>כיתה</th><th>ציון כמו במבחן</th><th>הערכה</th><th>אחרי תרגול</th><th>נענו</th>'+topics.map(t=>'<th class="small">'+esc(t)+'</th>').join('')+'</tr></thead><tbody>'+
+    list.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td><b>'+x.first+'</b></td><td>'+band(x.first)+'</td><td>'+x.best+'</td><td>'+x.answered+'/'+x.total+'</td>'+topics.map(t=>{ const v=x.byTopic[t]; return '<td class="small">'+(v?Math.round(v.first/v.max*100):'—')+'</td>'; }).join('')+'</tr>').join('')+
+    '</tbody></table></div><p class="note">ציון שמחושב מתרגול הכנה — לא ציון מיפוי רשמי. תשובות פתוחות שממתינות לבדיקה נספרות לפי הבדיקה האוטומטית, עד שתחליטו עליהן בלשונית ״תשובות פתוחות לבדיקה״.</p></div>';
+  return h; }
+function exportScores(){ const list=scoreTable(teacherRows()); const topics=[...new Set(list.flatMap(x=>Object.keys(x.byTopic)))];
+  const head=['שם','כיתה','ציון כמו במבחן','הערכה','ציון אחרי תרגול','שאלות שנענו','מתוך'].concat(topics.map(t=>'נושא: '+t));
+  const lines=[head.map(csvCell).join(',')].concat(list.map(x=>[x.name,x.cls,x.first,band(x.first),x.best,x.answered,x.total].concat(topics.map(t=>x.byTopic[t]?Math.round(x.byTopic[t].first/x.byTopic[t].max*100):'')).map(csvCell).join(',')));
+  download('scores_'+today()+'.csv', '﻿'+lines.join('\r\n')); }
 function pct(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
 
 function renderTeacher(){
-  const tabs=[['class','סקירת כיתה'],['student','דוח תלמיד'],['open','תשובות פתוחות לבדיקה'],['map','טבלת קישור ומיומנויות'],['data','ייבוא, ייצוא והגדרות']];
+  const tabs=[['class','סקירת כיתה'],['student','דוח תלמיד'],['open','תשובות פתוחות לבדיקה'],['scores','ציונים'],['map','טבלת קישור ומיומנויות'],['data','ייבוא, ייצוא והגדרות']];
   let h=topbar()+'<div class="wrap"><div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">מסך מורה</h2>'+
     '<label>שכבה: <select id="tGrade"><option value="all">כל השכבות</option>'+[4,5,6].map(g=>'<option value="'+g+'"'+(String(S.tGrade)===String(g)?' selected':'')+'>כיתה '+GRADE_NAMES[g]+'</option>').join('')+'</select></label> '+
     '<label>נושא: <select id="tTopic"><option value="all">כל הנושאים</option>'+topicsFor(S.tGrade).map(t=>'<option'+(S.tTopic===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label></div>'+
@@ -565,13 +660,14 @@ function renderTeacher(){
   if(S.tTab==='class') h+=teacherClass(rows);
   if(S.tTab==='student') h+=teacherStudent(rows);
   if(S.tTab==='open') h+=teacherOpen(rows);
+  if(S.tTab==='scores') h+=teacherScores(rows);
   if(S.tTab==='map') h+=teacherMap();
   if(S.tTab==='data') h+=teacherData();
   app().innerHTML=h+'</div>';
 }
 function teacherClass(rows){
   if(!rows.length) return '<div class="card">עדיין אין נתונים. תלמידים שעובדים על המכשיר הזה יופיעו כאן אוטומטית. מנתונים ממכשירים אחרים — ייבאו קובצי CSV בלשונית ״ייבוא, ייצוא והגדרות״.</div>';
-  const eff=Object.values(effective(rows)); const students=[...new Set(rows.map(r=>r.student_id+'|'+r.grade))];
+  const eff=Object.values(effective(rows)); const students=[...new Set(rows.map(r=>sid(r)+'|'+r.grade))];
   const done=eff.filter(m=>m.level); const pending=eff.filter(m=>m.pending).length;
   const totalQs = students.reduce((s,k)=>s+byGrade(Number(k.split('|')[1])).length,0);
   let h='<div class="card"><div class="stat">'+
@@ -597,22 +693,23 @@ function teacherClass(rows){
   return h;
 }
 function teacherStudent(rows){
-  const students=[...new Set(rows.map(r=>r.student_id+'|'+r.grade))].sort();
+  const students=[...new Set(rows.map(r=>sid(r)+'|'+r.grade))].sort();
   if(!students.length) return '<div class="card">אין עדיין נתוני תלמידים.</div>';
   if(!students.includes(S.tStudent)) S.tStudent=students[0];
-  const [sid,gr]=S.tStudent.split('|'); const eff=effective(rows.filter(r=>r.student_id===sid&&r.grade===gr)); const list=byGrade(Number(gr));
-  const done=list.filter(q=>eff[sid+'|'+gr+'|'+q.id]&&eff[sid+'|'+gr+'|'+q.id].level);
-  const by=l=>list.filter(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; return m&&m.level===l; });
-  let h='<div class="card"><label>תלמיד: <select id="tStudent">'+students.map(s=>{ const [a,b]=s.split('|'); const cr=rows.filter(r=>r.student_id===a&&r.grade===b&&r.class_name).slice(-1)[0]; return '<option value="'+esc(s)+'"'+(s===S.tStudent?' selected':'')+'>'+esc(a)+' (כיתה '+esc(cr?cr.class_name:GRADE_NAMES[b])+')</option>'; }).join('')+'</select></label> '+
+  const [stu,gr]=S.tStudent.split('|'); const eff=effective(rows.filter(r=>sid(r)===stu&&r.grade===gr)); const list=byGrade(Number(gr));
+  const done=list.filter(q=>eff[stu+'|'+gr+'|'+q.id]&&eff[stu+'|'+gr+'|'+q.id].level);
+  const by=l=>list.filter(q=>{ const m=eff[stu+'|'+gr+'|'+q.id]; return m&&m.level===l; });
+  let h='<div class="card"><label>תלמיד: <select id="tStudent">'+students.map(s=>{ const [a,b]=s.split('|'); const cr=rows.filter(r=>sid(r)===a&&r.grade===b).slice(-1)[0]; return '<option value="'+esc(s)+'"'+(s===S.tStudent?' selected':'')+'>'+esc(cr?cr.student_id:a)+' (כיתה '+esc(cr&&cr.class_name?cr.class_name:GRADE_NAMES[b]||b)+')</option>'; }).join('')+'</select></label> '+
     '<button class="btn small ghost" data-act="printStudent">🖨️ הדפסה</button>';
   h+='<p>הושלמו <b>'+done.length+'</b> מתוך '+list.length+' שאלות ('+pct(done.length,list.length)+').</p>';
+  { const sc=studentScore(rows.filter(r=>sid(r)===stu&&r.grade===gr), gr, S.tTopic); h+='<p>📊 <b>ציון כמו במבחן: '+sc.first+'</b> ('+band(sc.first)+') · אחרי תרגול: '+sc.best+' <span class="small muted">(לפי הניקוד של משימת המקור; שאלה שלא נענתה = 0)</span></p>'; }
   if(done.length<Math.max(4,Math.ceil(list.length/4))) h+='<div class="banner warn">אין מספיק מידע כדי להסיק על שליטה כללית — התלמיד השלים מעט שאלות.</div>';
   const sec=(title,l)=>{ const qs=by(l); return '<h4 style="margin-bottom:4px">'+lvlBadge(l)+' '+title+' ('+qs.length+')</h4>'+(qs.length?'<ul class="small">'+qs.map(q=>'<li>'+esc(q.skill)+'</li>').join('')+'</ul>':'<p class="muted small">—</p>'); };
   h+=sec('פתר לבד','independent')+sec('הצריך רמז','after_hint')+sec('הצליח ביישום אחרי הסבר','after_teaching')+sec('מיומנויות שטרם נרכשו','needs_teacher');
-  const recs=list.map(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; return m&&recommendation(m,q); }).filter(Boolean).sort((a,b)=>a.pri-b.pri);
+  const recs=list.map(q=>{ const m=eff[stu+'|'+gr+'|'+q.id]; return m&&recommendation(m,q); }).filter(Boolean).sort((a,b)=>a.pri-b.pri);
   h+='</div><div class="card"><h3 style="margin-top:0">🧭 המלצות הוראה</h3>'+(recs.length?'<ol class="small">'+recs.map(r=>'<li>'+esc(r.text)+'</li>').join('')+'</ol><p class="note">ההמלצות נגזרות מרמת השליטה ומהטעויות שזוהו. הן הצעה בלבד, וההחלטה בידי המורה.</p>':'<p class="muted">אין כרגע המלצה מיוחדת — התלמיד הצליח בשאלות שהשלים לבד או אחרי רמז.</p>');
   h+='</div><div class="card"><h3 style="margin-top:0">פירוט לפי שאלה</h3><div class="scroll"><table class="data"><thead><tr><th>שאלה</th><th>מיומנות</th><th>רמה</th><th>ניסיונות</th><th>רמזים</th><th>הוצג פתרון</th><th>בדיקת מורה</th><th>תשובה אחרונה</th></tr></thead><tbody>'+
-    list.map(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; if(!m) return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge('')+'</td><td colspan="5" class="muted small">לא נוסתה</td></tr>';
+    list.map(q=>{ const m=eff[stu+'|'+gr+'|'+q.id]; if(!m) return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge('')+'</td><td colspan="5" class="muted small">לא נוסתה</td></tr>';
       const last=m.rows[m.rows.length-1]; const maxH=Math.max(...m.rows.filter(r=>r.is_transfer!=='yes').map(r=>Number(r.hints_used||0)),0);
       return '<tr><td>'+q.id+'</td><td class="small">'+esc(q.skill)+'</td><td>'+lvlBadge(m.level)+(m.override?' <span class="small">(מורה)</span>':'')+'</td><td>'+m.rows.length+'</td><td>'+maxH+'</td><td>'+(m.revealed?'כן':'לא')+'</td><td>'+(m.pending?'⏳ ממתין':m.review?'✓ נבדק':'—')+'</td><td class="small">'+esc(String(last.answer_text).slice(0,160))+'</td></tr>'; }).join('')+
     '</tbody></table></div></div>';
@@ -682,7 +779,7 @@ function saveOverride(btn){
 function readFiles(files){
   const msg=$('#importMsg'); let tot={added:0,updated:0,skipped:0}, left=files.length;
   Array.from(files).forEach(f=>{ const rd=new FileReader(); rd.onload=()=>{ try{ const r=importRows(parseCSV(String(rd.result))); tot.added+=r.added; tot.updated+=r.updated; tot.skipped+=r.skipped; }catch(e){ tot.skipped++; }
-    if(--left===0){ render(); const m=$('#importMsg'); if(m) m.textContent='יובאו '+tot.added+' ניסיונות חדשים, עודכנו '+tot.updated+', דולגו '+tot.skipped+' שורות לא תקינות.'; } }; rd.readAsText(f,'utf-8'); });
+    if(--left===0){ render(); const m=$('#importMsg'); if(m) m.textContent=storageFull ? '⚠️ הזיכרון של הדפדפן מלא — הייבוא לא נשמר במכשיר. ייצאו את הנתונים ומחקו נתונים ישנים לפני ייבוא נוסף.' : (tot.added+tot.updated===0 && tot.skipped>0 ? 'לא יובאו שורות. ודאו שזה קובץ CSV שנשמר מהאפליקציה (מופרד בפסיקים).' : 'יובאו '+tot.added+' ניסיונות חדשים, עודכנו '+tot.updated+', דולגו '+tot.skipped+' שורות לא תקינות.'); } }; rd.readAsText(f,'utf-8'); });
 }
 
 /* ---------- אירועים ---------- */
@@ -697,11 +794,12 @@ document.addEventListener('click', e=>{
   else if(a==='toTransfer') toTransfer();
   else if(a==='next') next();
   else if(a==='saveMine') saveMine();
-  else if(a==='logout'){ S.view='login'; S.teacher=false; S.feedback=null; S.partMarks=null; S.lastAnswers=null; S.rephraseShown=false; try{sessionStorage.removeItem(KEY.session);}catch(_){} render(); }
+  else if(a==='logout'){ if(S.checking) return; S.view='login'; S.teacher=false; S.student=null; S.grade=null; S.cls=''; S.feedback=null; S.partMarks=null; S.lastAnswers=null; S.rephraseShown=false; try{sessionStorage.removeItem(KEY.session);}catch(_){} render(); }
   else if(a==='teacher'){ S.view='pin'; render(); }
   else if(a==='pinGo') pinGo();
   else if(a==='saveOv') saveOverride(b);
   else if(a==='saveServer') saveServer();
+  else if(a==='exportScores') exportScores();
   else if(a==='clearServer'){ try{localStorage.removeItem(SERVER_KEY);}catch(_){} delete mem[SERVER_KEY]; render(); }
   else if(a==='syncNow'){ flushSync().then(()=>setTimeout(render,500)); }
   else if(a==='copyLink'){ const el=$('#stLink'); try{ navigator.clipboard.writeText(el.value).then(()=>{ b.textContent='✓ הועתק'; }).catch(()=>{ el.select(); }); }catch(_){ el.select(); } }
@@ -719,9 +817,10 @@ document.addEventListener('change', e=>{
   else if(e.target.id==='importFile'){ readFiles(e.target.files); }
 });
 document.addEventListener('change', e=>{ if(e.target.id==='cls'){ S.cls=e.target.value; const el=$('#clsShow'); if(el) el.textContent=classLabel(S.grade,S.cls); } });
-document.addEventListener('keydown', e=>{ if(e.key==='Enter' && S.view==='login' && e.target.id==='sid') startStudent(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && S.view==='question' && e.target.matches && e.target.matches('#qform input[type=text], #qform input[type=number]')){ e.preventDefault(); const b=$('[data-act="check"]'); if(b && !b.disabled) b.click(); return; }
+ if(e.key==='Enter' && S.view==='login' && e.target.id==='sid') startStudent(); });
 
 /* ---------- הפעלה ---------- */
-try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||(db.progress[s.student+'|'+s.grade].cls)||''; goCurrent(); } else render(); }catch(e){ render(); }
-window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch};
+try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade+'|'+(s.cls||'')]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||''; goCurrent(); } else render(); }catch(e){ render(); }
+window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch, kwFind, parseNumAnswer, studentScore, scoreTable, levelKey, safeCell};
 })();

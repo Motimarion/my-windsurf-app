@@ -145,7 +145,9 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   const [dl2] = await Promise.all([page.waitForEvent('download'), click(page, 'exportAll')]);
   await dl2.saveAs(OUT + '/export2.csv');
   ok(fs.readFileSync(OUT + '/export2.csv', 'utf8').includes('ניסוח סביר'), 'החלטת המורה וההערה נשמרות בקובץ המיוצא');
-  await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07|4');
+  await page.click('[data-tab="scores"]'); ok(await page.isVisible('text=התפלגות הציונים') && await page.locator('table.data tbody tr').count() > 3, 'לשונית הציונים מציגה התפלגות וציון לכל תלמיד');
+  await page.screenshot({ path: OUT + '/6-scores.png', fullPage: true });
+  await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07 · ד׳1|4');
   ok(await page.isVisible('text=מיומנויות שטרם נרכשו'), 'דוח תלמיד מוצג');
   ok(await page.isVisible('text=המלצות הוראה') && await page.locator('text=/הוראה מחודשת/').count() > 0, 'דוח התלמיד כולל המלצות הוראה');
   await page.selectOption('#tGrade', '4'); await page.selectOption('#tTopic', 'מיון בעלי חיים');
@@ -154,7 +156,7 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   ok(mapRows === 6, 'סינון לפי נושא: 6 שאלות ב״מיון בעלי חיים״ (' + mapRows + ')');
   await page.click('[data-tab="class"]');
   ok(await page.locator('table.data td', { hasText: 'מאפייני חיים וצרכי קיום' }).count() === 0 && await page.locator('table.data td', { hasText: 'מיון בעלי חיים' }).count() > 0, 'סקירת הכיתה מציגה רק את הנושא המסונן');
-  await page.selectOption('#tTopic', 'all'); await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07|4');
+  await page.selectOption('#tTopic', 'all'); await page.click('[data-tab="student"]'); await page.selectOption('#tStudent', 'ד2-07 · ד׳1|4');
   await page.screenshot({ path: OUT + '/6-teacher-student.png', fullPage: true });
 
   console.log('5. מסך טלפון/Chromebook צר');
@@ -297,6 +299,11 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   const wr = (await rowsOf(sp3, 'נועה לוי')).at(-1);
   ok(wr.question_id === 'h02' && wr.correctness === 'correct' && wr.grader_reason.includes('הכללים קיבלו') && wr.class_name === 'ה׳1', 'תשובה שהכללים קיבלו (״מים״ מהים) נשארת נכונה גם כש־Claude מסתייג');
   await sp3.close();
+  // ציונים לפי הניקוד של משימת המקור
+  const scr = await sp.evaluate(() => { const T = window.__sciTutor; const R = (q, ord, pts, extra) => Object.assign({ student_id: 'רון', grade: '5', class_name: 'ה׳2', base_question_id: q, attempt_id: q + ord, attempt_order: String(ord), is_transfer: 'no', awarded_points: String(pts), max_points: '8', timestamp: '2026-11-22T10:0' + ord }, extra || {});
+    const rows = [R('h01', 1, 8), R('h02', 1, 0), R('h02', 2, 8), R('h03', 1, 4), R('h04', 1, 0, { teacher_override: 'correct' }), R('h05', 1, 0), R('h05', 2, 0, { solution_revealed: 'yes' })];
+    return T.studentScore(rows, 5, 'all'); });
+  ok(scr.first === Math.round((8 + 0 + 4 + 8) / 96 * 100) && scr.best === Math.round((8 + 8 + 4 + 8) / 96 * 100) && scr.answered === 5 && scr.total === 12, 'ציון: ניסיון ראשון ' + scr.first + ', אחרי תרגול ' + scr.best + ', החלטת מורה נספרת ושאלה שלא נענתה = 0');
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
