@@ -36,7 +36,7 @@ async function fill(page, mode = 'right', wrongParts = null, openText = null) {
 }
 const click = (page, act) => page.click('[data-act="' + act + '"]');
 async function login(page, id, grade) {
-  await page.fill('#sid', id); await page.click('[data-grade="' + grade + '"]'); await page.fill('#sid', id); await click(page, 'start');
+  await page.fill('#sid', id); await page.click('[data-grade="' + grade + '"]'); await page.fill('#sid', id); await page.selectOption('#cls', '1'); await click(page, 'start');
 }
 const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.filter(r => r.student_id === id), id);
 
@@ -159,7 +159,7 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
 
   console.log('5. מסך טלפון/Chromebook צר');
   const m = await browser.newPage({ viewport: { width: 375, height: 740 } }); await m.goto(URL);
-  await m.fill('#sid', 'ה1-02'); await m.click('[data-grade="5"]'); await m.fill('#sid', 'ה1-02'); await m.click('[data-act="start"]');
+  await m.fill('#sid', 'ה1-02'); await m.click('[data-grade="5"]'); await m.fill('#sid', 'ה1-02'); await m.selectOption('#cls', '1'); await m.click('[data-act=\"start\"]');
   for (let i = 0; i < 8; i++) { await fill(m, 'right'); await m.click('[data-act="check"]'); await m.click('[data-act="next"]'); }
   const sw = await m.evaluate(() => document.documentElement.scrollWidth); ok(sw <= 375, 'אין גלילה אופקית ברוחב 375px (' + sw + ')');
   await m.screenshot({ path: OUT + '/7-mobile-chart.png', fullPage: true });
@@ -218,7 +218,7 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
     window.claude = { use: async (n) => n === 'sample' ? sample : null };
   });
   await ai.goto(URL); await ai.waitForTimeout(100);
-  await ai.fill('#sid', 'ד9-01'); await ai.click('[data-grade="4"]'); await ai.fill('#sid', 'ד9-01'); await ai.click('[data-act="start"]');
+  await ai.fill('#sid', 'ד9-01'); await ai.click('[data-grade="4"]'); await ai.fill('#sid', 'ד9-01'); await ai.selectOption('#cls', '1'); await ai.click('[data-act=\"start\"]');
   for (let i = 0; i < 2; i++) { await fill(ai, 'right'); await ai.click('[data-act="check"]'); await ai.click('[data-act="next"]'); }
   // d03: ניסוח שהכללים לא מזהים — Claude מקבל
   await fill(ai, 'right', null, 'הוא נהיה כמו כדור קשה ואי אפשר לגעת בו');
@@ -262,7 +262,7 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   await sp.goto(URL + '?server=' + encodeURIComponent(SRV) + '&key=class-77');
   ok(!(await sp.evaluate(() => location.search)).includes('key='), 'הקישור לתלמידים נקלט, וקוד הכיתה הוסר משורת הכתובת');
   ok((await sp.evaluate(() => window.__sciTutor.serverCfg())).key === 'class-77', 'הגדרות השרת נשמרו במכשיר');
-  await sp.fill('#sid', 'ד8-02'); await sp.click('[data-grade="4"]'); await sp.fill('#sid', 'ד8-02'); await sp.click('[data-act="start"]');
+  await sp.fill('#sid', 'ד8-02'); await sp.click('[data-grade="4"]'); await sp.fill('#sid', 'ד8-02'); await sp.selectOption('#cls', '1'); await sp.click('[data-act=\"start\"]');
   for (let i = 0; i < 2; i++) { await fill(sp, 'right'); await sp.click('[data-act="check"]'); await sp.click('[data-act="next"]'); }
   await fill(sp, 'right', null, 'הוא נהיה כמו כדור קשה ואי אפשר לגעת בו');
   await sp.click('[data-act="check"]'); await sp.waitForSelector('[data-act="next"]');
