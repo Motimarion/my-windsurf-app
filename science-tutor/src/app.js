@@ -361,6 +361,9 @@ function applyGradeList(item, idxs, list, g, tag){
     if(!r || !['ok','partial','wrong','uncertain'].includes(r.status)) return;
     const crit = p.type==='open' ? p.criteria : [{id:'answer', desc:'תשובה מתאימה', hint:''}];
     const metIds = Array.isArray(r.met)?r.met.map(String):[]; const res=g.parts[i];
+    // תשובה שהכללים כבר קיבלו (למשל ״מים״ מהים) נשארת נכונה. Claude יכול לשנות אותה רק כשהוא בטוח שהיא שגויה.
+    if(res.status==='ok' && r.status!=='ok' && !(r.status==='wrong' && r.confidence==='high')){
+      res.ai = {reason:'הכללים קיבלו את התשובה. הערת Claude: '+String(r.reason||'').slice(0,260), conf:'גבוהה'}; used=true; return; }
     res.status=r.status;
     res.met = r.status==='ok' ? crit.slice() : crit.filter(c=>metIds.includes(c.id));
     res.missing = crit.filter(c=>!res.met.includes(c));
