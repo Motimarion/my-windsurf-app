@@ -10,12 +10,13 @@ const RUBRIC_VERSION = 'prep-1.0';
 const ASSESSMENT_TYPE = 'prep_practice';
 const KEY = {attempts:'sciTutor.attempts.v1', progress:'sciTutor.progress.v1', overrides:'sciTutor.overrides.v1', pin:'sciTutor.pin.v1', session:'sciTutor.session.v1'};
 const GRADE_NAMES = {4:'ד׳',5:'ה׳',6:'ו׳'};
+function classLabel(g,c){ return (GRADE_NAMES[g]||g||'')+(c?c:''); }
 const LEVELS = {independent:'שולט עצמאית', after_hint:'שולט לאחר רמז', after_teaching:'הבין לאחר הוראה', needs_teacher:'זקוק לעזרת מורה'};
 const LEVEL_ORDER = ['independent','after_hint','after_teaching','needs_teacher'];
 const LEVEL_COLORS = {independent:'#2e9e62', after_hint:'#9bbf3a', after_teaching:'#e3a72f', needs_teacher:'#d0524e'};
 const CORRECTNESS = {correct:'נכון', partial:'חלקי', incorrect:'שגוי', uncertain:'לא ודאי', accepted_pending:'התקבל — ממתין לבדיקת מורה'};
 const LETTERS = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י'];
-const COLUMNS = ['student_id','grade','question_id','base_question_id','attempt_id','timestamp','assessment_type','skill','topic','question_type','is_transfer','attempt_order','answer_text','selected_option','hints_used','hint_types','explain_requested','solution_revealed','rubric_id','rubric_version','criteria_met','criteria_missing','misconception','correctness','awarded_points','max_points','confidence','teacher_review','teacher_override','teacher_mastery','teacher_note','mastery_level','updated_at','app_version','grader','grader_reason'];
+const COLUMNS = ['student_id','grade','question_id','base_question_id','attempt_id','timestamp','assessment_type','skill','topic','question_type','is_transfer','attempt_order','answer_text','selected_option','hints_used','hint_types','explain_requested','solution_revealed','rubric_id','rubric_version','criteria_met','criteria_missing','misconception','correctness','awarded_points','max_points','confidence','teacher_review','teacher_override','teacher_mastery','teacher_note','mastery_level','updated_at','app_version','grader','grader_reason','class_name'];
 
 const QBYID = {}; QUESTIONS.forEach(q=>{QBYID[q.id]=q;});
 const byGrade = g => QUESTIONS.filter(q=>q.grade===g);
@@ -151,7 +152,7 @@ function solutionHTML(parts){
 }
 
 /* ---------- מצב ---------- */
-const S = { view:'login', student:null, grade:null, teacher:false, tTab:'class', tGrade:'all', tTopic:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
+const S = { view:'login', student:null, grade:null, cls:'', teacher:false, tTab:'class', tGrade:'all', tTopic:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
 function pkey(){ return S.student+'|'+S.grade; }
 function getProg(){ const p=db.progress; if(!p[pkey()]) p[pkey()]={student:S.student, grade:S.grade, idx:0, q:{}, started:nowISO()}; return p; }
 function qstate(prog, qid){ const P=prog[pkey()]; if(!P.q[qid]) P.q[qid]={stage:'main', tries:0, hints:0, hintTypes:[], explainReq:0, revealed:false, tTries:0, tHints:0, done:false, mastery:'', review:false, hadUncertain:false}; return P.q[qid]; }
@@ -205,7 +206,7 @@ function collect(parts, root){
 const app = ()=>$('#app');
 function topbar(){
   let right='';
-  if(S.view==='question'||S.view==='done') right='<span class="who">קוד: <b>'+esc(S.student)+'</b> · כיתה '+GRADE_NAMES[S.grade]+'</span> <button class="btn small ghost" data-act="saveMine">💾 שמירת קובץ התקדמות</button> <button class="btn small ghost" data-act="logout">יציאה</button>';
+  if(S.view==='question'||S.view==='done') right='<span class="who"><b>'+esc(S.student)+'</b> · כיתה '+esc(classLabel(S.grade,S.cls))+'</span> <button class="btn small ghost" data-act="saveMine">💾 שמירת קובץ התקדמות</button> <button class="btn small ghost" data-act="logout">יציאה</button>';
   else if(S.view==='teacher') right='<button class="btn small ghost" data-act="logout">יציאה ממסך המורה</button>';
   return '<header class="top"><h1>🔬 מורה אישי במדעים</h1><div class="row">'+right+'</div></header>'+
     (!storageOK?'<div class="wrap"><div class="banner warn">⚠️ השמירה במכשיר אינה פעילה (למשל בחלון גלישה בסתר). ההתקדמות לא תישמר אחרי סגירת הדף — לחצו ״שמירת קובץ התקדמות״ לפני היציאה.</div></div>':'');
@@ -220,9 +221,10 @@ function render(){
 function renderLogin(){
   app().innerHTML = topbar()+'<div class="wrap"><div class="card">'+
     '<h2 style="margin-top:0">שלום! 👋</h2><p>כאן מתרגלים מדעים, שאלה אחת בכל פעם. טעיתם? תקבלו רמז ותוכלו לנסות שוב.</p>'+
-    '<label class="field" for="sid">הקוד האישי שלי</label><input type="text" id="sid" maxlength="20" autocomplete="off" placeholder="למשל: ו2-14" value="'+esc(S.student||'')+'">'+
-    '<div class="note">כתבו את הקוד שקיבלתם מהמורה — <b>לא</b> את השם המלא.</div>'+
-    '<label class="field">הכיתה שלי</label><div class="grades">'+[4,5,6].map(g=>'<button type="button" data-grade="'+g+'" class="'+(S.grade===g?'sel':'')+'">כיתה '+GRADE_NAMES[g]+'</button>').join('')+'</div>'+
+    '<label class="field" for="sid">השם המלא שלי</label><input type="text" id="sid" maxlength="40" autocomplete="off" placeholder="שם פרטי ושם משפחה" value="'+esc(S.student||'')+'">'+
+    '<label class="field">השכבה שלי</label><div class="grades">'+[4,5,6].map(g=>'<button type="button" data-grade="'+g+'" class="'+(S.grade===g?'sel':'')+'">כיתה '+GRADE_NAMES[g]+'</button>').join('')+'</div>'+
+    '<label class="field" for="cls">מספר הכיתה</label><select id="cls"><option value="">בחרו…</option>'+[1,2,3,4,5,6,7,8].map(n=>'<option value="'+n+'"'+(String(S.cls)===String(n)?' selected':'')+'>'+n+'</option>').join('')+'</select>'+
+    (S.grade?'<div class="note">הכיתה שלי: <b id="clsShow">'+esc(classLabel(S.grade,S.cls))+'</b></div>':'')+
     '<div id="loginErr" class="banner warn" style="display:none"></div>'+
     '<div class="actions"><button class="btn" data-act="start">מתחילים ←</button></div></div>'+
     '<p class="note" style="text-align:center"><button class="btn small ghost" data-act="teacher">מסך מורה</button></p></div>';
@@ -230,11 +232,11 @@ function renderLogin(){
 function startStudent(){
   const id=($('#sid').value||'').trim(); const err=$('#loginErr');
   const fail=m=>{ err.textContent=m; err.style.display='block'; };
-  if(id.length<2) return fail('נא להקליד את הקוד האישי (לפחות 2 תווים).');
-  if(/[א-תa-zA-Z]{2,}\s+[א-תa-zA-Z]{2,}/.test(id)) return fail('נראה שהקלדתם שם מלא. כדי לשמור על פרטיות, כתבו רק את הקוד שקיבלתם מהמורה.');
-  if(!S.grade) return fail('בחרו כיתה.');
-  S.student=id; const p=getProg(); db.saveProgress(p);
-  try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade})); }catch(e){}
+  if(id.length<2) return fail('נא להקליד את השם המלא.');
+  if(!S.grade) return fail('בחרו שכבה (כיתה ד׳, ה׳ או ו׳).');
+  const cls=($('#cls').value||'').trim(); if(!cls) return fail('בחרו את מספר הכיתה.');
+  S.student=id.replace(/\s+/g,' '); S.cls=cls; const p=getProg(); p[pkey()].cls=cls; db.saveProgress(p);
+  try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade, cls:S.cls})); }catch(e){}
   goCurrent();
 }
 function goCurrent(){
@@ -295,7 +297,7 @@ function recordAttempt(q, item, isT, st, answers, g, finalMastery){
   if(review) st.review=true;
   const mc1 = parts.length===1 && parts[0].type==='mc' && answers[0]!=null ? parts[0].options[answers[0]] : '';
   const row={
-    student_id:S.student, grade:String(S.grade), question_id:item.id, base_question_id:q.id, attempt_id:uid(), timestamp:nowISO(),
+    student_id:S.student, grade:String(S.grade), class_name:classLabel(S.grade,S.cls), question_id:item.id, base_question_id:q.id, attempt_id:uid(), timestamp:nowISO(),
     assessment_type:ASSESSMENT_TYPE, skill:q.skill, topic:q.topic, question_type:parts.map(p=>p.type).join('+'), is_transfer:isT?'yes':'no',
     attempt_order:String(isT?st.tTries:st.tries), answer_text:answerText(parts,answers), selected_option:mc1,
     hints_used:String(isT?st.tHints:st.hints), hint_types:st.hintTypes.join('; '), explain_requested:String(S.pendingExplain||0),
@@ -386,7 +388,7 @@ async function serverCall(body, ms){
 }
 function gradePayload(q, item, idxs, answers){
   const ctx=[strip(item.prompt), item.passage?'קטע מידע: '+strip(item.passage):'', item.table?'טבלה: '+item.table.head.join(' | ')+' ; '+item.table.rows.map(r=>r.join(' | ')).join(' ; '):'', item.chart?'תרשים «'+item.chart.title+'» ('+item.chart.unit+'): '+item.chart.labels.map((l,i)=>l+' = '+item.chart.values[i]).join(', '):''].filter(Boolean).join('\n');
-  return {action:'grade', student:S.student, grade:S.grade, topic:q.topic, skill:q.skill, context:ctx,
+  return {action:'grade', student:'s'+hashStr(S.student+'|'+S.grade), grade:S.grade, topic:q.topic, skill:q.skill, context:ctx,
     parts: idxs.map(i=>{ const p=item.parts[i]; return {index:i, question:strip(p.q||item.prompt),
       criteria: p.type==='open' ? p.criteria.map(c=>({id:c.id, desc:c.desc})) : [], need: p.type==='open'?(p.need||p.criteria.length):1,
       model:p.model||'', misconceptions:(p.contra||[]).map(c=>c.mis), answer:String(answers[i]||'')}; })};
@@ -598,7 +600,7 @@ function teacherStudent(rows){
   const [sid,gr]=S.tStudent.split('|'); const eff=effective(rows.filter(r=>r.student_id===sid&&r.grade===gr)); const list=byGrade(Number(gr));
   const done=list.filter(q=>eff[sid+'|'+gr+'|'+q.id]&&eff[sid+'|'+gr+'|'+q.id].level);
   const by=l=>list.filter(q=>{ const m=eff[sid+'|'+gr+'|'+q.id]; return m&&m.level===l; });
-  let h='<div class="card"><label>תלמיד: <select id="tStudent">'+students.map(s=>{ const [a,b]=s.split('|'); return '<option value="'+esc(s)+'"'+(s===S.tStudent?' selected':'')+'>'+esc(a)+' (כיתה '+GRADE_NAMES[b]+')</option>'; }).join('')+'</select></label> '+
+  let h='<div class="card"><label>תלמיד: <select id="tStudent">'+students.map(s=>{ const [a,b]=s.split('|'); const cr=rows.filter(r=>r.student_id===a&&r.grade===b&&r.class_name).slice(-1)[0]; return '<option value="'+esc(s)+'"'+(s===S.tStudent?' selected':'')+'>'+esc(a)+' (כיתה '+esc(cr?cr.class_name:GRADE_NAMES[b])+')</option>'; }).join('')+'</select></label> '+
     '<button class="btn small ghost" data-act="printStudent">🖨️ הדפסה</button>';
   h+='<p>הושלמו <b>'+done.length+'</b> מתוך '+list.length+' שאלות ('+pct(done.length,list.length)+').</p>';
   if(done.length<Math.max(4,Math.ceil(list.length/4))) h+='<div class="banner warn">אין מספיק מידע כדי להסיק על שליטה כללית — התלמיד השלים מעט שאלות.</div>';
@@ -623,7 +625,7 @@ function teacherOpen(rows){
     const parts=item?item.parts:[]; const models=parts.filter(p=>p.model).map(p=>esc(p.model)).join('<br>');
     const hintSug = base && parts.flatMap(p=>p.criteria||[]).filter(c=>(r.criteria_missing||'').includes(c.id+':')).map(c=>c.hint)[0];
     const o=ov[r.attempt_id]||{};
-    h+='<div class="review" data-aid="'+esc(r.attempt_id)+'"><div class="row" style="justify-content:space-between"><b>'+esc(r.student_id)+' · כיתה '+(GRADE_NAMES[r.grade]||esc(r.grade))+' · '+esc(r.question_id)+(r.is_transfer==='yes'?' (שאלת העברה)':'')+'</b><span class="small muted">'+esc(String(r.timestamp).replace('T',' ').slice(0,16))+' · ניסיון '+esc(r.attempt_order)+'</span></div>'+
+    h+='<div class="review" data-aid="'+esc(r.attempt_id)+'"><div class="row" style="justify-content:space-between"><b>'+esc(r.student_id)+' · כיתה '+esc(r.class_name||GRADE_NAMES[r.grade]||r.grade)+' · '+esc(r.question_id)+(r.is_transfer==='yes'?' (שאלת העברה)':'')+'</b><span class="small muted">'+esc(String(r.timestamp).replace('T',' ').slice(0,16))+' · ניסיון '+esc(r.attempt_order)+'</span></div>'+
       '<div class="small" style="margin:6px 0">'+(item?strip(item.prompt).slice(0,220):'')+'</div>'+
       '<div class="small muted">תשובת התלמיד (כפי שנכתבה):</div><div class="ans">'+esc(r.answer_text)+'</div>'+
       '<div class="small" style="margin-top:6px"><b>נבדק על ידי:</b> '+(r.grader==='ai'?'Claude (לפי משמעות)':r.grader==='ai-server'?'Claude דרך השרת שלכם (לפי משמעות)':'כללים (לפי מילים)')+(r.grader_reason?' — '+esc(r.grader_reason):'')+'<br><b>רכיבים שהוכחו:</b> '+(esc(r.criteria_met)||'—')+'<br><b>רכיבים חסרים:</b> '+(esc(r.criteria_missing)||'—')+'<br><b>הערכה אוטומטית:</b> '+(CORRECTNESS[r.correctness]||esc(r.correctness))+' · <b>ודאות:</b> '+esc(r.confidence)+(r.misconception?'<br><b>טעות אפשרית:</b> '+esc(r.misconception):'')+(hintSug?'<br><b>הצעה לרמז:</b> '+esc(hintSug):'')+(models?'<br><b>תשובה לדוגמה (מחוון ההכנה):</b> '+models:'')+'</div>'+
@@ -682,7 +684,7 @@ function readFiles(files){
 
 /* ---------- אירועים ---------- */
 document.addEventListener('click', e=>{
-  const g=e.target.closest('[data-grade]'); if(g&&S.view==='login'){ S.student=($('#sid')||{}).value||S.student; S.grade=Number(g.dataset.grade); render(); return; }
+  const g=e.target.closest('[data-grade]'); if(g&&S.view==='login'){ S.student=($('#sid')||{}).value||S.student; S.cls=($('#cls')||{}).value||S.cls; S.grade=Number(g.dataset.grade); render(); return; }
   const tab=e.target.closest('[data-tab]'); if(tab){ S.tTab=tab.dataset.tab; render(); return; }
   const b=e.target.closest('[data-act]'); if(!b) return; const a=b.dataset.act;
   if(a==='start') startStudent();
@@ -713,9 +715,10 @@ document.addEventListener('change', e=>{
   else if(e.target.id==='showAllOpen'){ S.showAllOpen=e.target.checked; render(); }
   else if(e.target.id==='importFile'){ readFiles(e.target.files); }
 });
+document.addEventListener('change', e=>{ if(e.target.id==='cls'){ S.cls=e.target.value; const el=$('#clsShow'); if(el) el.textContent=classLabel(S.grade,S.cls); } });
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && S.view==='login' && e.target.id==='sid') startStudent(); });
 
 /* ---------- הפעלה ---------- */
-try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade]){ S.student=s.student; S.grade=Number(s.grade); goCurrent(); } else render(); }catch(e){ render(); }
+try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||(db.progress[s.student+'|'+s.grade].cls)||''; goCurrent(); } else render(); }catch(e){ render(); }
 window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch};
 })();

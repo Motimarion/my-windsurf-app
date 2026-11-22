@@ -5,7 +5,7 @@
 ## הוראות פתיחה
 
 1. מעתיקים את הקובץ `index.html` למכשיר (לכונן, ל־USB או ל־Google Drive) ופותחים אותו ב־Chrome. אפשר גם לפרסם אותו בשרת אינטרנט כלשהו.
-2. **התלמיד/ה** מקליד/ה קוד אישי שקיבל/ה מהמורה (למשל `ו2-14` — לא שם מלא), בוחר/ת כיתה ומתחיל/ה. ההתקדמות נשמרת במכשיר, ואחרי סגירה ופתיחה התלמיד ממשיך מאותה שאלה.
+2. **התלמיד/ה** מקליד/ה שם מלא, בוחר/ת שכבה (ד׳/ה׳/ו׳) ומספר כיתה (למשל ה׳2) ומתחיל/ה. ההתקדמות נשמרת במכשיר, ואחרי סגירה ופתיחה התלמיד ממשיך מאותה שאלה.
 3. **המורה** לוחצ/ת על ״מסך מורה״. בכניסה הראשונה בכל מכשיר בוחרים קוד מורה.
 4. **איסוף נתונים מכמה מכשירים:** בכל מכשיר לוחצים ״שמירת קובץ התקדמות״ (תלמיד) או ״ייצוא״ (מורה), ואז מייבאים את קובצי ה־CSV במסך המורה של מכשיר אחד. ניסיונות שכבר קיימים לא ייכפלו. אין סנכרון אוטומטי בין מכשירים.
 5. הקובץ המיוצא נשמר בקידוד UTF-8 עם BOM ונפתח ישירות ב־Excel. ב־Google Sheets: קובץ ← ייבוא ← העלאה. את הגיליון יש לשמור פרטי.
@@ -63,9 +63,11 @@
 
 ## עמודות קובץ הנתונים
 
-`student_id, grade, question_id, base_question_id, attempt_id, timestamp, assessment_type, skill, topic, question_type, is_transfer, attempt_order, answer_text, selected_option, hints_used, hint_types, explain_requested, solution_revealed, rubric_id, rubric_version, criteria_met, criteria_missing, misconception, correctness, awarded_points, max_points, confidence, teacher_review, teacher_override, teacher_mastery, teacher_note, mastery_level, updated_at, app_version`
+`student_id, grade, class_name, question_id, base_question_id, attempt_id, timestamp, assessment_type, skill, topic, question_type, is_transfer, attempt_order, answer_text, selected_option, hints_used, hint_types, explain_requested, solution_revealed, rubric_id, rubric_version, criteria_met, criteria_missing, misconception, correctness, awarded_points, max_points, confidence, teacher_review, teacher_override, teacher_mastery, teacher_note, mastery_level, updated_at, app_version`
 
-כל שורה היא ניסיון אחד. תשובת התלמיד נשמרת במלואה, כפי שנכתבה.
+כל שורה היא ניסיון אחד. `student_id` הוא השם המלא שהתלמיד הקליד, ו־`class_name` היא הכיתה (למשל ה׳2). תשובת התלמיד נשמרת במלואה, כפי שנכתבה.
+
+> 🔒 שמות התלמידים נשמרים במכשיר ובגיליון של המורה בלבד. ל־Claude נשלחות רק השאלה ותשובת התלמיד, בלי שם. את הגיליון יש לשמור פרטי.
 
 ## 40 המיומנויות והשאלות המקבילות
 
