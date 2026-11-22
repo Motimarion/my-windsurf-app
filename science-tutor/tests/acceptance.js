@@ -281,6 +281,22 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   const sr2 = (await rowsOf(sp, 'ד8-02')).at(-1);
   ok(sr2.grader === 'rules' && sr2.correctness === 'correct', 'כשהשרת לא זמין, הבדיקה חוזרת לכללים');
   ok(await sp.evaluate(() => JSON.parse(localStorage.getItem('sciTutor.syncQueue.v1') || '[]').length) === 2, 'ניסיונות שלא נשלחו נשמרים בתור לשליחה מאוחרת');
+  // Claude לא מוריד תשובה שהכללים כבר קיבלו (למשל ״מים״ כמשאב מהים), אלא אם הוא בטוח שהיא שגויה
+  const sp3 = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  sp3.on('pageerror', e => errors.push(e.message));
+  await sp3.route(SRV, async route => {
+    const body = JSON.parse(route.request().postData());
+    const out = body.action === 'grade' ? { ok: true, parts: body.parts.map(p => ({ index: p.index, status: 'partial', met: [], misconception: '', hint: 'נסו להיות מדויקים יותר', reason: 'התשובה כללית', confidence: 'low' })) } : { ok: true, saved: (body.rows || []).length };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
+  });
+  await sp3.goto(URL + '?server=' + encodeURIComponent(SRV) + '&key=class-77');
+  await sp3.fill('#sid', 'נועה לוי'); await sp3.click('[data-grade="5"]'); await sp3.fill('#sid', 'נועה לוי'); await sp3.selectOption('#cls', '1'); await sp3.click('[data-act="start"]');
+  await fill(sp3, 'right'); await sp3.click('[data-act="check"]'); await sp3.click('[data-act="next"]');
+  await sp3.evaluate(() => { const ins = document.querySelectorAll('#qcard input[type=text]'); ['מים', 'עץ', 'רוח'].forEach((v, i) => { ins[i].value = v; }); });
+  await sp3.click('[data-act="check"]'); await sp3.waitForSelector('[data-act="next"]');
+  const wr = (await rowsOf(sp3, 'נועה לוי')).at(-1);
+  ok(wr.question_id === 'h02' && wr.correctness === 'correct' && wr.grader_reason.includes('הכללים קיבלו') && wr.class_name === 'ה׳1', 'תשובה שהכללים קיבלו (״מים״ מהים) נשארת נכונה גם כש־Claude מסתייג');
+  await sp3.close();
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
