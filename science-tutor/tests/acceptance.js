@@ -316,6 +316,13 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
   ok(r2.negs.every(x => x !== 'ok'), 'שלילה ומילה בתוך מילה אינן מתקבלות (' + r2.negs + ')');
   ok(r2.oks.every(x => x === 'ok'), 'תשובות נכונות שנפסלו בסבב הקודם מתקבלות (' + r2.oks + ')');
   ok(r2.sc.first === Math.round((4 + 8) / 96 * 100) && r2.sc.best === Math.round((8 + 4 + 8) / 96 * 100), 'ניקוד: רמז לפני הבדיקה = 0 ״כמו במבחן״, ״חלקי״ = חצי, ״נכון״ אחרי פתרון נספר אחרי תרגול (' + r2.sc.first + '/' + r2.sc.best + ')');
+  // סבב אימות 3: תשובה שממתינה לבדיקה לא נספרת בציון, ובדיקת עובדות מול התרשים
+  const r3 = await sp.evaluate(() => { const T = window.__sciTutor; const part = T.QUESTIONS.find(q => q.id === 'v12').parts[5];
+    const R = (q, extra) => Object.assign({ student_id: 'טל', grade: '5', class_name: 'ה׳3', base_question_id: q, attempt_id: 'p' + q, attempt_order: '1', is_transfer: 'no', awarded_points: '8', max_points: '8', timestamp: '2026-11-22T12:00' }, extra || {});
+    return { sc: T.studentScore([R('h01', { correctness: 'accepted_pending' }), R('h02', { correctness: 'correct' })], 5, 'all'),
+      facts: ['בעיר ג יש 30 אחוז', 'עיר ב היא הכי נמוכה', 'עיר ב יותר מעיר א', 'בעיר ג יש 20 אחוז', 'עיר ד הכי נמוכה'].map(a => T.gradePart(part, a).status) }; });
+  ok(r3.sc.first === Math.round(8 / 96 * 100) && r3.sc.pending === 1, 'תשובה שממתינה לבדיקת מורה לא נספרת בציון עד ההחלטה, ומסומנת כממתינה');
+  ok(r3.facts.join() === 'wrong,wrong,wrong,ok,ok', 'עובדה שסותרת את התרשים נפסלת, ועובדה נכונה מתקבלת (' + r3.facts + ')');
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
