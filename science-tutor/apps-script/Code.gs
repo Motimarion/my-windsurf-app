@@ -23,10 +23,12 @@ const MAX_ANSWER_CHARS = 600;
 const MAX_FIELD_CHARS = 1500;
 const MAX_PARTS = 6;
 const PER_STUDENT_PER_MINUTE = 20;
+const CLASS_PER_MINUTE = 150;
 
 function doPost(e) {
   let req;
   try { req = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'bad_json' }); }
+  if (!req || typeof req !== 'object') return json_({ ok: false, error: 'bad_json' });
   const props = PropertiesService.getScriptProperties();
   const classKey = props.getProperty('CLASS_KEY');
   if (!classKey || String(req.key || '') !== classKey) return json_({ ok: false, error: 'bad_key' });
@@ -57,9 +59,6 @@ function doGet() {
 function grade_(req, props) {
   const apiKey = props.getProperty('ANTHROPIC_API_KEY');
   if (!apiKey) return { ok: false, error: 'no_api_key' };
-  const limit = rateLimit_(String(req.student || 'anon'), Number(props.getProperty('DAILY_LIMIT') || 3000));
-  if (limit) return { ok: false, error: limit };
-
   const parts = (Array.isArray(req.parts) ? req.parts : []).slice(0, MAX_PARTS).map(p => ({
     index: Number(p.index) || 0,
     question: clip_(p.question),
@@ -67,9 +66,11 @@ function grade_(req, props) {
     need: Number(p.need) || 1,
     model: clip_(p.model),
     misconceptions: (Array.isArray(p.misconceptions) ? p.misconceptions : []).slice(0, 6).map(m => clip_(m, 200)),
-    answer: clip_(p.answer, MAX_ANSWER_CHARS)
+    answer: unmark_(clip_(p.answer, MAX_ANSWER_CHARS))
   })).filter(p => p.answer.trim());
   if (!parts.length) return { ok: false, error: 'no_parts' };
+  const limit = rateLimit_(String(req.student || 'anon'), Number(props.getProperty('DAILY_LIMIT') || 3000));
+  if (limit) return { ok: false, error: limit };
 
   const grade = Number(req.grade) || 5;
   const prompt = buildPrompt_(grade, clip_(req.topic, 200), clip_(req.skill, 300), clip_(req.context, 3000), parts);
@@ -140,7 +141,7 @@ function buildPrompt_(grade, topic, skill, context, parts) {
 
 /* ---------- שמירה בגיליון ---------- */
 function log_(req) {
-  const columns = Array.isArray(req.columns) ? req.columns.slice(0, 60).map(c => clip_(c, 60)) : [];
+  const columns = Array.isArray(req.columns) ? req.columns.slice(0, 60).map(c => String(c)).filter((c, i, a) => /^[a-z_]{1,40}$/.test(c) && a.indexOf(c) === i) : [];
   const rows = Array.isArray(req.rows) ? req.rows.slice(0, 50) : [];
   if (!columns.length || !rows.length) return { ok: true, saved: 0 };
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
@@ -152,7 +153,11 @@ function log_(req) {
     if (!head.length) { head = columns; sh.getRange(1, 1, 1, head.length).setValues([head]); sh.setFrozenRows(1); }
     const missing = columns.filter(c => head.indexOf(c) < 0);
     if (missing.length) { sh.getRange(1, head.length + 1, 1, missing.length).setValues([missing]); head = head.concat(missing); }
-    const values = rows.map(r => head.map(h => clip_(r && r[h], 2000)));
+    if (head.length > 80) return { ok: false, error: 'too_many_columns' };
+    const cache = CacheService.getScriptCache();
+    const fresh = rows.filter(r => { const id = 'a_' + clip_(r && r.attempt_id, 60); if (id === 'a_') return true; if (cache.get(id)) return false; cache.put(id, '1', 21600); return true; });
+    if (!fresh.length) return { ok: true, saved: 0 };
+    const values = fresh.map(r => head.map(h => safe_(clip_(r && r[h], 2000))));
     sh.getRange(sh.getLastRow() + 1, 1, values.length, head.length).setValues(values);
     return { ok: true, saved: values.length };
   } finally { lock.releaseLock(); }
@@ -165,6 +170,10 @@ function rateLimit_(student, dailyLimit) {
   const n = Number(cache.get(minuteKey) || 0) + 1;
   cache.put(minuteKey, String(n), 120);
   if (n > PER_STUDENT_PER_MINUTE) return 'rate_limited';
+  const allKey = 'm_all_' + Math.floor(Date.now() / 60000);
+  const na = Number(cache.get(allKey) || 0) + 1;
+  cache.put(allKey, String(na), 120);
+  if (na > CLASS_PER_MINUTE) return 'rate_limited';
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
     const props = PropertiesService.getScriptProperties();
@@ -176,6 +185,11 @@ function rateLimit_(student, dailyLimit) {
   } finally { lock.releaseLock(); }
   return '';
 }
+
+/** מונע ערכים שהגיליון יפרש כנוסחה (= + - @). */
+function safe_(v) { return /^[=+\-@\t\r]/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v) ? "'" + v : v; }
+/** מסיר את סימני התיחום של תשובת התלמיד, כדי שאי אפשר יהיה לצאת מהם. */
+function unmark_(v) { return String(v).replace(/<{3,}|>{3,}/g, ' '); }
 
 function clip_(v, n) { return String(v == null ? '' : v).slice(0, n || MAX_FIELD_CHARS); }
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }

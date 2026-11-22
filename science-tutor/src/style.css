@@ -54,8 +54,9 @@ table.data th,table.data td{border:1px solid var(--line);padding:6px 8px;text-al
 table.data th{background:#eef3f8}
 .tfrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eef2f6;flex-wrap:wrap}
 .tfrow .seg{display:flex;gap:6px}
-.seg label{border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;background:#fff;font-size:16px}
-.seg input{display:none}
+.seg label{position:relative;border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;background:#fff;font-size:16px}
+.seg input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.seg label:focus-within{outline:3px solid var(--brand);outline-offset:2px}
 .seg label.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .chain .arrow{font-size:22px;color:var(--muted)}
