@@ -304,6 +304,18 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
     const rows = [R('h01', 1, 8), R('h02', 1, 0), R('h02', 2, 8), R('h03', 1, 4), R('h04', 1, 0, { teacher_override: 'correct' }), R('h05', 1, 0), R('h05', 2, 0, { solution_revealed: 'yes' })];
     return T.studentScore(rows, 5, 'all'); });
   ok(scr.first === Math.round((8 + 0 + 4 + 8) / 96 * 100) && scr.best === Math.round((8 + 8 + 4 + 8) / 96 * 100) && scr.answered === 5 && scr.total === 12, 'ציון: ניסיון ראשון ' + scr.first + ', אחרי תרגול ' + scr.best + ', החלטת מורה נספרת ושאלה שלא נענתה = 0');
+  // סבב אימות 2: מספרים, שלילה, חריגים בטעויות מושגיות, ניקוד עם רמזים והחלטת ״חלקי״
+  const r2 = await sp.evaluate(() => { const T = window.__sciTutor; const Q = id => T.QUESTIONS.find(q => q.id === id); const st = (id, i, a) => T.gradePart(Q(id).parts[i], a).status;
+    const R = (q, ord, pts, extra) => Object.assign({ student_id: 'גל', grade: '5', class_name: 'ה׳1', base_question_id: q, attempt_id: 'x' + q + ord, attempt_order: String(ord), is_transfer: 'no', awarded_points: String(pts), max_points: '8', timestamp: '2026-11-22T11:0' + ord }, extra || {});
+    const sc = T.studentScore([R('h01', 1, 8, { hint_types: 'requested_1' }), R('h02', 1, 8, { teacher_override: 'partial' }), R('h03', 1, 0, { solution_revealed: 'yes', teacher_override: 'correct' })], 5, 'all');
+    return { nums: ['ירד ב-18 ונשארו 9', '18 (27-9)', 'ירד מ27 ל9, כלומר 18', '27 פחות 9 זה 18'].map(a => st('d16', 0, a)),
+      negs: [st('d15', 1, 'בעלי חיים לא יכולים להיות בשתי הקבוצות'), st('d11', 2, 'יש להם חלבון בגוף'), st('d11', 2, 'שניהם לא מניקים')],
+      oks: [st('h11', 1, 'בחולית הגרגרים גדולים ובחרסית קטנים ולכן המים עוברים לאט'), st('d16', 2, 'לבנות להן מחבואים מאבנים'), st('d16', 2, 'שלא יבנו שם בתים'), st('h02', 2, 'עצי אורן')],
+      sc }; });
+  ok(r2.nums.every(x => x === 'ok'), 'מספר בתוך תשובה עם מספרים נוספים מזוהה נכון (' + r2.nums + ')');
+  ok(r2.negs.every(x => x !== 'ok'), 'שלילה ומילה בתוך מילה אינן מתקבלות (' + r2.negs + ')');
+  ok(r2.oks.every(x => x === 'ok'), 'תשובות נכונות שנפסלו בסבב הקודם מתקבלות (' + r2.oks + ')');
+  ok(r2.sc.first === Math.round((4 + 8) / 96 * 100) && r2.sc.best === Math.round((8 + 4 + 8) / 96 * 100), 'ניקוד: רמז לפני הבדיקה = 0 ״כמו במבחן״, ״חלקי״ = חצי, ״נכון״ אחרי פתרון נספר אחרי תרגול (' + r2.sc.first + '/' + r2.sc.best + ')');
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');

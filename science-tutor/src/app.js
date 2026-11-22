@@ -52,11 +52,12 @@ function norm(s){ return normCore(s).replace(/\s+/g,' ').trim(); }
 const PREFIXES = ['','ו','ה','ב','ל','מ','ש','כ','וה','וב','ול','ומ','וש','וכ','שה','שב','של','שמ','כש','מה','לה','בה','כה'];
 const SUFFIXES = ['','ימ','ות','ה','ת','י','יה','ית','יות','ו','נו','כמ','יימ'];
 const NEG = new Set(['לא','אין','אינ','אינמ','אינה','אינו','אינני','בלי','ללא','אף','מעולמ','אסור','לאסור','שלא','למנוע','להפסיק']);
-const NEG_GAP = new Set(['כל','ממש','היה','היתה','הייתה','היו','להמ','לו','לה','זה','המ','היא','הוא','יש','בכלל','באמת','עוד']);
+const NEG_GAP = new Set(['יכולימ','יכול','יכולה','יכולות','להיות','יהיה','יהיו','צריכ','צריכימ','כל','ממש','היה','היתה','הייתה','היו','להמ','לו','לה','זה','המ','היא','הוא','יש','בכלל','באמת','עוד']);
 const NOT_WORDS = new Set(['שמימ','שמיימ','בשמימ','לשמימ','חולה','חולימ','חולת','חולנ','לכנ','ולכנ']);
 function tokens(text){ const n=norm(text).replace(/\?/g,' ').replace(/\s+/g,' ').trim(); return n?n.split(' '):[]; }
 function negatedAt(toks, i, win){
-  for(let j=i-1, used=0; j>=0 && used<(win||1); j--){ const w=toks[j]; if(NEG.has(w)||NEG.has(w.replace(/^[וש]/,''))||NEG.has(w.replace(/^וש/,''))) return true; if(win>1 || NEG_GAP.has(w)) { used++; continue; } return false; }
+  const lim = (win>1) ? win : 2;
+  for(let j=i-1, used=0; j>=0 && used<=lim; j--){ const w=toks[j]; if(NEG.has(w)||NEG.has(w.replace(/^[וש]/,''))||NEG.has(w.replace(/^וש/,''))) return true; if(win>1 || NEG_GAP.has(w)) { used++; continue; } return false; }
   return false; }
 function wordHits(tok, k, whole){
   if(NOT_WORDS.has(tok)) return false;
@@ -82,7 +83,7 @@ const NUM_WORDS = {'אפס':0,'אחת':1,'אחד':1,'שתיימ':2,'שניימ':
 function parseNumAnswer(ans){
   const s=String(ans==null?'':ans).replace(/[‎‏]/g,'');
   const nums=[...s.matchAll(/\d+(?:[.,]\d+)?/g)].map(m=>parseFloat(m[0].replace(',','.')));
-  if(nums.length){ const eq=s.lastIndexOf('='); if(eq>=0){ const after=s.slice(eq).match(/\d+(?:[.,]\d+)?/); if(after) return parseFloat(after[0].replace(',','.')); } return nums[nums.length-1]; }
+  if(nums.length){ const m=s.match(/(?:=|זה|שווה|יוצא|התשובה|כלומר|סה״כ|סהכ)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)(?![\s\S]*(?:=|זה |שווה|יוצא|כלומר))/); if(m) return parseFloat(m[1].replace(',','.')); return nums[0]; }
   let total=0, any=false, unit=0;
   for(let w of tokens(s)){ if(!(w in NUM_WORDS)) w=w.replace(/^ו/,''); if(!(w in NUM_WORDS)) continue;
     const v=NUM_WORDS[w]; any=true; if(v===10 && unit>0 && unit<10){ total+=10+unit; unit=0; continue; } if(v<10){ total+=unit; unit=v; } else { total+=unit+v; unit=0; } }
@@ -151,7 +152,7 @@ function gradePart(p, ans){
       // טעות מושגית מוכרת: כשאף רכיב לא הוכח והתשובה מכילה את הטעות — שגוי, עם תיעוד הטעות
       if(isEmptyAns(ans)){ r.status='wrong'; r.met=[]; r.missing=p.criteria.slice(); }
       // טעות מושגית מוכרת: כשאף רכיב לא הוכח (או כשהטעות מסומנת always) והתשובה מכילה אותה בלי שלילה — שגוי, עם תיעוד הטעות
-      if(p.contra){ const c=p.contra.find(c=>(c.always||r.met.length===0) && c.any.some(k=>kwFind(ans,k,3))); if(c){ r.status='wrong'; r.mis.push(c.mis); r.hint=c.hint; } }
+      if(p.contra){ const c=p.contra.find(c=>(c.always||r.met.length===0) && !(c.unless||[]).some(k=>kwMatch(ans,k)) && c.any.some(k=>kwFind(ans,k,3))); if(c){ r.status='wrong'; r.mis.push(c.mis); r.hint=c.hint; } }
       if(r.status!=='ok' && !r.hint && r.missing[0]) r.hint=r.missing[0].hint||'';
       break; }
   }
@@ -287,7 +288,7 @@ function startStudent(){
   if(id.length<2) return fail('נא להקליד את השם המלא.');
   if(!S.grade) return fail('בחרו שכבה (כיתה ד׳, ה׳ או ו׳).');
   const cls=($('#cls').value||'').trim(); if(!cls) return fail('בחרו את מספר הכיתה.');
-  S.student=id.replace(/\s+/g,' '); S.cls=cls; const p=getProg(); db.saveProgress(p);
+  S.student=id.replace(/[|]/g,' ').replace(/\s+/g,' ').trim(); S.cls=cls; const p=getProg(); db.saveProgress(p);
   try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade, cls:S.cls})); }catch(e){}
   goCurrent();
 }
@@ -613,13 +614,16 @@ function legend(){ return '<div class="legend">'+LEVEL_ORDER.map(l=>'<span><i st
    ״ציון אחרי תרגול״ = הניסיון הטוב ביותר לפני שהוצג פתרון. החלטת מורה (נכון/שגוי) גוברת. שאלה שלא נענתה = 0. */
 const BANDS=[[95,'מצוין'],[85,'טוב מאוד'],[75,'טוב'],[65,'כמעט טוב'],[55,'מספיק'],[0,'לא מספיק']];
 function band(x){ return (BANDS.find(b=>x>=b[0])||BANDS[BANDS.length-1])[1]; }
-function rowPoints(r){ const ov=db.overrides[r.attempt_id]; const c=(ov&&ov.teacher_override)||r.teacher_override||''; const max=Number(r.max_points)||0;
-  if(c==='correct') return max; if(c==='incorrect') return 0; return Math.min(max, Number(r.awarded_points)||0); }
+function ovOf(r){ const ov=db.overrides[r.attempt_id]; return (ov&&ov.teacher_override)||r.teacher_override||''; }
+function rowPoints(r){ const c=ovOf(r); const max=Number(r.max_points)||0; const pts=Math.min(max, Math.max(0, Number(r.awarded_points)||0));
+  if(c==='correct') return max; if(c==='incorrect') return 0; if(c==='partial') return (pts>0&&pts<max)?pts:Math.round(max/2*10)/10; return pts; }
+/* ״כמו במבחן״: ניסיון ראשון שלפניו התלמיד ביקש רמז או ״תסביר אחרת״ — לא נחשב עצמאי, ולכן 0 */
+function helpedBefore(r){ return /requested/.test(r.hint_types||'') || Number(r.explain_requested||0)>0; }
 function studentScore(rowsOfStudent, grade, topic){
   const qs=byGrade(Number(grade)).filter(q=>!topic||topic==='all'||q.topic===topic); const main=rowsOfStudent.filter(r=>r.is_transfer!=='yes');
   let max=0, first=0, best=0, answered=0; const byTopic={};
   qs.forEach(q=>{ const rs=main.filter(r=>r.base_question_id===q.id).sort((a,b)=>Number(a.attempt_order)-Number(b.attempt_order)||String(a.timestamp).localeCompare(String(b.timestamp)));
-    const f=rs[0]?rowPoints(rs[0]):0; const b=rs.filter(r=>r.solution_revealed!=='yes').reduce((m,r)=>Math.max(m,rowPoints(r)),0);
+    const f=rs[0]&&!helpedBefore(rs[0])?rowPoints(rs[0]):0; const b=rs.filter(r=>r.solution_revealed!=='yes'||ovOf(r)==='correct').reduce((m,r)=>Math.max(m,rowPoints(r)),0);
     max+=q.points; first+=f; best+=Math.max(b,f); if(rs.length) answered++;
     const t=byTopic[q.topic]||(byTopic[q.topic]={max:0,first:0,best:0}); t.max+=q.points; t.first+=f; t.best+=Math.max(b,f); });
   const sc=v=>max?Math.round(v/max*100):0;
@@ -634,7 +638,7 @@ function teacherScores(rows){
   const dist=BANDS.slice().reverse().map(([lo,name],i,arr)=>{ const hi=i<arr.length-1?arr[i+1][0]-1:100; const n=firsts.filter(x=>x>=lo&&x<=hi).length; return {name, range:lo+'–'+hi, n}; }).reverse();
   const maxN=Math.max(1,...dist.map(d=>d.n));
   let h='<div class="card"><h3 style="margin-top:0">📊 ציונים לפי הניקוד של משימת המקור</h3>'+
-    '<p class="small">הציון מחושב לפי הניקוד של כל שאלה במשימה (6 נקודות לשאלה בכיתה ד׳, 8 בכיתות ה׳–ו׳), ומומר לציון מתוך 100. <b>ציון כמו במבחן</b> — לפי הניסיון הראשון בלבד, בלי רמזים. <b>אחרי תרגול</b> — הניסיון הטוב ביותר לפני שהוצג פתרון. שאלה שלא נענתה מקבלת 0.'+(S.tTopic&&S.tTopic!=='all'?' <b>מוצג רק הנושא: '+esc(S.tTopic)+'</b>.':'')+'</p>'+
+    '<p class="small">הציון מחושב לפי הניקוד של כל שאלה במשימה (6 נקודות לשאלה בכיתה ד׳, 8 בכיתות ה׳–ו׳), ומומר לציון מתוך 100. <b>ציון כמו במבחן</b> — לפי הניסיון הראשון בלבד; אם לפניו התלמיד ביקש רמז או ״תסביר אחרת״, השאלה מקבלת 0. <b>אחרי תרגול</b> — הניסיון הטוב ביותר לפני שהוצג פתרון. שאלה שלא נענתה מקבלת 0. החלטת מורה ״חלקי״ שווה חצי מהניקוד.'+(S.tTopic&&S.tTopic!=='all'?' <b>מוצג רק הנושא: '+esc(S.tTopic)+'</b>.':'')+'</p>'+
     '<div class="stat"><div class="box"><div class="num">'+list.length+'</div>תלמידים</div><div class="box"><div class="num">'+avg(firsts)+'</div>ממוצע (כמו במבחן)</div><div class="box"><div class="num">'+med(firsts)+'</div>חציון</div><div class="box"><div class="num">'+avg(list.map(x=>x.best))+'</div>ממוצע אחרי תרגול</div></div>'+
     '<h4>התפלגות הציונים (כמו במבחן)</h4><table class="data"><thead><tr><th>טווח</th><th>הערכה</th><th>תלמידים</th><th style="width:50%"></th></tr></thead><tbody>'+
     dist.map(d=>'<tr><td>'+d.range+'</td><td>'+d.name+'</td><td>'+d.n+' ('+pct(d.n,list.length)+')</td><td><div style="height:14px;border-radius:4px;background:var(--brand);width:'+Math.round(d.n/maxN*100)+'%"></div></td></tr>').join('')+'</tbody></table></div>';
