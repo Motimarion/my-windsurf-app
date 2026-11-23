@@ -220,12 +220,18 @@ function solutionHTML(parts){
 
 /* ---------- מצב ---------- */
 const S = { view:'login', student:null, grade:null, cls:'', teacher:false, tTab:'class', tGrade:'all', tTopic:'all', tStudent:'', showAllOpen:false, feedback:null, rephraseShown:false, pendingExplain:0, hintsVisible:[] };
-function pkey(){ return S.student+'|'+S.grade+'|'+(S.cls||''); }
+function pkey(){ return S.student+'|'+S.grade+'|'+(S.cls||'')+(S.fu?'|fu'+S.fu:''); }
 /* זהות תלמיד במסך המורה: שם + כיתה, כדי ששני תלמידים באותו שם בכיתות שונות לא יתמזגו */
 function sid(r){ return String(r.student_id||'')+(r.class_name?' · '+r.class_name:''); }
 function getProg(){ const p=db.progress; if(!p[pkey()]) p[pkey()]={student:S.student, grade:S.grade, idx:0, q:{}, started:nowISO()}; return p; }
 function qstate(prog, qid){ const P=prog[pkey()]; if(!P.q[qid]) P.q[qid]={stage:'main', tries:0, hints:0, hintTypes:[], explainReq:0, revealed:false, tTries:0, tHints:0, done:false, mastery:'', review:false, hadUncertain:false}; return P.q[qid]; }
-function currentQ(){ const P=db.progress[pkey()]; const list=byGrade(S.grade); return list[P.idx]||null; }
+/* ---------- מבחן המשך מותאם אישית ----------
+   קוד של 6 ספרות, ספרה לכל נושא לפי FOLLOWUP_TOPICS: 1 = בסיסי (2 שאלות), 2 = רגיל (2 שאלות), 3 = אתגר (שאלה אחת), 0 = בלי הנושא. */
+const FU_LEVELS={'1':['b1','b2'],'2':['r1','r2'],'3':['c1'],'0':[]};
+function fuValid(code){ return /^[0-3]{6}$/.test(code||'') && /[1-3]/.test(code); }
+function fuList(code){ return FOLLOWUP_TOPICS.flatMap((t,i)=>(FU_LEVELS[code[i]]||[]).map(suf=>FOLLOWUP.find(q=>q.topic===t && q.id.endsWith('-'+suf))).filter(Boolean)); }
+function qList(){ return S.fu ? fuList(S.fu) : byGrade(S.grade); }
+function currentQ(){ const P=db.progress[pkey()]; const list=qList(); return list[P.idx]||null; }
 
 /* ---------- ציור גרף ---------- */
 function chartSVG(c){
@@ -294,6 +300,7 @@ function renderLogin(){
     '<label class="field">השכבה שלי</label><div class="grades">'+[4,5,6].map(g=>'<button type="button" data-grade="'+g+'" class="'+(S.grade===g?'sel':'')+'">כיתה '+GRADE_NAMES[g]+'</button>').join('')+'</div>'+
     '<label class="field" for="cls">מספר הכיתה</label><select id="cls"><option value="">בחרו…</option>'+[1,2,3,4,5,6,7,8].map(n=>'<option value="'+n+'"'+(String(S.cls)===String(n)?' selected':'')+'>'+n+'</option>').join('')+'</select>'+
     (S.grade?'<div class="note">הכיתה שלי: <b id="clsShow">'+esc(classLabel(S.grade,S.cls))+'</b></div>':'')+
+    '<label class="field" for="fuc">קוד מבחן המשך <span class="small muted">(רק אם קיבלתם קוד מהמורה)</span></label><input type="text" id="fuc" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6 ספרות" value="'+esc(S.fu||'')+'">'+
     '<div id="loginErr" class="banner warn" style="display:none"></div>'+
     '<div class="actions"><button class="btn" data-act="start">מתחילים ←</button></div></div>'+
     '<p class="note" style="text-align:center"><button class="btn small ghost" data-act="teacher">מסך מורה</button></p></div>';
@@ -304,18 +311,22 @@ function startStudent(){
   if(id.length<2) return fail('נא להקליד את השם המלא.');
   if(!S.grade) return fail('בחרו שכבה (כיתה ד׳, ה׳ או ו׳).');
   const cls=($('#cls').value||'').trim(); if(!cls) return fail('בחרו את מספר הכיתה.');
+  const fu=(($('#fuc')||{}).value||'').replace(/\D/g,'');
+  if(fu && !fuValid(fu)) return fail('קוד מבחן ההמשך צריך להיות 6 ספרות, כמו שקיבלתם מהמורה.');
+  if(fu && S.grade!==6) return fail('מבחן ההמשך מיועד כרגע לכיתה ו׳. בחרו ״כיתה ו׳״.');
+  S.fu = fu||'';
   S.student=id.replace(/[|]/g,' ').replace(/\s+/g,' ').trim(); S.cls=cls; const p=getProg(); db.saveProgress(p);
-  try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade, cls:S.cls})); }catch(e){}
+  try{ sessionStorage.setItem(KEY.session, JSON.stringify({student:S.student, grade:S.grade, cls:S.cls, fu:S.fu||''})); }catch(e){}
   goCurrent();
 }
 function goCurrent(){
-  const P=db.progress[pkey()]; const list=byGrade(S.grade);
+  const P=db.progress[pkey()]; const list=qList();
   while(P.idx<list.length && P.q[list[P.idx].id] && P.q[list[P.idx].id].done) P.idx++;
   S.feedback=null; S.rephraseShown=false; S.pendingExplain=0;
   S.view = P.idx>=list.length ? 'done' : 'question'; render(); window.scrollTo(0,0);
 }
 function renderQuestion(){
-  const prog=db.progress; const P=prog[pkey()]; const list=byGrade(S.grade); const q=list[P.idx]; const st=qstate(prog,q.id);
+  const prog=db.progress; const P=prog[pkey()]; const list=qList(); const q=list[P.idx]; const st=qstate(prog,q.id);
   const isT = st.stage==='transfer'; const item = isT ? q.transfer : q; const parts=item.parts;
   const doneCount=list.filter(x=>P.q[x.id]&&P.q[x.id].done).length;
   const seed=S.student+'|'+item.id;
@@ -323,6 +334,7 @@ function renderQuestion(){
     '<div class="progress" aria-hidden="true"><div style="width:'+Math.round(doneCount/list.length*100)+'%"></div></div>';
   h+='<div class="card" id="qcard">';
   if(isT) h+='<div class="banner" style="background:var(--brand-soft);color:var(--brand)">🎯 שאלת תרגול חדשה — נסו ליישם את מה שלמדנו עכשיו.</div>';
+  if(S.fu) h+='<div class="banner" style="background:var(--brand-soft);color:var(--brand)">📝 מבחן המשך — עונים פעם אחת על כל שאלה. אחרי הבדיקה התשובה נשמרת וממשיכים הלאה.</div>';
   h+='<div class="prompt">'+item.prompt+'</div>';
   if(item.passage) h+='<div class="passage">'+item.passage+'</div>';
   if(item.table) h+=tableHTML(item.table);
@@ -336,9 +348,9 @@ function renderQuestion(){
   h+='<div class="actions">';
   if(!finished && !awaiting){
     h+='<button class="btn" data-act="check">בדיקה ✓</button>';
-    const canHint = isT ? st.tHints<1 : st.hints<2;
+    const canHint = !S.fu && (isT ? st.tHints<1 : st.hints<2);
     if(canHint) h+='<button class="btn ghost" data-act="hint">💡 רמז</button>';
-    if(!S.rephraseShown) h+='<button class="btn ghost" data-act="rephrase">🔄 תסביר אחרת</button>';
+    if(!S.rephraseShown && !S.fu) h+='<button class="btn ghost" data-act="rephrase">🔄 תסביר אחרת</button>';
   }
   if(awaiting) h+='<button class="btn" data-act="toTransfer">לשאלת התרגול החדשה ←</button>';
   if(finished) h+='<button class="btn" data-act="next">'+(P.idx+1<list.length?'לשאלה הבאה ←':'לסיכום ←')+'</button>';
@@ -368,7 +380,7 @@ function recordAttempt(q, item, isT, st, answers, g, finalMastery){
   const mc1 = parts.length===1 && parts[0].type==='mc' && answers[0]!=null ? parts[0].options[answers[0]] : '';
   const row={
     student_id:S.student, grade:String(S.grade), class_name:classLabel(S.grade,S.cls), question_id:item.id, base_question_id:q.id, attempt_id:uid(), timestamp:nowISO(),
-    assessment_type:ASSESSMENT_TYPE, skill:q.skill, topic:q.topic, question_type:parts.map(p=>p.type).join('+'), is_transfer:isT?'yes':'no',
+    assessment_type:S.fu?'followup':ASSESSMENT_TYPE, skill:q.skill, topic:q.topic, question_type:parts.map(p=>p.type).join('+'), is_transfer:isT?'yes':'no',
     attempt_order:String(isT?st.tTries:st.tries), answer_text:answerText(parts,answers), selected_option:mc1,
     hints_used:String(isT?st.tHints:st.hints), hint_types:st.hintTypes.join('; '), explain_requested:String(S.pendingExplain||0),
     solution_revealed:st.revealed?'yes':'no', rubric_id:'R-'+item.id, rubric_version:RUBRIC_VERSION,
@@ -512,11 +524,17 @@ async function check(){
   const g=gradeQuestion(item.parts, answers);
   if(g.status!=='empty' && item.parts.some(isOpenPart)){
     if((AI && !aiOff) || (serverCfg() && !serverOff)){ setChecking(true); const used = (AI && !aiOff) ? await aiGrade(q,item,answers,g) : false; if(!used) await serverGrade(q,item,answers,g); setChecking(false); }
-    acceptFree(item, answers, g, (isT?st.tTries:st.tries)+1);
+    acceptFree(item, answers, g, S.fu ? 2 : (isT?st.tTries:st.tries)+1);
   }
   if(g.status==='empty'){ S.partMarks=g.parts.map(r=>r.status==='empty'?{cls:'bad',text:'✎ חסרה תשובה בסעיף הזה'}:null); S.feedback=feedbackBox('hint','כמעט…','נא לענות על כל הסעיפים לפני הבדיקה.'); render(); return; }
   S.partMarks = item.parts.length>1 ? g.parts.map(r=>r.status==='ok'?{cls:'ok',text:'✓ נכון'}:r.status==='pending'?{cls:'ok',text:'✓ התקבל — המורה תבדוק'}:{cls:'bad',text:r.status==='partial'||r.status==='uncertain'?'🟡 חלקי — אפשר להשלים':'✗ כדאי לבדוק שוב'}) : null;
   const firstMissHint = (g.parts.find(r=>r.hint)||{}).hint;
+  if(S.fu){ // מבחן: ניסיון אחד, בלי רמזים ובלי הסבר באמצע
+    st.tries=1; st.done=true; st.mastery = g.status==='correct' ? 'independent' : '';
+    recordAttempt(q,item,false,st,answers,g,st.mastery); S.partMarks=null;
+    S.feedback=feedbackBox('ok','✓ התשובה נשמרה','אפשר להמשיך לשאלה הבאה.');
+    db.saveProgress(prog); render(); return;
+  }
   if(!isT){
     st.tries++;
     if(g.status==='correct'){
@@ -566,6 +584,7 @@ function toTransfer(){ const prog=db.progress; const q=currentQ(); const st=qsta
 function next(){ const prog=db.progress; prog[pkey()].idx++; db.saveProgress(prog); S.partMarks=null; S.lastAnswers=null; goCurrent(); }
 
 function renderDone(){
+  if(S.fu) return renderFuDone();
   const P=db.progress[pkey()]; const list=byGrade(S.grade); const cnt={independent:0,after_hint:0,after_teaching:0,needs_teacher:0};
   list.forEach(q=>{ const st=P.q[q.id]; if(st&&st.mastery) cnt[st.mastery]++; });
   app().innerHTML=topbar()+'<div class="wrap"><div class="card" style="text-align:center"><div class="done-emoji">🏆</div><h2>סיימתם את כל '+list.length+' השאלות!</h2>'+
@@ -577,6 +596,15 @@ function renderDone(){
     '<p>כל הניסיונות שלכם נשמרו במכשיר. אם המורה ביקשה — שמרו גם קובץ התקדמות ושלחו לה.</p>'+
     '<div class="actions" style="justify-content:center"><button class="btn" data-act="saveMine">💾 שמירת קובץ התקדמות</button><button class="btn ghost" data-act="logout">סיום</button></div></div></div>';
 }
+function renderFuDone(){
+  const list=qList(); const mine=db.attempts.filter(r=>r.assessment_type==='followup' && r.student_id===S.student && r.class_name===classLabel(S.grade,S.cls));
+  let got=0, max=0; list.forEach(q=>{ const r=mine.filter(x=>x.base_question_id===q.id).slice(-1)[0]; max+=q.points; if(r) got+=rowPoints(r); });
+  const pctv=max?Math.round(got/max*100):0;
+  app().innerHTML=topbar()+'<div class="wrap"><div class="card" style="text-align:center"><div class="done-emoji">🏁</div><h2>סיימתם את מבחן ההמשך!</h2>'+
+    '<p>ענית על '+list.length+' שאלות. כל התשובות נשמרו ונשלחו למורה.</p>'+
+    '<div class="stat" style="justify-content:center"><div class="box"><div class="num">'+pctv+'</div>ציון (לפני בדיקת המורה)</div></div>'+
+    '<p class="small muted">תשובות פתוחות ייבדקו גם על ידי המורה, והציון עשוי להשתנות.</p>'+
+    '<div class="actions" style="justify-content:center"><button class="btn" data-act="saveMine">💾 שמירת קובץ התקדמות</button><button class="btn ghost" data-act="logout">סיום</button></div></div></div>'; }
 function saveMine(){ const rows=exportRows(db.attempts.filter(r=>r.student_id===S.student && r.grade===String(S.grade) && (r.class_name||'')===classLabel(S.grade,S.cls))); download('progress_'+S.student.replace(/[^\wא-ת-]/g,'_')+'_grade'+S.grade+'_'+today()+'.csv', toCSV(rows)); }
 
 /* ---------- מסך מורה ---------- */
@@ -610,7 +638,7 @@ function effective(rows){
   Object.values(map).forEach(m=>{ if(m.override&&m.override.teacher_mastery) m.level=m.override.teacher_mastery; m.pending = m.review && !m.override; });
   return map;
 }
-function teacherRows(){ const g=S.tGrade, t=S.tTopic; return db.attempts.filter(r=>(g==='all'||r.grade===String(g)) && (t==='all'||(QBYID[r.base_question_id]&&QBYID[r.base_question_id].topic===t))); }
+function teacherRows(fu){ const g=S.tGrade, t=S.tTopic; return db.attempts.filter(r=>(fu ? r.assessment_type==='followup' : r.assessment_type!=='followup') && (g==='all'||r.grade===String(g)) && (fu || t==='all' || (QBYID[r.base_question_id]&&QBYID[r.base_question_id].topic===t))); }
 function topicsFor(g){ return [...new Set(QUESTIONS.filter(q=>g==='all'||q.grade===Number(g)).map(q=>q.topic))]; }
 // המלצת הוראה שקופה: נגזרת מרמת השליטה, מהטעות שזוהתה ומההסבר של השאלה
 function recommendation(m,q){
@@ -663,7 +691,7 @@ function openOkFromRow(q, r){ const n=q.parts.length; const segs=splitParts(r.an
   const exact=q.parts.reduce((s,p,i)=>{ const c=textCredit(p,segs[i]); return s+(c===1?1:0); },0);
   const okc=Math.round((Number(r.awarded_points)||0)/q.points*n); const opens=q.parts.filter(p=>textCredit(p,'')===null).length;
   return Math.max(0, Math.min(opens, okc-exact)); }
-const QBY={}; QUESTIONS.forEach(q=>QBY[q.id]=q);
+const QBY={}; QUESTIONS.forEach(q=>QBY[q.id]=q); FOLLOWUP.forEach(q=>QBY[q.id]=q);
 function ovOf(r){ const ov=db.overrides[r.attempt_id]; return (ov&&ov.teacher_override)||r.teacher_override||''; }
 function rowPoints(r){ const c=ovOf(r); const q=QBY[r.base_question_id]; const max=Number(r.max_points)||(q?q.points:0);
   const pend=(r.correctness==='accepted_pending'||r.correctness==='uncertain');
@@ -706,10 +734,41 @@ function exportScores(){ const list=scoreTable(teacherRows()); const topics=[...
   const head=['שם','כיתה','ציון כמו במבחן','הערכה','ציון אחרי תרגול','שאלות שנענו','מתוך','ממתינות לבדיקה'].concat(topics.map(t=>'נושא: '+t));
   const lines=[head.map(csvCell).join(',')].concat(list.map(x=>[x.name,x.cls,x.first,band(x.first),x.best,x.answered,x.total,x.pending].concat(topics.map(t=>x.byTopic[t]?Math.round(x.byTopic[t].first/x.byTopic[t].max*100):'')).map(csvCell).join(',')));
   download('scores_'+today()+'.csv', '﻿'+lines.join('\r\n')); }
+/* קוד מבחן המשך לתלמיד, לפי ההישג בניסיון הראשון בכל נושא: מתחת ל־50% → 1, 50%–74% → 2, 75% ומעלה → 3; נושא שלא נענה → 2 */
+function fuCodeFor(rowsOfStudent){ const sc=studentScore(rowsOfStudent, 6, 'all');
+  return FOLLOWUP_TOPICS.map(t=>{ const v=sc.byTopic[t]; const any=rowsOfStudent.some(r=>{ const q=QBYID[r.base_question_id]; return q&&q.topic===t; });
+    if(!v||!any) return '2'; const p=v.first/v.max; return p>=0.75?'3':p>=0.5?'2':'1'; }).join(''); }
+const FU_NAMES={'1':'בסיסי','2':'רגיל','3':'אתגר','0':'—'};
+function teacherFollowup(rows, furows){
+  const six=rows.filter(r=>r.grade==='6'); const groups={};
+  six.forEach(r=>{ const k=sid(r); (groups[k]||(groups[k]={name:r.student_id, cls:r.class_name||'', rows:[]})).rows.push(r); });
+  const list=Object.values(groups).sort((a,b)=>String(a.cls).localeCompare(String(b.cls),'he')||a.name.localeCompare(b.name,'he'));
+  let h='<div class="card"><h3 style="margin-top:0">📝 מבחן המשך מותאם אישית (כיתה ו׳)</h3>'+
+    '<p class="small">לכל תלמיד נבנה מבחן לפי ההישג שלו בכל נושא בניסיון הראשון: <b>בסיסי</b> (התקשה מאוד, מתחת ל־50%) — 2 שאלות קלות; <b>רגיל</b> (התקשה, 50%–74%, או שלא הגיע לנושא) — 2 שאלות; <b>אתגר</b> (שולט, 75% ומעלה) — שאלת אתגר אחת.</p>'+
+    '<p class="small"><b>איך התלמיד נכנס:</b> אותו קישור כמו תמיד ← שם מלא, שכבה ומספר כיתה ← בשדה ״קוד מבחן המשך״ מקלידים את הקוד שלו מהטבלה.</p>';
+  if(!list.length) return h+'<p>עדיין אין נתוני כיתה ו׳. ייבאו את קובץ התשובות בלשונית ״ייבוא, ייצוא והגדרות״.</p></div>';
+  h+='<div class="row" style="justify-content:flex-end"><button class="btn small ghost" data-act="exportFuCodes">⬇️ ייצוא רשימת קודים</button></div><div class="scroll"><table class="data"><thead><tr><th>שם</th><th>כיתה</th><th>קוד</th><th>שאלות</th>'+FOLLOWUP_TOPICS.map(t=>'<th class="small">'+esc(t)+'</th>').join('')+'</tr></thead><tbody>'+
+    list.map(x=>{ const c=fuCodeFor(x.rows); x.code=c; return '<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td><b style="font-size:18px;letter-spacing:2px">'+c+'</b></td><td>'+fuList(c).length+'</td>'+c.split('').map(d=>'<td class="small">'+FU_NAMES[d]+'</td>').join('')+'</tr>'; }).join('')+'</tbody></table></div></div>';
+  // תוצאות מבחן ההמשך
+  const g2={}; furows.forEach(r=>{ const k=sid(r); (g2[k]||(g2[k]={name:r.student_id, cls:r.class_name||'', rows:[]})).rows.push(r); });
+  const res=Object.values(g2).map(x=>{ const ids=[...new Set(x.rows.map(r=>r.base_question_id))]; let got=0,max=0; const byT={};
+    ids.forEach(id=>{ const q=QBY[id]; if(!q) return; const r=x.rows.filter(r=>r.base_question_id===id).slice(-1)[0]; const p=rowPoints(r); got+=p; max+=q.points; const t=byT[q.topic]||(byT[q.topic]={got:0,max:0,lvl:q.level}); t.got+=p; t.max+=q.points; });
+    const before=(groups[sid(x.rows[0])]||{}).rows; const first=before?studentScore(before,6,'all').first:null;
+    return Object.assign(x,{score:max?Math.round(got/max*100):0, n:ids.length, byT, first, pending:x.rows.filter(isPendingRow).length}); }).sort((a,b)=>a.name.localeCompare(b.name,'he'));
+  h+='<div class="card"><h3 style="margin-top:0">תוצאות מבחן ההמשך</h3>';
+  if(!res.length) h+='<p class="muted">עדיין אין תשובות למבחן ההמשך. אחרי שהתלמידים עונים — ייבאו שוב את קובץ התשובות מהגיליון.</p>';
+  else h+='<div class="scroll"><table class="data"><thead><tr><th>שם</th><th>כיתה</th><th>ציון במבחן ההמשך</th><th>ציון במבחן הראשון</th><th>שאלות</th><th>ממתינות לבדיקה</th>'+FOLLOWUP_TOPICS.map(t=>'<th class="small">'+esc(t)+'</th>').join('')+'</tr></thead><tbody>'+
+    res.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td><b>'+x.score+'</b></td><td>'+(x.first==null?'—':x.first)+'</td><td>'+x.n+'</td><td>'+(x.pending||'—')+'</td>'+FOLLOWUP_TOPICS.map(t=>{ const v=x.byT[t]; return '<td class="small">'+(v?Math.round(v.got/v.max*100)+'% <span class="muted">('+FU_NAMES[{b:'1',r:'2',c:'3'}[v.lvl]]+')</span>':'—')+'</td>'; }).join('')+'</tr>').join('')+'</tbody></table></div>'+
+    '<p class="note">הציון במבחן ההמשך מחושב מתוך השאלות שהתלמיד קיבל, ולכן אינו זהה בקושי בין תלמידים. כדאי להשוות לפי נושא: האם התלמיד הצליח ברמה שהותאמה לו.</p>';
+  return h+'</div>'; }
+function exportFuCodes(){ const rows=teacherRows().filter(r=>r.grade==='6'); const groups={}; rows.forEach(r=>{ const k=sid(r); (groups[k]||(groups[k]={name:r.student_id, cls:r.class_name||'', rows:[]})).rows.push(r); });
+  const head=['שם','כיתה','קוד מבחן המשך','מספר שאלות'].concat(FOLLOWUP_TOPICS);
+  const lines=[head.map(csvCell).join(',')].concat(Object.values(groups).map(x=>{ const c=fuCodeFor(x.rows); return [x.name,x.cls,c,fuList(c).length].concat(c.split('').map(d=>FU_NAMES[d])).map(csvCell).join(','); }));
+  download('followup_codes_'+today()+'.csv','﻿'+lines.join('\r\n')); }
 function pct(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
 
 function renderTeacher(){
-  const tabs=[['class','סקירת כיתה'],['student','דוח תלמיד'],['open','תשובות פתוחות לבדיקה'],['scores','ציונים'],['map','טבלת קישור ומיומנויות'],['data','ייבוא, ייצוא והגדרות']];
+  const tabs=[['class','סקירת כיתה'],['student','דוח תלמיד'],['open','תשובות פתוחות לבדיקה'],['scores','ציונים'],['followup','מבחן המשך'],['map','טבלת קישור ומיומנויות'],['data','ייבוא, ייצוא והגדרות']];
   let h=topbar()+'<div class="wrap"><div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">מסך מורה</h2>'+
     '<label>שכבה: <select id="tGrade"><option value="all">כל השכבות</option>'+[4,5,6].map(g=>'<option value="'+g+'"'+(String(S.tGrade)===String(g)?' selected':'')+'>כיתה '+GRADE_NAMES[g]+'</option>').join('')+'</select></label> '+
     '<label>נושא: <select id="tTopic"><option value="all">כל הנושאים</option>'+topicsFor(S.tGrade).map(t=>'<option'+(S.tTopic===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label></div>'+
@@ -720,6 +779,7 @@ function renderTeacher(){
   if(S.tTab==='student') h+=teacherStudent(rows);
   if(S.tTab==='open') h+=teacherOpen(rows);
   if(S.tTab==='scores') h+=teacherScores(rows);
+  if(S.tTab==='followup') h+=teacherFollowup(rows, teacherRows(true));
   if(S.tTab==='map') h+=teacherMap();
   if(S.tTab==='data') h+=teacherData();
   app().innerHTML=h+'</div>';
@@ -853,12 +913,13 @@ document.addEventListener('click', e=>{
   else if(a==='toTransfer') toTransfer();
   else if(a==='next') next();
   else if(a==='saveMine') saveMine();
-  else if(a==='logout'){ if(S.checking) return; S.view='login'; S.teacher=false; S.student=null; S.grade=null; S.cls=''; S.feedback=null; S.partMarks=null; S.lastAnswers=null; S.rephraseShown=false; try{sessionStorage.removeItem(KEY.session);}catch(_){} render(); }
+  else if(a==='logout'){ if(S.checking) return; S.view='login'; S.teacher=false; S.student=null; S.grade=null; S.cls=''; S.fu=''; S.feedback=null; S.partMarks=null; S.lastAnswers=null; S.rephraseShown=false; try{sessionStorage.removeItem(KEY.session);}catch(_){} render(); }
   else if(a==='teacher'){ S.view='pin'; render(); }
   else if(a==='pinGo') pinGo();
   else if(a==='saveOv') saveOverride(b);
   else if(a==='saveServer') saveServer();
   else if(a==='exportScores') exportScores();
+  else if(a==='exportFuCodes') exportFuCodes();
   else if(a==='clearServer'){ try{localStorage.removeItem(SERVER_KEY);}catch(_){} delete mem[SERVER_KEY]; render(); }
   else if(a==='syncNow'){ flushSync().then(()=>setTimeout(render,500)); }
   else if(a==='copyLink'){ const el=$('#stLink'); try{ navigator.clipboard.writeText(el.value).then(()=>{ b.textContent='✓ הועתק'; }).catch(()=>{ el.select(); }); }catch(_){ el.select(); } }
@@ -880,6 +941,6 @@ document.addEventListener('keydown', e=>{ if(e.key==='Enter' && S.view==='questi
  if(e.key==='Enter' && S.view==='login' && e.target.id==='sid') startStudent(); });
 
 /* ---------- הפעלה ---------- */
-try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade+'|'+(s.cls||'')]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||''; goCurrent(); } else render(); }catch(e){ render(); }
-window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch, kwFind, parseNumAnswer, textCredit, creditPoints, studentScore, scoreTable, levelKey, safeCell};
+try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade+'|'+(s.cls||'')+(s.fu?'|fu'+s.fu:'')]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||''; S.fu=s.fu||''; goCurrent(); } else render(); }catch(e){ render(); }
+window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch, kwFind, parseNumAnswer, textCredit, creditPoints, studentScore, scoreTable, fuCodeFor, fuList, fuValid, levelKey, safeCell};
 })();

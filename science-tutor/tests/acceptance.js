@@ -328,6 +328,24 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
     return [T.creditPoints(Q('v01'), 'מצבר של רכב, גז בישול, מפל מים', 0), T.creditPoints(Q('v01'), 'מצבר של רכב, גז בישול, מפל מים, כיסא', 0), T.creditPoints(Q('v01'), 'לחם, מצבר של רכב, גז בישול, מפל מים, עצים להסקה', 0),
       T.creditPoints(Q('v07'), 'אנרגיה כימית (בשרירים) → אנרגיית תנועה → אנרגיית אור → אנרגיה חשמלית', 0)].map(x => Math.round(x * 10) / 10); });
   ok(pc.join() === '4.8,3.2,8,4', 'ניקוד חלקי: 3 מתוך 5 נכונים = 4.8, סימון שגוי מוריד, הכול נכון = 8, שרשרת חצי נכונה = 4 (' + pc + ')');
+  // מבחן המשך מותאם אישית
+  const fu = await sp.evaluate(() => { const T = window.__sciTutor;
+    const R = (q, pts, extra) => Object.assign({ student_id: 'נוי', grade: '6', class_name: 'ו׳3', base_question_id: q, attempt_id: 'fu' + q, attempt_order: '1', is_transfer: 'no', awarded_points: String(pts), max_points: '8', timestamp: '2026-11-23T08:00' }, extra || {});
+    const rows = [R('v01', 0), R('v02', 8), R('v03', 8), R('v04', 8), R('v06', 4), R('v07', 8), R('v05', 4)];
+    const code = T.fuCodeFor(rows);
+    return { code, n: T.fuList(code).length, valid: [T.fuValid('123123'), T.fuValid('12312'), T.fuValid('000000'), T.fuValid('123124')], all1: T.fuList('111111').length, all3: T.fuList('333333').map(q => q.level).join(''),
+      bank: FOLLOWUP.length, everyTopic: FOLLOWUP_TOPICS.every(t => ['b1', 'b2', 'r1', 'r2', 'c1'].every(s => FOLLOWUP.some(q => q.topic === t && q.id.endsWith('-' + s)))) }; });
+  ok(fu.code === '133222' && fu.n === 10, 'קוד מבחן המשך נקבע לפי ההישג בכל נושא (' + fu.code + ', ' + fu.n + ' שאלות)');
+  ok(fu.valid.join() === 'true,false,false,false' && fu.all1 === 12 && fu.all3 === 'cccccc' && fu.bank === 30 && fu.everyTopic, 'מאגר המשך: 30 שאלות, 5 בכל נושא; קוד לא תקין נדחה');
+  const fp = await browser.newPage(); fp.on('pageerror', e => errors.push(e.message)); await fp.goto(URL);
+  await fp.fill('#sid', 'נוי כהן'); await fp.click('[data-grade="5"]'); await fp.fill('#sid', 'נוי כהן'); await fp.selectOption('#cls', '3'); await fp.fill('#fuc', '333333'); await fp.click('[data-act="start"]');
+  ok(await fp.isVisible('text=מבחן ההמשך מיועד כרגע לכיתה ו׳'), 'קוד מבחן המשך בכיתה שאינה ו׳ נדחה עם הסבר');
+  await fp.click('[data-grade="6"]'); await fp.fill('#sid', 'נוי כהן'); await fp.selectOption('#cls', '3'); await fp.fill('#fuc', '333333'); await fp.click('[data-act="start"]');
+  ok(await fp.isVisible('text=מבחן המשך — עונים פעם אחת') && await fp.locator('[data-act="hint"]').count() === 0 && await fp.isVisible('text=שאלה 1 מתוך 6'), 'מבחן המשך: 6 שאלות אתגר, בלי רמזים');
+  await fp.fill('#qform textarea', 'המים במפל נופלים ויש להם אנרגיית תנועה שמסובבת טורבינה ומפיקה חשמל'); await fp.click('[data-act="check"]'); await fp.waitForSelector('text=התשובה נשמרה');
+  const fr = await fp.evaluate(() => window.__sciTutor.db.attempts.filter(r => r.assessment_type === 'followup'));
+  ok(fr.length === 1 && fr[0].base_question_id === 'f6-src-c1' && fr[0].class_name === 'ו׳3' && fr[0].correctness === 'correct', 'תשובה במבחן ההמשך נשמרת כ־followup ולא נספרת בציוני המבחן הראשון');
+  await fp.close();
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');
