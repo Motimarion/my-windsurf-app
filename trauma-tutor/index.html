@@ -132,6 +132,17 @@ th{color:var(--muted);font-weight:500}
 .rsrc p{margin:4px 0 0;font-size:.92rem}
 .stars{color:var(--accent);letter-spacing:1px;white-space:nowrap}
 .src li{margin-bottom:8px;overflow-wrap:anywhere}
+.daily-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-color:var(--accent)}
+.daily-cta>div:first-child{flex:1 1 220px}
+.streak{font-size:2rem;font-weight:700;color:var(--accent);text-align:center;line-height:1}
+.streak small{display:block;font-size:.75rem;font-weight:500;color:var(--muted)}
+.steps{display:flex;gap:4px;margin:8px 0 14px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+.pretest{border:1px dashed var(--accent);border-radius:14px;padding:14px;margin:12px 0}
+.recall label{display:flex;gap:8px;align-items:center;margin:4px 0}
+.method dt{font-weight:700;margin-top:10px}
+.method dd{margin:2px 0 0}
 .spiral text{font-family:Heebo,sans-serif}
 .hidden{display:none!important}
 .toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:420px;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
@@ -151,6 +162,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-s
     </div>
     <nav class="tabs" id="tabs">
       <a href="#home">בית</a>
+      <a href="#daily">אימון יומי</a>
       <a href="#chapters">פרקים</a>
       <a href="#lesson">שיעור סוקרטי</a>
       <a href="#quiz">בוחן</a>
@@ -433,12 +445,19 @@ const SOURCES = [
  ["Lanius et al. (2010). Emotion Modulation in PTSD: Clinical and Neurobiological Evidence for a Dissociative Subtype.","https://pmc.ncbi.nlm.nih.gov/articles/PMC3226703/"],
  ["Grossman et al. (2026). Why the Polyvagal Theory Is Untenable: An international expert evaluation. Clinical Neuropsychiatry.","https://pmc.ncbi.nlm.nih.gov/articles/PMC12937499/"],
  ["Scheeringa (2025). Evaluating evidence behind popular trauma narratives. BJPsych Bulletin.","https://pmc.ncbi.nlm.nih.gov/articles/PMC13386322/"],
- ["World Health Organization — ICD-11 Clinical Descriptions and Diagnostic Requirements.","https://iris.who.int/server/api/core/bitstreams/dcf73611-9e0f-4d5c-85f6-85a58b0da6de/content"]
+ ["World Health Organization — ICD-11 Clinical Descriptions and Diagnostic Requirements.","https://iris.who.int/server/api/core/bitstreams/dcf73611-9e0f-4d5c-85f6-85a58b0da6de/content"],
+ ["(שיטת הלמידה) Carpenter et al. (2022). The science of effective learning with spacing and retrieval practice. Nature Reviews Psychology.","https://consensus.app/papers/details/w:8b7abddc-f3bf-4487-8185-c46694487418/"],
+ ["(שיטת הלמידה) Agarwal et al. (2021). Retrieval Practice Consistently Benefits Student Learning. Educational Psychology Review.","https://consensus.app/papers/details/w:d75ede03-68ab-4a33-86db-d4049f68e80c/"],
+ ["(שיטת הלמידה) Ruitenburg et al. (2026). Retrieval, Distributed and Interleaved Practice in Authentic Classrooms: a meta-analysis. Educational Psychology Review.","https://consensus.app/papers/details/w:08a94097-7a5b-468e-b319-4fa0764eadcb/"],
+ ["(שיטת הלמידה) Weinstein, Madan & Sumeracki (2018). Teaching the science of learning. Cognitive Research: Principles and Implications.","https://consensus.app/papers/details/w:be0abde1-d6bd-4855-be17-dcf8daccf73a/"],
+ ["(שיטת הלמידה) Roediger & Pyc (2012). Inexpensive techniques to improve education. Journal of Applied Research in Memory and Cognition.","https://consensus.app/papers/details/w:bc7351c1-a2cc-4c87-8e0f-aec76b5ac76b/"],
+ ["(שיטת הלמידה) Rea et al. (2022). Students Can (Mostly) Recognize Effective Learning, So Why Do They Not Do It? Journal of Intelligence.","https://consensus.app/papers/details/w:52e0c303-d391-47e2-a40c-eae3ad8fed4e/"]
 ];
 
 /* ===================== STATE ===================== */
 const KEY="traumaTutor.v1";
-let S={read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},theory:false,theme:null};
+const FRESH=()=>({read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},pre:{},recall:{},daily:{last:-1,streak:0,n:0},theory:false,theme:null});
+let S=FRESH();
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
@@ -454,7 +473,7 @@ function applyPrefs(){
 }
 $("#themeBtn").onclick=()=>{const dark=S.theme?S.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;S.theme=dark?"light":"dark";save();applyPrefs();};
 $("#theoryBtn").onclick=()=>{S.theory=!S.theory;save();applyPrefs();toast(S.theory?"מצב תיאורטי: תיאורי מקרים מוסתרים":"תיאורי המקרים מוצגים שוב");};
-$("#resetBtn").onclick=e=>{e.preventDefault();if(confirm("למחוק את כל ההתקדמות, ההערות והכרטיסיות?")){const th=S.theme;S={read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},theory:false,theme:th};save();applyPrefs();route();toast("ההתקדמות אופסה");}};
+$("#resetBtn").onclick=e=>{e.preventDefault();if(confirm("למחוק את כל ההתקדמות, ההערות והכרטיסיות?")){const th=S.theme;S=FRESH();S.theme=th;save();applyPrefs();route();toast("ההתקדמות אופסה");}};
 
 /* ===================== HELPERS ===================== */
 function chapterMastery(id){
@@ -514,6 +533,7 @@ V.home=()=>{
     <p class="muted">לומדים פרק אחר פרק בשתי שכבות (פשוט ← אקדמי), עונים, מקבלים משוב מנומק, וחוזרים בזמן הנכון. ההתקדמות נשמרת בדפדפן שלך בלבד.</p>
     <div class="row-btns"><a class="btn primary" href="#chapter/${nextCh.id}">המשיכי: פרק ${nextCh.id} — ${esc(nextCh.title)}</a><a class="btn" href="#lesson">שיעור סוקרטי ראשון</a></div>
   </section>
+  <section class="card daily-cta"><div><h2 style="margin:0">אימון יומי · כ־10 דקות</h2><p class="muted" style="margin:4px 0 0">${S.daily.last===today()?"✓ האימון של היום הושלם. אפשר לעשות עוד אחד — זה לא מזיק.":"כרטיסיות בזמן הנכון, שאלות מעורבבות מפרקים שונים ושאלת ״למה?״ אחת. הכול מוכן — רק ללחוץ."}</p></div><div class="streak" aria-label="רצף ימים">${S.daily.streak||0}<small>ימי רצף</small></div><div class="row-btns" style="width:100%"><a class="btn primary" href="#daily">${S.daily.last===today()?"אימון נוסף":"להתחיל את האימון של היום"}</a></div></section>
   <div class="grid g3">
     <div class="card"><div class="muted">שליטה כוללת</div><div class="stat">${overall()}%</div><div class="meter"><i style="width:${overall()}%"></i></div></div>
     <div class="card"><div class="muted">כרטיסיות לחזרה היום</div><div class="stat">${due}</div><div class="row-btns"><a class="btn small" href="#cards">לחזרה</a></div></div>
@@ -536,6 +556,73 @@ V.home=()=>{
 };
 function chipCard(c){const m=chapterMastery(c.id);return `<a class="chap" href="#chapter/${c.id}"><span class="muted" style="font-size:.8rem">פרק ${c.id}</span><b>${esc(c.title)}</b><span class="muted" style="font-size:.85rem">${esc(c.en)}</span><div class="meter"><i style="width:${m.pct}%"></i></div><div class="row"><span>${m.read?'<span class="done-mark">✓ נקרא</span>':"טרם נקרא"}</span><span>בוחן ${m.best}/${m.of}</span></div></a>`;}
 
+/* Daily session: spaced cards + interleaved retrieval + elaboration, opened by an emotional check-in */
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+function studiedChapters(){
+  const ids=CH.map(c=>c.id).filter(id=>S.read[id]||S.pre[id]||S.quiz[id]!=null||S.wrong[id]);
+  if(ids.length) return ids;
+  const n=(CH.find(c=>!S.read[c.id])||CH[0]).id; return [n];
+}
+function interleave(qs){ // avoid two questions from the same chapter in a row
+  const out=[],rest=[...qs];
+  while(rest.length){const i=rest.findIndex(q=>!out.length||q.c!==out[out.length-1].c);out.push(rest.splice(i<0?0:i,1)[0]);}
+  return out;
+}
+function buildDaily(){
+  const ch=studiedChapters(),items=[{t:"check"}];
+  dueCards().filter(i=>ch.includes(CARDS[i][2])).slice(0,3).forEach(i=>items.push({t:"card",i}));
+  const pool=shuffle(QUIZ.filter(q=>ch.includes(q.c))).sort((a,b)=>(S.wrong[b.c]||0)-(S.wrong[a.c]||0));
+  interleave(pool.slice(0,4)).forEach(q=>items.push({t:"mcq",q}));
+  const gaps=[];ch.forEach(id=>{const c=CH.find(x=>x.id===id),got=S.recall[id];if(got)c.terms.forEach((t,k)=>{if(!got.includes(k))gaps.push({c,t});});});
+  if(gaps.length){const g=shuffle(gaps)[0];items.push({t:"term",c:g.c,term:g.t});}
+  const c=CH.find(x=>x.id===shuffle(ch)[0]);items.push({t:"why",c,q:shuffle(c.qs)[0]});
+  items.push({t:"end"});
+  return {items,ch};
+}
+V.daily=()=>{
+  const {items,ch}=buildDaily();let i=0,right=0,asked=0;
+  $("#app").innerHTML=`<h1>אימון יומי</h1><p class="muted">מבוסס על ${ch.length>1?"פרקים":"פרק"} ${ch.join(", ")}. השאלות מעורבבות בין פרקים בכוונה — כך לומדים להבחין בין מושגים דומים.</p><div class="steps" id="steps">${items.map(()=>"<i></i>").join("")}</div><div class="card" id="dz"></div>`;
+  const next=()=>{i++;draw();};
+  const nextBtn=(label="הבא ←")=>{const b=document.createElement("div");b.className="row-btns";b.innerHTML=`<button class="btn primary" id="dn">${label}</button>`;$("#dz").appendChild(b);$("#dn").onclick=next;$("#dn").focus();};
+  const draw=()=>{
+    document.querySelectorAll("#steps i").forEach((el,k)=>el.classList.toggle("on",k<=i));
+    const it=items[i],z=$("#dz");
+    if(it.t==="check"){
+      z.innerHTML=`<h2>רגע לפני שמתחילים</h2><p>החומר עוסק בפגיעה ובאלימות. איך מתאים לך ללמוד היום?</p><div class="row-btns"><button class="btn primary" data-m="go">רגיל</button><button class="btn" data-m="theory">רק ברמה תיאורטית</button><button class="btn" data-m="stop">לא היום</button></div>`;
+      z.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const m=b.dataset.m;
+        if(m==="stop"){z.innerHTML=`<h2>בסדר גמור</h2><p>הפסקה היא חלק מלמידה טובה. החומר יחכה, והכרטיסיות לא ״נשרפות״. אם עלה משהו קשה — ער״ן 1201, בכל שעה.</p><div class="row-btns"><a class="btn" href="#home">לדף הבית</a></div>`;return;}
+        if(m==="theory"&&!S.theory){S.theory=true;save();applyPrefs();toast("מצב תיאורטי הופעל");}
+        next();});
+    } else if(it.t==="card"){
+      const c=CARDS[it.i];
+      z.innerHTML=`<div class="muted">כרטיסייה לחזרה · פרק ${c[2]}</div><div class="flash" id="fl" tabindex="0" role="button" aria-label="הפיכת הכרטיס"><div>${esc(c[0])}<div class="muted" style="font-size:.85rem;margin-top:10px">ענִי בראש, ואז לחצי</div></div></div><div class="row-btns hidden" id="rate"><button class="btn" id="no">לא ידעתי</button><button class="btn primary" id="yes">ידעתי</button></div>`;
+      const flip=()=>{$("#fl").innerHTML=`<div><div class="muted" style="font-size:.9rem">${esc(c[0])}</div><div class="a" style="margin-top:10px">${esc(c[1])}</div></div>`;$("#rate").classList.remove("hidden");};
+      $("#fl").onclick=flip;$("#fl").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}};
+      const ivl=[1,1,3,7,14,30];
+      $("#yes").onclick=()=>{const s=S.cards[it.i]||{box:0};s.box=Math.min(5,s.box+1);s.due=today()+ivl[s.box];S.cards[it.i]=s;save();right++;asked++;next();};
+      $("#no").onclick=()=>{S.cards[it.i]={box:0,due:today()+1};S.wrong[c[2]]=(S.wrong[c[2]]||0)+1;save();asked++;next();};
+    } else if(it.t==="mcq"){
+      z.innerHTML=`<div class="muted">שליפה · פרק ${it.q.c}</div><div id="dq"></div>`;
+      mcq($("#dq"),it.q,ok=>{asked++;if(ok){right++;if(S.wrong[it.q.c]>0)S.wrong[it.q.c]--;}else S.wrong[it.q.c]=(S.wrong[it.q.c]||0)+1;save();nextBtn();});
+    } else if(it.t==="term"){
+      z.innerHTML=`<div class="muted">מושג שלא נשלף בפעם הקודמת · פרק ${it.c.id}</div><h2>מה זה ״${esc(it.term[0])}״?</h2><textarea id="ta" placeholder="הסבר קצר במילים שלך..."></textarea><div class="row-btns"><button class="btn" id="rv">השוואה</button></div><div id="fbx"></div>`;
+      $("#rv").onclick=()=>{$("#fbx").innerHTML=`<div class="fb ok"><b>${esc(it.term[0])}</b>${esc(it.term[1])}</div><p class="muted">אם ההסבר שלך תפס את העיקר, סמני את המושג כ״נשלף״ בעמוד הפרק.</p>`;$("#rv").disabled=true;nextBtn();};
+    } else if(it.t==="why"){
+      z.innerHTML=`<div class="muted">שאלת ״למה?״ · פרק ${it.c.id}: ${esc(it.c.title)}</div><h2>${esc(it.q)}</h2><p class="muted" style="font-size:.92rem">2–3 משפטים. נסי לחבר לפרק אחר או לדוגמה.</p><textarea id="ta" placeholder="לדעתי, כי..."></textarea><div class="row-btns"><button class="btn" id="rv">הצגת הרעיון המרכזי</button></div><div id="fbx"></div>`;
+      $("#rv").onclick=()=>{$("#rv").disabled=true;$("#fbx").innerHTML=`<div class="fb ok"><b>הרעיון המרכזי של הפרק</b>${esc(it.c.key)}<br><span class="muted">${esc(it.c.links)}</span></div><p><b>עד כמה התשובה שלך כיסתה את זה?</b></p><div class="row-btns"><button class="btn" data-s="0">לא ממש</button><button class="btn" data-s="1">חלקית</button><button class="btn primary" data-s="2">היטב</button></div>`;
+        $("#fbx").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=+b.dataset.s;asked++;if(s===2)right++;if(s===0)S.wrong[it.c.id]=(S.wrong[it.c.id]||0)+1;save();next();});};
+    } else {
+      const t=today();if(S.daily.last!==t){S.daily.streak=S.daily.last===t-1?S.daily.streak+1:1;S.daily.last=t;}S.daily.n=(S.daily.n||0)+1;save();
+      const w=weakest(),nextCh=CH.find(c=>!S.read[c.id]);
+      z.innerHTML=`<h2>סיימת!${asked?` ${right}/${asked}`:""}</h2><p>רצף: <b>${S.daily.streak}</b> ${S.daily.streak===1?"יום":"ימים"} · סה״כ ${S.daily.n} אימונים.</p>
+      <p class="muted">${right/asked>=.8?"שליפה חזקה. מחר האימון יתבסס על מה שנשאר חלש.":"זה בדיוק הזמן שבו הלמידה קורית: מה ששכחת וחזרת אליו נשמר טוב יותר. הנושאים שבהם טעית יחזרו מחר."}</p>
+      ${w.length?`<p>כדאי לחזור על: ${w.map(c=>`<a href="#chapter/${c.id}">פרק ${c.id}</a>`).join(", ")}</p>`:""}
+      <div class="row-btns">${nextCh?`<a class="btn primary" href="#chapter/${nextCh.id}">לפרק הבא: ${esc(nextCh.title)}</a>`:""}<a class="btn" href="#home">לדף הבית</a></div>`;
+    }
+  };
+  draw();
+};
+
 V.chapters=()=>{
   $("#app").innerHTML=`<h1>יחידות לימוד</h1><p class="muted">כל יחידה: הסבר פשוט ← סיכום אקדמי ← מושגים ← מקרה ← ביקורת מדעית ← שאלות לחשיבה ← ניסוח במילים שלך ← בוחן קצר.</p>
   <h2>חלק א׳ · הפרעות טראומטיות</h2><div class="chap-list">${CH.filter(c=>c.part===1).map(chipCard).join("")}</div>
@@ -549,6 +636,8 @@ V.chapter=(id)=>{
   <p><a href="#chapters">→ כל הפרקים</a></p>
   <span class="pill ${c.part===1?"p1":""}">חלק ${c.part===1?"א׳":"ב׳"} · פרק ${c.id}</span>
   <h1>${esc(c.title)} <span class="muted" style="font-size:.6em">${esc(c.en)}</span></h1>
+  <details class="pretest" ${S.pre[c.id]?"":"open"}><summary><b>⓪ לפני הקריאה: נחשי</b> <span class="muted" style="font-size:.88rem">${S.pre[c.id]?"(בוצע)":"— 2 שאלות, טעויות כאן לא נספרות"}</span></summary>
+    <p class="muted" style="font-size:.92rem">ניסיון לענות <i>לפני</i> הלימוד — גם כשטועים — מכוון את הקשב למה שחשוב ומשפר את הזכירה אחר כך (״אפקט השאלות המקדימות״).</p><div id="pre"></div></details>
   <div class="layer simple"><h3>① בפשטות</h3><p>${esc(c.simple)}</p></div>
   <div class="card"><h3>② הסיכום האקדמי</h3><p>${esc(c.summary)}</p><p><b>הטענה המרכזית:</b> ${esc(c.claim)}</p></div>
   <div class="card"><h3>③ מושגי יסוד</h3><dl class="terms">${c.terms.map(t=>`<dt>${esc(t[0])}</dt><dd>${esc(t[1])}</dd>`).join("")}</dl></div>
@@ -561,7 +650,8 @@ V.chapter=(id)=>{
   <div class="card"><h3>⑧ הסבר עצמי — במילים שלך</h3><p class="muted">לפני שמסתכלים על ״נקודה לזכירה״: נסחי ב־2–3 משפטים את רעיון הפרק. (נשמר אוטומטית.)</p>
     <textarea id="note" placeholder="הרעיון המרכזי של הפרק הוא...">${esc(S.notes[c.id]||"")}</textarea>
     <div class="row-btns"><button class="btn" id="revealKey">השוואה לנקודה לזכירה</button></div>
-    <div id="keyBox" class="fb ok hidden"><b>נקודה לזכירה</b>${esc(c.key)}<br><span class="muted" style="font-size:.9rem">בדקי: האם הניסוח שלך כולל את אותו רעיון? מה חסר?</span></div>
+    <div id="keyBox" class="fb ok hidden"><b>נקודה לזכירה</b>${esc(c.key)}<br><span class="muted" style="font-size:.9rem">בדקי: האם הניסוח שלך כולל את אותו רעיון? מה חסר?</span>
+      <div class="recall" style="margin-top:10px"><b>שליפה חופשית — אילו מושגים הזכרת בלי להציץ?</b>${c.terms.map((t,k)=>`<label><input type="checkbox" data-k="${k}" ${(S.recall[c.id]||[]).includes(k)?"checked":""}> ${esc(t[0])}</label>`).join("")}<div class="muted" id="recallMsg" style="font-size:.9rem"></div></div></div>
   </div>
   <div class="card"><h3>⑨ בוחן קצר על הפרק</h3><div id="cq"></div><div id="cqRes"></div></div>
   <div class="row-btns">
@@ -570,7 +660,11 @@ V.chapter=(id)=>{
     ${next?`<a class="btn" href="#chapter/${next.id}">פרק ${next.id} ←</a>`:""}
   </div>`;
   const ta=$("#note"); ta.oninput=()=>{S.notes[c.id]=ta.value;save();};
-  $("#revealKey").onclick=()=>$("#keyBox").classList.remove("hidden");
+  $("#revealKey").onclick=()=>{if(!ta.value.trim()&&!confirm("עוד לא כתבת כלום. הניסיון לשלוף לבד הוא מה שמחזק את הזיכרון — להציג בכל זאת?"))return;$("#keyBox").classList.remove("hidden");};
+  const recallMsg=()=>{const n=(S.recall[c.id]||[]).length,t=c.terms.length;$("#recallMsg").textContent=n?`${n}/${t} מושגים נשלפו. ${n<t?"המושגים שלא סימנת יחזרו אלייך באימון היומי.":"מצוין — שליפה מלאה."}`:"";};
+  document.querySelectorAll(".recall input").forEach(cb=>cb.onchange=()=>{const set=new Set(S.recall[c.id]||[]);cb.checked?set.add(+cb.dataset.k):set.delete(+cb.dataset.k);S.recall[c.id]=[...set];save();recallMsg();});
+  recallMsg();
+  QUIZ.filter(q=>q.c===c.id).slice(0,2).forEach(q=>mcq($("#pre"),q,()=>{S.pre[c.id]=true;save();}));
   $("#markRead").onclick=()=>{S.read[c.id]=!S.read[c.id];save();$("#markRead").textContent=S.read[c.id]?"✓ סומן כנלמד":"סימון היחידה כנלמדה";toast(S.read[c.id]?"היחידה סומנה כנלמדה":"הסימון הוסר");};
   const qs=QUIZ.filter(q=>q.c===c.id); let score=0,ans=0;
   qs.forEach(q=>mcq($("#cq"),q,ok=>{ans++;if(ok)score++;else{S.wrong[c.id]=(S.wrong[c.id]||0)+1;}
@@ -739,7 +833,16 @@ V.plan=()=>{
   $("#app").innerHTML=`<h1>תוכנית ל־6 שבועות</h1><p class="muted">כ־2 פרקים בשבוע (4–5 שעות). שלושה עקרונות: <b>שליפה פעילה</b> (לבחון את עצמך לפני שמציצים), <b>הסבר עצמי</b> (במילים שלך), ו<b>חזרה מרווחת מצטברת</b> (שבוע 3 על 1–2; שבוע 5 על 5–8; שבוע 6 על הכול).</p>
   <div class="card"><div class="muted">הושלמו ${d} מתוך ${t} משימות</div><div class="meter"><i style="width:${Math.round(d/t*100)}%"></i></div></div>
   ${PLAN.map(w=>{const n=w.tasks.filter((_,i)=>S.plan[w.w+"-"+i]).length;return `<details class="week" ${n<w.tasks.length&&PLAN.findIndex(x=>x.tasks.some((_,i)=>!S.plan[x.w+"-"+i]))===w.w-1?"open":""}><summary>שבוע ${w.w}: ${esc(w.t)}<span class="n">${n}/${w.tasks.length} · ${w.h}</span></summary><div class="body"><p><b>מטרה מדידה:</b> ${esc(w.goal)}</p>${w.tasks.map((tk,i)=>`<div class="task"><input type="checkbox" id="p${w.w}-${i}" data-k="${w.w}-${i}" ${S.plan[w.w+"-"+i]?"checked":""}><label for="p${w.w}-${i}">${esc(tk)}</label></div>`).join("")}</div></details>`;}).join("")}
-  <div class="card"><h2>מדדי שליטה</h2><ol><li><b>הסבר עצמי:</b> להסביר 80% ממושגי המפתח בעל־פה בלי סיכומים.</li><li><b>יישום וחיבור:</b> לנתח מקרה תוך קישור בין פרק בחלק א׳ לשלב החלמה בחלק ב׳.</li><li><b>חשיבה ביקורתית:</b> להציג לפחות 2 הבחנות בין הרמן 1992 למחקר העדכני.</li></ol></div>`;
+  <div class="card"><h2>מדדי שליטה</h2><ol><li><b>הסבר עצמי:</b> להסביר 80% ממושגי המפתח בעל־פה בלי סיכומים.</li><li><b>יישום וחיבור:</b> לנתח מקרה תוך קישור בין פרק בחלק א׳ לשלב החלמה בחלק ב׳.</li><li><b>חשיבה ביקורתית:</b> להציג לפחות 2 הבחנות בין הרמן 1992 למחקר העדכני.</li></ol></div>
+  <div class="card method"><h2>איך הלומדה בנויה — ולמה</h2><p class="muted">כל רכיב כאן נבחר לפי מחקר על למידה. הטכניקות האפקטיביות ביותר מרגישות דווקא <i>קשות</i> יותר מקריאה חוזרת — זה סימן שהן עובדות.</p><dl>
+   <dt>① שאלות לפני הקריאה (בראש כל פרק)</dt><dd>ניסיון לענות לפני הלימוד, גם כשטועים, משפר את הלמידה של החומר שאחריו.</dd>
+   <dt>② שליפה פעילה (בוחנים, כרטיסיות, ״במילים שלך״)</dt><dd>הטכניקה החזקה ביותר. סקירה של 50 ניסויים בכיתות: ב־57% מהם התועלת הייתה בינונית עד גדולה (Agarwal et al., 2021). מטה־אנליזה בכיתות אמיתיות: g = 0.37 (Ruitenburg et al., 2026).</dd>
+   <dt>③ חזרה מרווחת (כרטיסיות + אימון יומי)</dt><dd>חזרה על פני ימים עדיפה על ״דחיסה״ לפני מבחן (Carpenter et al., 2022; בכיתות: g = 0.20, Ruitenburg et al., 2026).</dd>
+   <dt>④ שזירה (האימון היומי מערבב פרקים)</dt><dd>ערבוב נושאים מלמד להבחין בין מושגים קרובים — למשל עוררות יתר מול חודרנות, CPTSD מול BPD (g = 0.40, בעיקר כשיש משוב; Ruitenburg et al., 2026).</dd>
+   <dt>⑤ הסבר עצמי ושאלות ״למה?״</dt><dd>ניסוח העיקרון במילים שלך וחיבור לפרקים אחרים מעמיקים את ההבנה (Roediger & Pyc, 2012; Weinstein et al., 2018).</dd>
+   <dt>⑥ דוגמאות קונקרטיות + תרשים</dt><dd>מקרים היפותטיים וספירלת ההחלמה ממחישים רעיון מופשט בשני ערוצים (מילים + תמונה).</dd>
+   <dt>⑦ בטיחות רגשית</dt><dd>שאלת פתיחה בכל אימון, ״מצב תיאורטי״ ו״לא היום״ — לימוד תוכן טראומטי צריך לאפשר שליטה ובחירה ללומדת.</dd>
+  </dl><p class="muted" style="font-size:.9rem"><b>הכי חשוב:</b> סטודנטים בדרך כלל <i>יודעים</i> מה עובד, אבל לא עושים את זה בגלל המאמץ והיעדר הרגל (Rea et al., 2022). לכן האימון היומי בנוי כך שכל מה שצריך הוא ללחוץ על כפתור אחד, 10 דקות ביום.</p></div>`;
   document.querySelectorAll(".task input[data-k]").forEach(cb=>cb.onchange=()=>{S.plan[cb.dataset.k]=cb.checked;save();const [dd,tt]=planDone();document.querySelector("#app .card .muted").textContent=`הושלמו ${dd} מתוך ${tt} משימות`;document.querySelector("#app .card .meter i").style.width=Math.round(dd/tt*100)+"%";});
 };
 
