@@ -120,6 +120,18 @@ table{width:100%;border-collapse:collapse;font-size:.92rem}
 th,td{border-bottom:1px solid var(--line);padding:8px;text-align:start;vertical-align:top}
 th{color:var(--muted);font-weight:500}
 .tbl-wrap{overflow-x:auto}
+.tbl-wrap table.cmp{min-width:640px}
+.cmp td:first-child{font-weight:600;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.filters button{font:inherit;font-size:.88rem;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer}
+.filters button.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.rsrc{display:flex;gap:12px;align-items:flex-start}
+.rsrc input{margin-top:6px;flex:none;width:18px;height:18px}
+.rsrc .meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.rsrc h3{margin:0;font-size:1.02rem;overflow-wrap:anywhere}
+.rsrc p{margin:4px 0 0;font-size:.92rem}
+.stars{color:var(--accent);letter-spacing:1px;white-space:nowrap}
+.src li{margin-bottom:8px;overflow-wrap:anywhere}
 .spiral text{font-family:Heebo,sans-serif}
 .hidden{display:none!important}
 .toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:420px;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
@@ -145,6 +157,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-s
       <a href="#cards">כרטיסיות</a>
       <a href="#practice">תרגול יישומי</a>
       <a href="#research">מחקר עדכני</a>
+      <a href="#resources">משאבים</a>
       <a href="#plan">תוכנית 6 שבועות</a>
       <a href="#ai">מורה AI חיצוני</a>
     </nav>
@@ -386,9 +399,46 @@ const SYSTEM_PROMPT = `אתה מורה פרטי אישי לפסיכולוגיה,
 5. מעקב התקדמות: שמור סיכום קצר של ״נקודות חוזק״ ו״פערים לחזרה״, והתחל כל שיחה חדשה בשתי שאלות שליפה על נושא חלש מהמפגש הקודם.
 6. רגישות וגבולות: הנושא עוסק בטראומה. אם אבקש הפסקה או דילוג על תיאורים קשים — כבד זאת מיד ועבור לרמה תיאורטית. הבהר שהלימוד אקדמי בלבד ואינו ייעוץ או טיפול.`;
 
+/* 17 resources — verified list from the study guide (checked Nov 2026). l: he/en/ru; wk: suggested weeks */
+const RES = [
+ {n:"Conversations with History: Judith Herman",o:"UCTV / UC Berkeley",u:"https://www.youtube.com/watch?v=USTKmffoQms",l:"en",t:"ריאיון אקדמי מצולם (60 דק׳)",rel:"ישיר — התזה הפוליטית־קלינית",cost:"חינם",fit:"פתיחת הקורס: ישירות מפי המחברת. מגבלה: משנת 2002, לפני ICD-11.",wk:[1],r:5},
+ {n:"ג׳ודית הרמן – טראומה והחלמה (סיכום חלקי)",o:"מכון אנאפה לפסיכותרפיה",u:"https://www.annafa.co.il/%D7%92%D7%95%D7%93%D7%99%D7%AA-%D7%94%D7%A8%D7%9E%D7%9F-%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94-%D7%A1%D7%99%D7%9B%D7%95%D7%9D-%D7%97%D7%9C%D7%A7%D7%99-%D7%A9/",l:"he",t:"סיכום קליני מעמיק",rel:"ישיר — פרקים 2–7 ו־CPTSD",cost:"חינם",fit:"משמר במדויק את מינוח עם עובד. מגבלה: מדלג על ההיסטוריה של פרק 1.",wk:[2,3],r:5},
+ {n:"טיפול בפוסט טראומה – הכנה לקבוצות",o:"עמי ברונסקי (פסיכולוג קליני)",u:"https://www.bronskyami.com/%D7%98%D7%99%D7%A4%D7%95%D7%9C-%D7%91%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%A1%D7%99%D7%9B%D7%95%D7%9D",l:"he",t:"סיכום קליני עם מספרי עמודים",rel:"ישיר — פרקים 7–11",cost:"חינם",fit:"מפנה למספרי עמודים בעברית; מעולה ליישום. מגבלה: מתמקד בחלק ב׳ ובקבוצות.",wk:[4,5],r:5},
+ {n:"Джудит Герман — о травме, исцелении и культуре отмены",o:"Дневник Чистых Когниций",u:"https://www.youtube.com/watch?v=BI9XbVJD5I8",l:"ru",t:"ריאיון מדובב עם חותמות זמן (62 דק׳)",rel:"ישיר — PTSD, CPTSD מול BPD",cost:"חינם",fit:"חזרה ממוקדת: 35:15 CPTSD, 41:26 BPD. מגבלה: שו״ת, לא רצף פרקים.",wk:[3],r:5},
+ {n:"Trauma and Recovery Summary & Study Guide",o:"SuperSummary",u:"https://www.supersummary.com/trauma-and-recovery/summary/",l:"en",t:"מדריך פרקים ובחנים",rel:"ישיר — כל הפרקים + 2015/2022",cost:"Freemium",fit:"חזק בהכנה לבחינות. מגבלה: ניתוחי העומק בתשלום.",wk:[1,2,3,4,5,6],r:4},
+ {n:"החלמה והעצמה בהתמודדות עם טראומה",o:"המכללה האקדמית הדסה",u:"https://www.youtube.com/watch?v=QhIHxgJhkuA",l:"he",t:"פאנל אקדמי עם הרמן (עברית/אנגלית)",rel:"ישיר — העצמה והקשר ישראלי",cost:"חינם",fit:"מחבר את התיאוריה לשדה הישראלי. מגבלה: פאנל רב־משתתפים.",wk:[5],r:4},
+ {n:"Three-Stage Recovery Model",o:"Counselling Tutor",u:"https://counsellingtutor.com/trauma-informed-practice/three-stage-recovery-model/",l:"en",t:"מדריך קליני + PDF חינמי",rel:"ישיר — חלק ב׳",cost:"חינם",fit:"מתרגם את שלושת השלבים למיומנויות טיפוליות. מגבלה: משמיט את חלק א׳.",wk:[4],r:4},
+ {n:"Meaningful Voices Book Club with Judith Herman",o:"FaithTrust Institute & CONNECT",u:"https://www.youtube.com/watch?v=EY_1gIlJIt0",l:"en",t:"מועדון קריאה מוקלט",rel:"ישיר — אחרית דבר 1997, אלימות במשפחה",cost:"חינם",fit:"הרמן על הקשר בין אלימות ביתית לטרור פוליטי. מגבלה: שיחה חופשית.",wk:[2],r:4},
+ {n:"Interrogative Design Workshop (4.370) Syllabus",o:"MIT",u:"https://web.mit.edu/idw/4370/syllabus.html",l:"en",t:"סילבוס אוניברסיטאי",rel:"ישיר — פרקים 9–11",cost:"חינם",fit:"הרמן בהקשר של אתיקה ועדות ציבורית. מגבלה: רשימת קריאה בלבד.",wk:[5],r:4},
+ {n:"Онлайн-курс проф. Джудит Герман «Травма и исцеление»",o:"IAPpsy",u:"https://iappsy.org/judith_herman2025",l:"ru",t:"קורס 4 הרצאות (תרגום סימולטני)",rel:"ישיר — בושה, CPTSD, התעללות בילדות",cost:"$59–$95",fit:"הוראה ישירה מפי הרמן, הקלטה לשנה. מגבלה: בתשלום — אופציונלי.",wk:[3,4],r:4},
+ {n:"The Origins of Complex PTSD",o:"The Healing Trauma Podcast",u:"https://podcasts.apple.com/us/podcast/the-origins-of-complex-ptsd-a-conversation/id1444361384?i=1000716890316",l:"en",t:"פודקאסט (35 דק׳)",rel:"ישיר — מ־1992 עד Truth and Repair",cost:"חינם",fit:"עדכון שמע קצר לנסיעות. מגבלה: חלקו על ספר 2023.",wk:[6],r:4},
+ {n:"ג׳ודית לואיס הרמן – ערך פסיכופדיה",o:"בטיפולנט",u:"https://www.betipulnet.co.il/lexicon/%D7%92%D7%95%D7%93%D7%99%D7%AA_%D7%9C%D7%95%D7%90%D7%99%D7%A1_%D7%94%D7%A8%D7%9E%D7%9F",l:"he",t:"ערך לקסיקון אקדמי",rel:"ישיר — ביוגרפיה ו־CPTSD",cost:"חינם",fit:"מסגור לעבודת סמינר וביבליוגרפיה בסיסית. מגבלה: סקירת־על.",wk:[1],r:4},
+ {n:"האם טראומה משפיעה על האישיות שלנו?",o:"מתחת לפני השטח (ד״ר עמית פכלר)",u:"https://music.youtube.com/podcast/PWk1dUFwhx4",l:"he",t:"פודקאסט קליני (50 דק׳)",rel:"נושא קשור — CPTSD מול אישיות",cost:"חינם",fit:"ביקורת על תיוג הפרעות אישיות. מגבלה: שיחה רחבה.",wk:[3],r:4},
+ {n:"Терапия травмы в рамках 3-фазной модели Джудит Герман",o:"B17.ru (Гелена Мифтахутдинова)",u:"https://www.b17.ru/article/911779/",l:"ru",t:"מאמר קליני",rel:"ישיר — 3 השלבים + ACT",cost:"חינם",fit:"פירוט טכני של כל שלב. מגבלה: בלוג מקצועי ללא שיפוט עמיתים.",wk:[4],r:3},
+ {n:"Лекция «Травма и исцеление»",o:"ספריית בלינסקי",u:"https://www.youtube.com/watch?v=ilz8-saW294",l:"ru",t:"הרצאה פומבית (48 דק׳)",rel:"נושא קשור — השלכות התפתחותיות",cost:"חינם",fit:"הסבר נגיש של פסיכולוגית קלינית. מגבלה: רמה פופולרית.",wk:[2],r:3},
+ {n:"Краткое содержание книги «Травма и исцеление»",o:"Briefly.ru",u:"https://briefly.ru/dzhudit_german/travma_i_istcelenie/",l:"ru",t:"תקציר מובנה (35 דק׳)",rel:"ישיר — מושגי יסוד",cost:"Freemium",fit:"תמצות מהיר לפני הקריאה. מגבלה: ההמשך דורש מנוי.",wk:[1],r:3},
+ {n:"סיכומי מאמרים של ג׳ודית לואיס הרמן",o:"Sicumim.co.il",u:"https://sicumim.co.il/articleauthor/%D7%92%D7%95%D7%93%D7%99%D7%AA-%D7%9C%D7%95%D7%90%D7%99%D7%A1-%D7%94%D7%A8%D7%9E%D7%9F-judith-lewis-herman/",l:"he",t:"קובצי סיכום (.docx)",rel:"מאמרים משלימים (1998–2012)",cost:"₪29–₪39 לקובץ",fit:"חוסך זמן בכתיבת עבודה. מגבלה: בתשלום ואינו מסכם את הספר עצמו.",wk:[6],r:3}
+];
+const LANG={he:"עברית",en:"אנגלית",ru:"רוסית"};
+
+const SOURCES = [
+ ["Basic Books / Hachette — Trauma and Recovery (30th Anniversary Ed.)","https://www.hachettebookgroup.com/titles/judith-lewis-herman-md/trauma-and-recovery/9781541602953/?lens=basic-books"],
+ ["Basic Books / Hachette — Truth and Repair (2023)","https://www.hachettebookgroup.com/titles/judith-lewis-herman-md/truth-and-repair/9781541600546/?lens=basic-books"],
+ ["עם עובד — מהדורת 1994","https://www.am-oved.co.il/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94"],
+ ["עם עובד — מהדורת 2017 (חידוש)","https://www.am-oved.co.il/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94_%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94_%D7%97%D7%99%D7%93%D7%95%D7%A9"],
+ ["תוכן העניינים — ספריית פסיק","https://ebooks.psik.io/book/1789/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94"],
+ ["Karatzias, Cloitre, Maercker, Brewin et al. (2018). PTSD and Complex PTSD: ICD-11 updates on concept and measurement. European Journal of Psychotraumatology.","https://pmc.ncbi.nlm.nih.gov/articles/PMC5774423/"],
+ ["Lee, Park & Cho (2026). Phase-based versus non-phase-based psychological interventions for complex PTSD: a systematic review and meta-analysis.","https://pmc.ncbi.nlm.nih.gov/articles/PMC13063326/"],
+ ["Otgaar, Howe, Patihis, Loftus et al. (2019). The Return of the Repressed: The Persistent and Problematic Claims of Long-Forgotten Trauma.","https://pmc.ncbi.nlm.nih.gov/articles/PMC6826861/"],
+ ["Lanius et al. (2010). Emotion Modulation in PTSD: Clinical and Neurobiological Evidence for a Dissociative Subtype.","https://pmc.ncbi.nlm.nih.gov/articles/PMC3226703/"],
+ ["Grossman et al. (2026). Why the Polyvagal Theory Is Untenable: An international expert evaluation. Clinical Neuropsychiatry.","https://pmc.ncbi.nlm.nih.gov/articles/PMC12937499/"],
+ ["Scheeringa (2025). Evaluating evidence behind popular trauma narratives. BJPsych Bulletin.","https://pmc.ncbi.nlm.nih.gov/articles/PMC13386322/"],
+ ["World Health Organization — ICD-11 Clinical Descriptions and Diagnostic Requirements.","https://iris.who.int/server/api/core/bitstreams/dcf73611-9e0f-4d5c-85f6-85a58b0da6de/content"]
+];
+
 /* ===================== STATE ===================== */
 const KEY="traumaTutor.v1";
-let S={read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},theory:false,theme:null};
+let S={read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},theory:false,theme:null};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
@@ -658,7 +708,30 @@ V.research=()=>{
    <li><b>2022</b> — מהדורת 30 שנה: טיפול מיודע־טראומה, נוירופידבק, פסיכדליה.</li>
    <li><b>עברית</b> — עם עובד, 1994 (תרגום עתליה זילבר); חידוש 2017 (אחרית הדבר בתרגום כרמית גיא).</li>
    <li><b>2023</b> — ספר ההמשך <i>Truth and Repair</i>: צדק מאחה.</li></ul></div>
-  <div class="row-btns"><a class="btn primary" href="#practice">לתרגיל ״הרמן 1992 מול המחקר העדכני״</a></div>`;
+  <div class="row-btns"><a class="btn primary" href="#practice">לתרגיל ״הרמן 1992 מול המחקר העדכני״</a></div>
+  <div class="card"><h2>מקורות</h2><p class="muted" style="font-size:.9rem">המקורות שעליהם נשען המדריך. מומלץ לצטט מהם (ולא מהסיכומים) בעבודה אקדמית.</p><ol class="src">${SOURCES.map(([t,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join("")}</ol></div>`;
+};
+
+V.resources=()=>{
+  const F={lang:"all",wk:0};
+  const curWeek=(PLAN.find(w=>w.tasks.some((_,i)=>!S.plan[w.w+"-"+i]))||PLAN[PLAN.length-1]).w;
+  const draw=()=>{
+    const list=RES.map((r,i)=>({...r,i})).filter(r=>(F.lang==="all"||r.l===F.lang)&&(!F.wk||r.wk.includes(F.wk)));
+    const done=Object.keys(S.res).filter(k=>S.res[k]).length;
+    $("#app").innerHTML=`<h1>17 משאבים מאומתים</h1><p class="muted">אין קורס MOOC חינמי שמלמד את הספר פרק אחר פרק, אז נבנה אחד משילוב של הרצאות של הרמן, סיכומים קליניים, פודקאסטים וסילבוסים. הדירוג משקלל איכות אקדמית, עומק, נגישות ויעילות. נבדקו בנובמבר 2026.</p>
+    <div class="card"><div class="muted">סימנת ${done} מתוך ${RES.length} משאבים</div><div class="meter"><i style="width:${Math.round(done/RES.length*100)}%"></i></div></div>
+    <div class="filters" role="group" aria-label="שפה">${[["all","כל השפות"],["he","עברית"],["en","אנגלית"],["ru","רוסית"]].map(([k,t])=>`<button data-lang="${k}" class="${F.lang===k?"on":""}">${t}</button>`).join("")}</div>
+    <div class="filters" role="group" aria-label="שבוע">${[0,1,2,3,4,5,6].map(w=>`<button data-wk="${w}" class="${F.wk===w?"on":""}">${w?`שבוע ${w}${w===curWeek?" (עכשיו)":""}`:"כל השבועות"}</button>`).join("")}</div>
+    ${list.length?list.map(r=>`<div class="card rsrc"><input type="checkbox" id="r${r.i}" data-i="${r.i}" ${S.res[r.i]?"checked":""} aria-label="סימון: עברתי על המשאב"><div style="min-width:0">
+      <h3><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.n)}</a></h3><div class="muted" style="font-size:.88rem">${esc(r.o)}</div>
+      <div class="meta"><span class="pill p1">${LANG[r.l]}</span><span class="pill">${esc(r.cost)}</span><span class="pill">שבוע ${r.wk.length>3?"1–6":r.wk.join("–")}</span><span class="stars" aria-label="דירוג ${r.r} מתוך 5">${"★".repeat(r.r)}${"☆".repeat(5-r.r)}</span></div>
+      <p><b>סוג:</b> ${esc(r.t)} · <b>זיקה לספר:</b> ${esc(r.rel)}</p><p>${esc(r.fit)}</p></div></div>`).join(""):`<p class="muted">אין משאבים בסינון הזה.</p>`}
+    <div class="notice"><b>שימי לב:</b> משאבים שאינם ברשימה הזו (למשל ״קורסים״ כלליים על טראומה שנמצאו בחיפוש מהיר) לא נבדקו. לפני שמשקיעים זמן או כסף — בודקים מי המפעיל ומה הזיקה האמיתית לספר.</div>`;
+    document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{F.lang=b.dataset.lang;draw();});
+    document.querySelectorAll("[data-wk]").forEach(b=>b.onclick=()=>{F.wk=+b.dataset.wk;draw();});
+    document.querySelectorAll(".rsrc input").forEach(cb=>cb.onchange=()=>{S.res[cb.dataset.i]=cb.checked;save();draw();});
+  };
+  draw();
 };
 
 V.plan=()=>{
@@ -677,6 +750,28 @@ V.ai=()=>{
    <div class="card"><span class="pill">שכבה 2</span><h3>Gemini / Claude / ChatGPT — מורה סוקרטי</h3><p>צ׳אט במצב לימוד (Guided Learning / Study Mode / Project) עם פרומפט המערכת שלמטה. Gemini Live מאפשר שיחה קולית בעברית.</p></div>
    <div class="card"><span class="pill">שכבה 3</span><h3>Anki — שימור</h3><p>ייבוא קובץ ה־CSV מעמוד הכרטיסיות. בודקים ידנית הגדרות קליניות — כלי AI טועים לעיתים בכרטיסיות.</p></div>
   </div>
+  <div class="card"><h2>השוואת הכלים (נובמבר 2026)</h2><p class="muted" style="font-size:.9rem">אין אפליקציה אחת שעושה הכול: שינויי פלטפורמה ומסנני בטיחות על תכנים קשים מפצלים את היכולות. לכן משלבים.</p><div class="tbl-wrap"><table class="cmp">
+   <tr><th></th><th>NotebookLM</th><th>Gemini</th><th>ChatGPT</th><th>Claude</th></tr>
+   <tr><td>מצב לימוד סוקרטי</td><td><a href="https://support.google.com/gemininotebook/answer/18323649?hl=en" target="_blank" rel="noopener">Learning Overviews</a>, בחנים וכרטיסיות</td><td><a href="https://blog.google/products-and-platforms/products/education/guided-learning/" target="_blank" rel="noopener">Guided Learning</a> — חינם לכולם</td><td><a href="https://help.openai.com/en/articles/11780217-using-study-mode-in-chatgpt" target="_blank" rel="noopener">Study Mode</a> (חינם, אבל לא בתוך Projects)</td><td>Learning Mode במוסדות; אפשר לנסח בהוראות Project</td></tr>
+   <tr><td>קבצים</td><td><a href="https://support.google.com/gemininotebook/answer/16213268?hl=en" target="_blank" rel="noopener">50 מקורות חינם</a> למחברת</td><td>10 קבצים לפרומפט; חיבור ל־Drive ול־NotebookLM</td><td>Projects: 5 קבצים חינם, 25 ב־Plus. Custom GPTs פורשים ב־11.12.2026</td><td><a href="https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects" target="_blank" rel="noopener">Projects</a> ללא הגבלת מספר קבצים (30MB לקובץ)</td></tr>
+   <tr><td>קול ועברית</td><td><a href="https://support.google.com/gemininotebook/answer/16212820?hl=en" target="_blank" rel="noopener">Audio Overviews</a> כולל עברית; מצב Join באנגלית בלבד</td><td><a href="https://support.google.com/gemini/answer/15984485?hl=en" target="_blank" rel="noopener">Gemini Live</a> בעברית (לא בתוך Gems)</td><td>קול חדש מ־11.12.2026; 3 שעות ב־Plus</td><td>הכתבה במובייל; אין שיחה קולית סוקרטית רציפה</td></tr>
+   <tr><td>זיכרון ומעקב</td><td>הערות וצ׳אט במחברת; אין מעקב רוחבי</td><td>היסטוריה + מסמך התקדמות ב־Google Docs</td><td>זיכרון רוחבי + בידוד לפי Project</td><td>זיכרון וחיפוש צ׳אטים בכל התוכניות</td></tr>
+   <tr><td>חולשות ומחיר</td><td>חינם (Pro ‏$19.99). פילטר בטיחות עלול לחסום תיאורי אלימות קשים</td><td>חינם; AI Pro ‏$19.99</td><td>חינם / Plus ‏$20. פיצול בין Projects ל־Study Mode</td><td>חינם / Pro ‏$20. אין מצב שמע סוקרטי</td></tr>
+  </table></div><p class="muted" style="font-size:.85rem">מחירים ויכולות משתנים מהר. בדקי בעמודי העזרה המקושרים לפני שמחליטים.</p></div>
+  <div class="card"><h2>הקמה בשלושה צעדים (בחינם, בלי קוד)</h2><ol>
+   <li><b>מחברת ב־NotebookLM:</b> מעלים רק קבצים שברשותך כחוק. מפיקים מפת מושגים ותקציר שמע בעברית.</li>
+   <li><b>מורה סוקרטי:</b> צ׳אט ב־Guided Learning או Project עם הוראות, מחברים מסמך מעקב ב־Drive ומדביקים את הפרומפט שלמטה.</li>
+   <li><b>Anki:</b> בסוף כל שבוע מייצאים כרטיסיות ל־CSV (גם מעמוד הכרטיסיות כאן) ומייבאים ל־<a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a>. בודקים ידנית הגדרות קליניות — כלי AI טועים בכ־5% מהכרטיסיות.</li></ol></div>
+  <div class="card"><h2>תוכנית הטמעה ופיילוט</h2><ol>
+   <li><b>יום 1 — מיפוי:</b> לסמן פרקים מוכרים מול חדשים ולהגדיר יעד (בחינה, סמינריון או דיון בכיתה).</li>
+   <li><b>יום 2 — ארגון מקורות:</b> הספר, סיכומים ו־4–5 מאמרי עומק בתיקיית קורס אחת.</li>
+   <li><b>ימים 3–4 — פיילוט:</b> להריץ את המורה על פרק 1 בלבד ולבדוק דיוק ואיכות משוב.</li>
+   <li><b>שבועות 1–6 — הטמעה:</b> 2 פרקים בשבוע; בדיקת שימור בסוף שבוע 3 ושבוע 6.</li>
+   <li><b>הלאה:</b> אותו שלד (NotebookLM + מורה סוקרטי + Anki) מתאים לכל קורס — מחליפים רק את חומרי המקור.</li></ol></div>
+  <div class="card"><h2>פרוטוקול בטיחות רגשית</h2><ul>
+   <li>לומדים במנות קצובות, לא מרתון.</li>
+   <li>קובעים מראש <b>מילת עצירה</b> (למשל ״בואי נעבור לרמה תיאורטית״) — והמורה חייב לכבד אותה מיד. כאן באתר: כפתור ״מצב תיאורטי״ בראש העמוד.</li>
+   <li>זוכרים את ההבחנה: לימוד תיאורטי על טראומה אינו ליווי או טיפול. אם עולה מצוקה — ער״ן 1201.</li></ul></div>
   <div class="card"><h2>פרומפט מערכת מוכן</h2><p class="muted">מעתיקים ומדביקים בהוראות הפרויקט / ה־Gem.</p><pre class="prompt" id="sp">${esc(SYSTEM_PROMPT)}</pre><div class="row-btns"><button class="btn primary" id="cp">העתקה</button></div></div>
   <div class="notice"><b>זכויות יוצרים ודיוק:</b> הטקסט המלא של הספר מוגן. אין להעלות עותקים לא מורשים, ויש לבקש מהמורה לא להמציא ציטוטים או מספרי עמודים.</div>`;
   $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(SYSTEM_PROMPT);toast("הפרומפט הועתק");}catch(e){const r=document.createRange();r.selectNodeContents($("#sp"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("סמנתי את הטקסט — העתיקי עם Ctrl+C");}};
