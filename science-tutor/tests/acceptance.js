@@ -323,6 +323,11 @@ const rowsOf = (page, id) => page.evaluate(id => window.__sciTutor.db.attempts.f
       facts: ['בעיר ג יש 30 אחוז', 'עיר ב היא הכי נמוכה', 'עיר ב יותר מעיר א', 'בעיר ג יש 20 אחוז', 'עיר ד הכי נמוכה'].map(a => T.gradePart(part, a).status) }; });
   ok(r3.sc.first === Math.round(8 / 96 * 100) && r3.sc.pending === 1, 'תשובה שממתינה לבדיקת מורה לא נספרת בציון עד ההחלטה, ומסומנת כממתינה');
   ok(r3.facts.join() === 'wrong,wrong,wrong,ok,ok', 'עובדה שסותרת את התרשים נפסלת, ועובדה נכונה מתקבלת (' + r3.facts + ')');
+  // ניקוד חלקי לפי פריטים (כמו במשימת המקור)
+  const pc = await sp.evaluate(() => { const T = window.__sciTutor; const Q = id => T.QUESTIONS.find(q => q.id === id);
+    return [T.creditPoints(Q('v01'), 'מצבר של רכב, גז בישול, מפל מים', 0), T.creditPoints(Q('v01'), 'מצבר של רכב, גז בישול, מפל מים, כיסא', 0), T.creditPoints(Q('v01'), 'לחם, מצבר של רכב, גז בישול, מפל מים, עצים להסקה', 0),
+      T.creditPoints(Q('v07'), 'אנרגיה כימית (בשרירים) → אנרגיית תנועה → אנרגיית אור → אנרגיה חשמלית', 0)].map(x => Math.round(x * 10) / 10); });
+  ok(pc.join() === '4.8,3.2,8,4', 'ניקוד חלקי: 3 מתוך 5 נכונים = 4.8, סימון שגוי מוריד, הכול נכון = 8, שרשרת חצי נכונה = 4 (' + pc + ')');
   // מסך המורה: בדיקת חיבור והקישור לתלמידים
   await sp.unroute(SRV); await sp.route(SRV, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, model: 'claude-haiku-5-5', sheet: 'מדעים', hasApiKey: true }) }));
   await sp.click('[data-act="logout"]'); await sp.click('[data-act="teacher"]'); await sp.fill('#pin', '1357'); await sp.click('[data-act="pinGo"]');

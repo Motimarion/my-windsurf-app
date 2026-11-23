@@ -373,7 +373,7 @@ function recordAttempt(q, item, isT, st, answers, g, finalMastery){
     hints_used:String(isT?st.tHints:st.hints), hint_types:st.hintTypes.join('; '), explain_requested:String(S.pendingExplain||0),
     solution_revealed:st.revealed?'yes':'no', rubric_id:'R-'+item.id, rubric_version:RUBRIC_VERSION,
     criteria_met:met, criteria_missing:missing, misconception:mis, correctness:(g.status==='correct'&&g.pending)?'accepted_pending':g.status,
-    awarded_points: isT?'':String(Math.round(q.points*(g.okCount||0)/parts.length*10)/10), max_points: isT?'':String(q.points),
+    awarded_points: isT?'':String(Math.round(10*creditPoints(q, answerText(parts,answers), g.parts.filter((r,i)=>textCredit(parts[i],'')===null && (r.status==='ok'||r.status==='pending')).length))/10), max_points: isT?'':String(q.points),
     confidence, teacher_review:review?'yes':'no', teacher_override:'', teacher_mastery:'', teacher_note:'', mastery_level:finalMastery||'', updated_at:nowISO(), app_version:APP_VERSION, grader: hasOpen ? (g.ai?(g.graderTag||'ai'):'rules') : 'auto', grader_reason:reasons };
   all.push(row); db.saveAttempts(all); S.pendingExplain=0; enqueueSync(row); return row;
 }
@@ -630,10 +630,46 @@ function legend(){ return '<div class="legend">'+LEVEL_ORDER.map(l=>'<span><i st
    ״ציון אחרי תרגול״ = הניסיון הטוב ביותר לפני שהוצג פתרון. החלטת מורה (נכון/שגוי) גוברת. שאלה שלא נענתה = 0. */
 const BANDS=[[95,'מצוין'],[85,'טוב מאוד'],[75,'טוב'],[65,'כמעט טוב'],[55,'מספיק'],[0,'לא מספיק']];
 function band(x){ return (BANDS.find(b=>x>=b[0])||BANDS[BANDS.length-1])[1]; }
+/* ---------- ניקוד חלקי לפי פריטים ----------
+   בשאלות עם כמה פריטים (סימון, התאמה, נכון/לא נכון, טבלה, סידור, שרשרת) כל פריט נכון מקבל חלק מהניקוד.
+   בסימון ״כל התשובות הנכונות״: (נכונות שסומנו − שגויות שסומנו) / מספר הנכונות, לא פחות מ־0.
+   החישוב נעשה מתוך טקסט התשובה השמור, ולכן עובד גם על נתונים ישנים ועל קבצים מיובאים. */
+function splitParts(text, n){ if(n<=1) return [String(text||'')]; const out=new Array(n).fill('');
+  String(text||'').split(' | ').forEach(seg=>{ const m=seg.match(/^([א-ח]): ?([\s\S]*)$/); if(m){ const i=LETTERS.indexOf(m[1]); if(i>=0&&i<n) out[i]=m[2]; } }); return out; }
+function textCredit(p, a){
+  a=String(a||'').trim(); const eq=(x,y)=>strip(String(x)).trim()===strip(String(y)).trim();
+  switch(p.type){
+    case 'mc': return eq(a, p.options[p.answer])?1:0;
+    case 'num': { const v=parseNumAnswer(a); return !isNaN(v)&&Math.abs(v-p.answer)<1e-9?1:0; }
+    case 'multi': { const sel=a.split(', ').map(x=>x.trim()).filter(Boolean); const good=p.answers.map(i=>strip(p.options[i]).trim());
+      const c=sel.filter(x=>good.includes(x)).length, w=sel.length-c; return Math.max(0,(c-w)/good.length); }
+    case 'match': { const m={}; a.split('; ').forEach(x=>{ const k=x.indexOf(' → '); if(k>0) m[strip(x.slice(0,k)).trim()]=x.slice(k+3).trim(); });
+      return p.items.filter(it=>eq(m[strip(it.t).trim()]||'', it.a)).length/p.items.length; }
+    case 'tf': { const L=p.labels||['נכון','לא נכון']; const v=a.split('; ').map(x=>x.replace(/^\d+\.\s*/,'').trim());
+      return p.items.filter((it,i)=>v[i]===(it.a?L[0]:L[1])).length/p.items.length; }
+    case 'grid': { const m={}; a.split('; ').forEach(x=>{ const k=x.lastIndexOf(': '); if(k>0) m[x.slice(0,k).trim()]=x.slice(k+2).split(' / ').map(y=>y.trim()); });
+      let tot=0, ok=0; p.rows.forEach(r=>{ const got=m[strip(r.t).trim()]||[]; r.a.forEach((x,j)=>{ tot++; if(got[j]===x) ok++; }); }); return tot?ok/tot:0; }
+    case 'order': { const m={}; a.split('; ').forEach(x=>{ const k=x.lastIndexOf(' = '); if(k>0) m[x.slice(0,k).trim()]=x.slice(k+3).trim(); });
+      return p.items.filter((it,i)=>m[strip(it).trim()]===String(i+1)).length/p.items.length; }
+    case 'chain': { const g=a.split(' → ').map(x=>x.trim()); return p.answer.filter((x,i)=>g[i]===x).length/p.answer.length; }
+  }
+  return null; }
+/* ניקוד לשאלה: פריטים סגורים לפי הטקסט; חלקים פתוחים לפי מספר החלקים שהתקבלו בבדיקה (okOpen) */
+function creditPoints(q, text, okOpen){
+  const parts=q.parts, n=parts.length, segs=splitParts(text,n); const cr=parts.map((p,i)=>textCredit(p,segs[i]));
+  let left=Math.max(0, okOpen||0); cr.forEach((c,i)=>{ if(c===null){ cr[i]= left>0?1:0; if(left>0) left--; } });
+  return q.points*cr.reduce((a,b)=>a+b,0)/n; }
+function openOkFromRow(q, r){ const n=q.parts.length; const segs=splitParts(r.answer_text,n);
+  const exact=q.parts.reduce((s,p,i)=>{ const c=textCredit(p,segs[i]); return s+(c===1?1:0); },0);
+  const okc=Math.round((Number(r.awarded_points)||0)/q.points*n); const opens=q.parts.filter(p=>textCredit(p,'')===null).length;
+  return Math.max(0, Math.min(opens, okc-exact)); }
+const QBY={}; QUESTIONS.forEach(q=>QBY[q.id]=q);
 function ovOf(r){ const ov=db.overrides[r.attempt_id]; return (ov&&ov.teacher_override)||r.teacher_override||''; }
-function rowPoints(r){ const c=ovOf(r); const max=Number(r.max_points)||0; const pts=Math.min(max, Math.max(0, Number(r.awarded_points)||0));
+function rowPoints(r){ const c=ovOf(r); const q=QBY[r.base_question_id]; const max=Number(r.max_points)||(q?q.points:0);
+  const pend=(r.correctness==='accepted_pending'||r.correctness==='uncertain');
+  const pts=q && r.is_transfer!=='yes' && String(r.answer_text||'').trim() ? Math.min(max, creditPoints(q, r.answer_text, pend?0:openOkFromRow(q,r))) : (pend ? 0 : Math.min(max, Math.max(0, Number(r.awarded_points)||0)));
   if(c==='correct') return max; if(c==='incorrect') return 0; if(c==='partial') return (pts>0&&pts<max)?pts:Math.round(max/2*10)/10;
-  if(r.correctness==='accepted_pending'||r.correctness==='uncertain') return 0; /* ממתין לבדיקת מורה: לא נספר עד שהמורה מחליטה */
+  /* ממתין לבדיקת מורה: החלק הפתוח לא נספר עד שהמורה מחליטה; פריטים סגורים נספרים */
   return pts; }
 function isPendingRow(r){ return !ovOf(r) && (r.correctness==='accepted_pending'||r.correctness==='uncertain'); }
 /* ״כמו במבחן״: ניסיון ראשון שלפניו התלמיד ביקש רמז או ״תסביר אחרת״ — לא נחשב עצמאי, ולכן 0 */
@@ -657,7 +693,7 @@ function teacherScores(rows){
   const dist=BANDS.slice().reverse().map(([lo,name],i,arr)=>{ const hi=i<arr.length-1?arr[i+1][0]-1:100; const n=firsts.filter(x=>x>=lo&&x<=hi).length; return {name, range:lo+'–'+hi, n}; }).reverse();
   const maxN=Math.max(1,...dist.map(d=>d.n));
   let h='<div class="card"><h3 style="margin-top:0">📊 ציונים לפי הניקוד של משימת המקור</h3>'+
-    '<p class="small">הציון מחושב לפי הניקוד של כל שאלה במשימה (6 נקודות לשאלה בכיתה ד׳, 8 בכיתות ה׳–ו׳), ומומר לציון מתוך 100. <b>ציון כמו במבחן</b> — לפי הניסיון הראשון בלבד; אם לפניו התלמיד ביקש רמז או ״תסביר אחרת״, השאלה מקבלת 0. <b>אחרי תרגול</b> — הניסיון הטוב ביותר לפני שהוצג פתרון. שאלה שלא נענתה מקבלת 0. החלטת מורה ״חלקי״ שווה חצי מהניקוד.'+(S.tTopic&&S.tTopic!=='all'?' <b>מוצג רק הנושא: '+esc(S.tTopic)+'</b>.':'')+'</p>'+
+    '<p class="small">הציון מחושב לפי הניקוד של כל שאלה במשימה (6 נקודות לשאלה בכיתה ד׳, 8 בכיתות ה׳–ו׳), ומומר לציון מתוך 100. בשאלה עם כמה פריטים, כל פריט נכון מקבל חלק מהניקוד. <b>ציון כמו במבחן</b> — לפי הניסיון הראשון בלבד; אם לפניו התלמיד ביקש רמז או ״תסביר אחרת״, השאלה מקבלת 0. <b>אחרי תרגול</b> — הניסיון הטוב ביותר לפני שהוצג פתרון. שאלה שלא נענתה מקבלת 0. החלטת מורה ״חלקי״ שווה חצי מהניקוד.'+(S.tTopic&&S.tTopic!=='all'?' <b>מוצג רק הנושא: '+esc(S.tTopic)+'</b>.':'')+'</p>'+
     '<div class="stat"><div class="box"><div class="num">'+list.length+'</div>תלמידים</div><div class="box"><div class="num">'+avg(firsts)+'</div>ממוצע (כמו במבחן)</div><div class="box"><div class="num">'+med(firsts)+'</div>חציון</div><div class="box"><div class="num">'+avg(list.map(x=>x.best))+'</div>ממוצע אחרי תרגול</div></div>'+
     '<h4>התפלגות הציונים (כמו במבחן)</h4><table class="data"><thead><tr><th>טווח</th><th>הערכה</th><th>תלמידים</th><th style="width:50%"></th></tr></thead><tbody>'+
     dist.map(d=>'<tr><td>'+d.range+'</td><td>'+d.name+'</td><td>'+d.n+' ('+pct(d.n,list.length)+')</td><td><div style="height:14px;border-radius:4px;background:var(--brand);width:'+Math.round(d.n/maxN*100)+'%"></div></td></tr>').join('')+'</tbody></table></div>';
@@ -845,5 +881,5 @@ document.addEventListener('keydown', e=>{ if(e.key==='Enter' && S.view==='questi
 
 /* ---------- הפעלה ---------- */
 try{ const s=JSON.parse(sessionStorage.getItem(KEY.session)||'null'); if(s&&s.student&&s.grade&&db.progress[s.student+'|'+s.grade+'|'+(s.cls||'')]){ S.student=s.student; S.grade=Number(s.grade); S.cls=s.cls||''; goCurrent(); } else render(); }catch(e){ render(); }
-window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch, kwFind, parseNumAnswer, studentScore, scoreTable, levelKey, safeCell};
+window.__sciTutor = {serverCfg, flushSync, QUESTIONS, gradeQuestion, gradePart, aiPrompt, acceptFree, substantive, parseCSV, toCSV, importRows, db, norm, kwMatch, kwFind, parseNumAnswer, textCredit, creditPoints, studentScore, scoreTable, levelKey, safeCell};
 })();
