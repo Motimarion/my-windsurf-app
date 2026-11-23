@@ -81,7 +81,26 @@ dl.terms dd{margin:0}
 body.theory .case-body{display:none}
 body.theory .case::after{content:"מצב תיאורטי פעיל: תיאור המקרה מוסתר. אפשר לחזור אליו בכל עת דרך כפתור ״מצב תיאורטי״.";color:var(--muted);font-size:.9rem}
 textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:90px;resize:vertical}
-input[type=text]{min-height:auto}
+input[type=text],input[type=date],input[type=time],select{min-height:auto;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:100%}
+.phase{border-inline-start:4px solid var(--line)}
+.phase.done{border-inline-start-color:var(--accent)}
+.phase.now{border-inline-start-color:var(--accent-2)}
+.phase>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.phase>summary::-webkit-details-marker{display:none}
+.phase>summary h2{margin:0;font-size:1.15rem}
+.field{margin:12px 0}.field>b{display:block;margin-bottom:6px}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.92rem}
+.choice label:has(input:checked){background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+.choice input{accent-color:var(--accent)}
+.intent{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:12px;margin-top:8px}
+.kmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.kmap label{display:flex;gap:6px;align-items:center;font-size:.9rem;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.wk{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline}
+.wk b{min-width:76px;flex:none}
+.metric{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;margin:10px 0}
+.metric .meter{grid-column:1/-1;position:relative}
+.metric .meter::after{content:"";position:absolute;inset-inline-start:80%;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
 textarea:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .opts{display:grid;gap:8px;margin:12px 0}
 .opt{text-align:start;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:10px}
@@ -162,6 +181,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-s
     </div>
     <nav class="tabs" id="tabs">
       <a href="#home">בית</a>
+      <a href="#path">מסלול הטמעה</a>
       <a href="#daily">אימון יומי</a>
       <a href="#chapters">פרקים</a>
       <a href="#lesson">שיעור סוקרטי</a>
@@ -456,7 +476,7 @@ const SOURCES = [
 
 /* ===================== STATE ===================== */
 const KEY="traumaTutor.v1";
-const FRESH=()=>({read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},pre:{},recall:{},daily:{last:-1,streak:0,n:0},theory:false,theme:null});
+const FRESH=()=>({read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},pre:{},recall:{},daily:{last:-1,streak:0,n:0},prac:{},path:{goal:"",date:"",hours:4.5,days:[],time:"",place:"",known:{},src:{},pilot:{},refl:{},checks:[],start:null},theory:false,theme:null});
 let S=FRESH();
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -533,6 +553,7 @@ V.home=()=>{
     <p class="muted">לומדים פרק אחר פרק בשתי שכבות (פשוט ← אקדמי), עונים, מקבלים משוב מנומק, וחוזרים בזמן הנכון. ההתקדמות נשמרת בדפדפן שלך בלבד.</p>
     <div class="row-btns"><a class="btn primary" href="#chapter/${nextCh.id}">המשיכי: פרק ${nextCh.id} — ${esc(nextCh.title)}</a><a class="btn" href="#lesson">שיעור סוקרטי ראשון</a></div>
   </section>
+  ${(()=>{const ns=nextStep();return ns.i>=0&&ns.i<4?`<section class="card"><span class="pill">מסלול ההטמעה · שלב ${ns.i+1} מתוך 5</span><h2 style="margin:6px 0 0">השלב הבא: ${esc(ns.txt)}</h2><div class="row-btns"><a class="btn" href="#path">למסלול</a></div></section>`:"";})()}
   <section class="card daily-cta"><div><h2 style="margin:0">אימון יומי · כ־10 דקות</h2><p class="muted" style="margin:4px 0 0">${S.daily.last===today()?"✓ האימון של היום הושלם. אפשר לעשות עוד אחד — זה לא מזיק.":"כרטיסיות בזמן הנכון, שאלות מעורבבות מפרקים שונים ושאלת ״למה?״ אחת. הכול מוכן — רק ללחוץ."}</p></div><div class="streak" aria-label="רצף ימים">${S.daily.streak||0}<small>ימי רצף</small></div><div class="row-btns" style="width:100%"><a class="btn primary" href="#daily">${S.daily.last===today()?"אימון נוסף":"להתחיל את האימון של היום"}</a></div></section>
   <div class="grid g3">
     <div class="card"><div class="muted">שליטה כוללת</div><div class="stat">${overall()}%</div><div class="meter"><i style="width:${overall()}%"></i></div></div>
@@ -555,6 +576,155 @@ V.home=()=>{
   }
 };
 function chipCard(c){const m=chapterMastery(c.id);return `<a class="chap" href="#chapter/${c.id}"><span class="muted" style="font-size:.8rem">פרק ${c.id}</span><b>${esc(c.title)}</b><span class="muted" style="font-size:.85rem">${esc(c.en)}</span><div class="meter"><i style="width:${m.pct}%"></i></div><div class="row"><span>${m.read?'<span class="done-mark">✓ נקרא</span>':"טרם נקרא"}</span><span>בוחן ${m.best}/${m.of}</span></div></a>`;}
+
+/* ===================== IMPLEMENTATION PATH =====================
+   Backward design: goal + success evidence first, then pilot, adaptive schedule,
+   retention checkpoints, metrics and weekly reflection (self-regulated learning cycle). */
+const GOALS={exam:"בחינה",paper:"עבודת סמינר",class:"דיון בכיתה",self:"העמקה אישית"};
+const DAYS=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+const SRC_ITEMS=[
+ ["book","עותק חוקי של הספר (עם עובד 2017 או Basic Books 2022)"],
+ ["folder","תיקיית קורס אחת לכל החומרים והסיכומים שלי"],
+ ["sum","סיכום עברי אחד לעיגון המינוח (מכון אנאפה או עמי ברונסקי)","#resources"],
+ ["papers","4–5 מאמרי עומק (Karatzias 2018, Lee 2026, Otgaar 2019 ...)","#research"],
+ ["anki","Anki מותקן (רשות — יש כרטיסיות מובנות כאן)","https://apps.ankiweb.net/"]
+];
+const P=()=>S.path;
+const dayMs=86400000;
+const fmtDate=d=>new Date(d*dayMs).toLocaleDateString("he-IL",{day:"numeric",month:"numeric"});
+function pilotDone(){return !!(S.pre[1]&&(S.notes[1]||"").trim()&&S.quiz[1]!=null&&S.daily.n>0);}
+function phaseState(){
+  const p=P();
+  return [
+    !!(p.goal&&p.days.length&&p.time),
+    SRC_ITEMS.slice(0,4).every(s=>p.src[s[0]]),
+    pilotDone()&&!!p.pilot.pace,
+    p.checks.length>0,
+    false
+  ];
+}
+function capacity(){const p=P();let cap=(+p.hours||4.5)/2.25;if(p.pilot.pace==="fast")cap*=.75;if(p.pilot.pace==="slow")cap*=1.25;if(p.pilot.load==="heavy")cap*=.8;return Math.max(.5,cap);}
+function schedule(){
+  const p=P(),t=today(),rem=CH.filter(c=>!S.read[c.id]&&!p.known[c.id]);
+  const cap=capacity(),need=Math.ceil(rem.length/cap)||0;
+  let avail=null;if(p.date){const end=Math.floor(new Date(p.date).getTime()/dayMs);avail=Math.floor((end-t)/7)-1;} // keep last week as buffer
+  const weeks=Math.max(1,avail!=null?Math.min(Math.max(avail,1),Math.max(need,1)):Math.max(need,1));
+  const per=Math.ceil(rem.length/weeks)||0,out=[];
+  for(let w=0;w<weeks;w++){const chs=rem.slice(w*per,(w+1)*per);if(chs.length)out.push({start:t+w*7,chs});}
+  const mid=Math.floor((out.length-1)/2);
+  out.forEach((w,k)=>{w.check=(k===mid&&out.length>2)||k===out.length-1;});
+  return {rem,cap,need,avail,weeks:out};
+}
+function metrics(){
+  const read=CH.filter(c=>S.read[c.id]);
+  const tot=read.reduce((a,c)=>a+c.terms.length,0),got=read.reduce((a,c)=>a+((S.recall[c.id]||[]).length),0);
+  const app=["sym","bid","dx","stage"].map(k=>S.prac[k]).filter(v=>v!=null);
+  return [
+    {n:"מדד 1 — הסבר עצמי",d:"אחוז המושגים שנשלפו בלי להציץ, בפרקים שסומנו כנלמדו",v:tot?Math.round(got/tot*100):null,how:"בכל פרק: ⑧ ← ״השוואה״ ← סימון המושגים שנשלפו"},
+    {n:"מדד 2 — יישום וחיבור",d:"ממוצע ארבעת תרגילי המיון (תסמינים, בידרמן, אבחנה, שלבים)",v:app.length?Math.round(app.reduce((a,b)=>a+b,0)/app.length):null,how:"עמוד ״תרגול יישומי״"},
+    {n:"מדד 3 — חשיבה ביקורתית",d:"תרגיל ״הרמן 1992 מול המחקר העדכני״",v:S.prac.crit!=null?S.prac.crit:null,how:"עמוד ״מחקר עדכני״ ← תרגיל הביקורת"}
+  ];
+}
+function nextStep(){
+  const ph=phaseState(),names=["להגדיר יעד וזמני לימוד","לארגן את המקורות","להריץ פיילוט על פרק 1","לבצע בדיקת שימור ראשונה","להמשיך באימון יומי ולעקוב אחרי המדדים"];
+  const i=ph.findIndex(x=>!x);return {i,txt:names[i<0?4:i]};
+}
+let PATH_OPEN=null; // remembers open phases across re-renders within the view
+V.path=()=>{
+  const p=P(),ph=phaseState(),ns=nextStep();
+  if(p.start==null){p.start=today();save();}
+  const sc=schedule(),M=metrics();
+  const wkNo=Math.floor((today()-p.start)/7)+1,refl=p.refl[wkNo]||{};
+  const status=k=>ph[k]?"done":(k===ns.i?"now":"");
+  const isOpen=(k,def)=>PATH_OPEN?(PATH_OPEN.has(k)||k===ns.i):def;
+  const intent=p.days.length&&p.time?`כש${p.days.length>1?"מגיעים ימי":"מגיע יום"} <b>${p.days.map(d=>DAYS[d]).join(", ")}</b> בשעה <b>${esc(p.time)}</b>, אשב במקום הקבוע שלי${p.place?` (<b>${esc(p.place)}</b>)`:""} ואפתח את האימון היומי. אם אין לי 10 דקות — אעשה רק 3 כרטיסיות.`:"בחרי ימים ושעה, והתוכנית תנוסח כאן כמשפט ״אם–אז״.";
+  $("#app").innerHTML=`<h1>מסלול ההטמעה</h1><p class="muted">התוכנית שבנינו, בתבנית שעובדת בהטמעת תוכניות למידה: מתחילים מהיעד ומהראיות להצלחה, מריצים פיילוט קטן, מתאימים קצב, ובודקים שימור לאורך הדרך.</p>
+  <div class="card"><div class="muted">השלב הבא</div><h2 style="margin:4px 0">${esc(ns.txt)}</h2><div class="steps">${ph.map(x=>`<i class="${x?"on":""}"></i>`).join("")}</div></div>
+
+  <details class="card phase ${status(0)}" data-ph="0" ${isOpen(0,status(0)==="now")?"open":""}><summary><h2>יום 1 · יעד ומיפוי ידע</h2><span class="muted">${ph[0]?"✓":"1/5"}</span></summary>
+   <div class="field"><b>למה אני לומדת את הספר?</b><div class="choice">${Object.entries(GOALS).map(([k,t])=>`<label><input type="radio" name="goal" value="${k}" ${p.goal===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>תאריך יעד (רשות)</b><input type="date" id="pDate" value="${esc(p.date)}"></div>
+   <div class="field"><b>שעות בשבוע</b><select id="pHours">${[3,4.5,6,8].map(h=>`<option value="${h}" ${+p.hours===h?"selected":""}>${h} שעות</option>`).join("")}</select></div>
+   <div class="field"><b>מתי ואיפה אלמד?</b><div class="choice">${DAYS.map((d,k)=>`<label><input type="checkbox" class="pDay" value="${k}" ${p.days.includes(k)?"checked":""}>${d}</label>`).join("")}</div>
+     <div class="row-btns" style="margin-top:8px"><input type="time" id="pTime" value="${esc(p.time)}" aria-label="שעה"><input type="text" id="pPlace" value="${esc(p.place)}" placeholder="מקום (ספרייה, שולחן הכתיבה...)" style="flex:1;min-width:160px"></div>
+     <div class="intent" id="intent">${intent}</div>
+     <p class="muted" style="font-size:.88rem">תוכנית ״אם–אז״ מוגדרת מראש (implementation intention) מעלה משמעותית את הסיכוי לבצע בפועל, לעומת כוונה כללית ״ללמוד השבוע״.</p></div>
+   <div class="field"><b>מיפוי ידע: אילו פרקים כבר מוכרים לי?</b><div class="kmap">${CH.map(c=>`<label><input type="checkbox" class="pKnown" value="${c.id}" ${p.known[c.id]?"checked":""}>${c.id}. ${esc(c.title)}</label>`).join("")}</div>
+     <p class="muted" style="font-size:.88rem">פרק ״מוכר״ יוצא מלוח הזמנים — אבל כדאי לאמת: הבוחן הקצר בסוף הפרק מראה אם ההיכרות מספיקה. תחושת ״אני יודעת״ נוטה להטעות.</p></div>
+  </details>
+
+  <details class="card phase ${status(1)}" data-ph="1" ${isOpen(1,status(1)==="now")?"open":""}><summary><h2>יום 2 · ארגון מקורות חוקי</h2><span class="muted">${SRC_ITEMS.filter(s=>p.src[s[0]]).length}/${SRC_ITEMS.length}</span></summary>
+   ${SRC_ITEMS.map(([k,t,u])=>`<div class="task"><input type="checkbox" class="pSrc" id="s_${k}" value="${k}" ${p.src[k]?"checked":""}><label for="s_${k}">${esc(t)}${u?` · <a href="${u}" ${u.startsWith("http")?'target="_blank" rel="noopener"':""}>קישור</a>`:""}</label></div>`).join("")}
+  </details>
+
+  <details class="card phase ${status(2)}" data-ph="2" ${isOpen(2,status(2)==="now")?"open":""}><summary><h2>ימים 3–4 · פיילוט על פרק 1</h2><span class="muted">${ph[2]?"✓":""}</span></summary>
+   <p class="muted">מנסים את כל המעגל על יחידה אחת לפני שמתחייבים לקצב. הסימונים מתעדכנים לבד.</p>
+   ${[[S.pre[1],"שאלות ״לפני הקריאה״ בפרק 1"],[(S.notes[1]||"").trim(),"הסבר עצמי במילים שלי בפרק 1"],[S.quiz[1]!=null,"בוחן הפרק"],[S.daily.n>0,"אימון יומי ראשון"]].map(([ok,t])=>`<div class="task"><span aria-hidden="true">${ok?"✅":"⬜"}</span><span>${t}</span></div>`).join("")}
+   <div class="row-btns"><a class="btn" href="#chapter/1">לפרק 1</a><a class="btn" href="#daily">לאימון היומי</a></div>
+   ${pilotDone()?`<div class="field"><b>איך היה הקצב?</b><div class="choice">${[["slow","איטי מדי — אפשר יותר"],["ok","מתאים"],["fast","מהיר מדי"]].map(([k,t])=>`<label><input type="radio" name="pace" value="${k}" ${p.pilot.pace===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>והעומס הרגשי?</b><div class="choice">${[["ok","סביר"],["heavy","כבד"]].map(([k,t])=>`<label><input type="radio" name="load" value="${k}" ${p.pilot.load===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>הסברים לא מדויקים או לא ברורים שמצאתי</b><textarea id="pIssues" placeholder="למשל: מושג שהוסבר אחרת בספר...">${esc(p.pilot.issues||"")}</textarea></div>
+   ${p.pilot.load==="heavy"?`<div class="notice">לפי פרוטוקול הבטיחות: הקצב בלוח הזמנים הורד, מומלץ להפעיל ״מצב תיאורטי״ ולשמור על מנות קצרות. <button class="btn small" id="pTheory">${S.theory?"מצב תיאורטי פעיל ✓":"הפעלת מצב תיאורטי"}</button></div>`:""}`:`<p class="muted">אחרי שארבעת הסעיפים מסומנים, יופיעו כאן שאלות הערכה לפיילוט.</p>`}
+  </details>
+
+  <details class="card phase ${status(3)}" data-ph="3" ${isOpen(3,status(3)==="now"||ph[2])?"open":""}><summary><h2>שבועות ההטמעה · לוח זמנים מותאם</h2><span class="muted">${sc.rem.length} פרקים נותרו</span></summary>
+   <p class="muted">מחושב מהיעד, מהשעות שבחרת ומתוצאות הפיילוט (קצב: כ־${sc.cap.toFixed(1)} פרקים בשבוע). השבוע האחרון לפני תאריך היעד נשמר לחזרה.</p>
+   ${sc.avail!=null&&sc.need>Math.max(sc.avail,1)?`<div class="notice">בקצב הזה צריך כ־${sc.need} שבועות, ועד היעד יש ${Math.max(sc.avail,0)}. הלוח דחוס בהתאם — שקלי להוסיף שעות, או לתעדף את הפרקים הרלוונטיים ל${GOALS[p.goal]||"יעד"}.</div>`:""}
+   ${sc.weeks.length?sc.weeks.map((w,k)=>`<div class="wk"><b>שבוע ${k+1}<br><span class="muted" style="font-weight:400;font-size:.85rem">${fmtDate(w.start)}</span></b><div>${w.chs.map(c=>`<a href="#chapter/${c.id}">פרק ${c.id}: ${esc(c.title)}</a>`).join(" · ")}${w.check?`<div><span class="pill p1">בדיקת שימור בסוף השבוע</span></div>`:""}</div></div>`).join(""):`<p>כל הפרקים נלמדו או סומנו כמוכרים. נשאר: סינתזה, ביקורת ובוחן מסכם.</p>`}
+   <h3 style="margin-top:16px">בדיקת שימור</h3><p class="muted" style="font-size:.92rem">10 שאלות מעורבבות מכל מה שנלמד, <b>בלי משוב עד הסוף</b> — כדי למדוד מה באמת נשמר, לא מה שזוכרים מלפני רגע.</p>
+   ${p.checks.length?`<div>${p.checks.map((c,k)=>`<span class="pill" style="margin-inline-end:6px">${k+1}: ${c.s}% · ${fmtDate(c.d)}</span>`).join("")}</div>`:""}
+   <div class="row-btns"><button class="btn primary" id="runCheck">התחלת בדיקת שימור</button></div><div id="chk"></div>
+  </details>
+
+  <section class="card"><h2>מדדי הצלחה</h2><p class="muted">שלושת המדדים מתוכנית ההטמעה, מחושבים אוטומטית. הקו האנכי = רף 80%.</p>
+   ${M.map(m=>`<div class="metric"><b>${m.n}</b><span class="stat" style="font-size:1.3rem">${m.v==null?"—":m.v+"%"}</span><div class="meter"><i style="width:${m.v||0}%"></i></div><span class="muted" style="font-size:.88rem;grid-column:1/-1">${m.d}${m.v==null?` · איך מתחילים: ${m.how}`:""}</span></div>`).join("")}
+  </section>
+
+  <section class="card"><h2>רפלקציה שבועית · שבוע ${wkNo}</h2><p class="muted">שלוש שאלות קצרות בסוף כל שבוע סוגרות את מעגל הלמידה: תכנון ← ביצוע ← הערכה ← תיקון.</p>
+   <div class="field"><b>מה עבד לי השבוע?</b><textarea class="pRefl" data-k="good">${esc(refl.good||"")}</textarea></div>
+   <div class="field"><b>מה היה קשה (תוכן, זמן או עומס רגשי)?</b><textarea class="pRefl" data-k="hard">${esc(refl.hard||"")}</textarea></div>
+   <div class="field"><b>מה אשנה בשבוע הבא — שינוי אחד, קונקרטי?</b><textarea class="pRefl" data-k="change">${esc(refl.change||"")}</textarea></div>
+   ${Object.keys(p.refl).filter(k=>+k!==wkNo).length?`<details><summary class="muted">רפלקציות קודמות</summary>${Object.entries(p.refl).filter(([k])=>+k!==wkNo).map(([k,r])=>`<p><b>שבוע ${k}:</b> ${esc(r.change||r.good||"")}</p>`).join("")}</details>`:""}
+  </section>
+
+  <section class="card"><h2>הלאה: התרחבות לקורסים נוספים</h2><p>אותו שלד — יעד ← מקורות ← פיילוט ← אימון יומי ← בדיקות שימור ← מדדים — מתאים לכל קורס. מחליפים רק את חומרי המקור (ב־NotebookLM) ואת הכרטיסיות.</p><div class="row-btns"><a class="btn" href="#ai">להקמת מורה AI חיצוני</a></div></section>`;
+
+  const rerender=()=>{const y=scrollY;PATH_OPEN=new Set([...document.querySelectorAll("details.phase[open]")].map(d=>+d.dataset.ph));V.path();scrollTo(0,y);};
+  const set=(k,v,re)=>{p[k]=v;save();if(re)rerender();};
+  document.querySelectorAll("[name=goal]").forEach(r=>r.onchange=()=>set("goal",r.value,true));
+  $("#pDate").onchange=e=>set("date",e.target.value,true);
+  $("#pHours").onchange=e=>set("hours",+e.target.value,true);
+  document.querySelectorAll(".pDay").forEach(cb=>cb.onchange=()=>set("days",[...document.querySelectorAll(".pDay:checked")].map(x=>+x.value),true));
+  $("#pTime").onchange=e=>set("time",e.target.value,true);
+  $("#pPlace").onchange=e=>set("place",e.target.value,true);
+  document.querySelectorAll(".pKnown").forEach(cb=>cb.onchange=()=>{p.known[cb.value]=cb.checked;save();rerender();});
+  document.querySelectorAll(".pSrc").forEach(cb=>cb.onchange=()=>{p.src[cb.value]=cb.checked;save();rerender();});
+  document.querySelectorAll("[name=pace],[name=load]").forEach(r=>r.onchange=()=>{p.pilot[r.name]=r.value;save();rerender();});
+  const iss=$("#pIssues");if(iss)iss.oninput=()=>{p.pilot.issues=iss.value;save();};
+  const pt=$("#pTheory");if(pt)pt.onclick=()=>{S.theory=true;save();applyPrefs();rerender();};
+  document.querySelectorAll(".pRefl").forEach(ta=>ta.oninput=()=>{p.refl[wkNo]=Object.assign(p.refl[wkNo]||{},{[ta.dataset.k]:ta.value});save();});
+  $("#runCheck").onclick=runCheck;
+};
+function runCheck(){
+  const done=CH.filter(c=>S.read[c.id]||P().known[c.id]).map(c=>c.id);
+  const box=$("#chk");
+  if(!done.length){box.innerHTML=`<p class="notice">עוד אין פרקים שסומנו כנלמדו או כמוכרים — אין עדיין מה לבדוק.</p>`;return;}
+  const qs=interleave(shuffle(QUIZ.filter(q=>done.includes(q.c))).slice(0,10)),ans=[];let i=0;
+  $("#runCheck").disabled=true;
+  const step=()=>{
+    if(i>=qs.length){
+      const s=Math.round(ans.filter((a,k)=>a===qs[k].a).length/qs.length*100);
+      P().checks.push({d:today(),s});
+      qs.forEach((q,k)=>{if(ans[k]!==q.a)S.wrong[q.c]=(S.wrong[q.c]||0)+1;});save();
+      box.innerHTML=`<div class="fb ${s>=80?"ok":"no"}"><b>שימור: ${s}%</b>${s>=80?"הידע נשמר היטב.":"השאלות שפספסת נכנסו לאימון היומי."}</div>${qs.map((q,k)=>`<div class="task"><span>${ans[k]===q.a?"✅":"❌"}</span><span><b>פרק ${q.c}:</b> ${esc(q.q)}<br><span class="muted">${esc(q.o[q.a])} — ${esc(q.w)}</span></span></div>`).join("")}<div class="row-btns"><button class="btn" id="chkClose">עדכון התצוגה</button></div>`;
+      $("#chkClose").onclick=()=>V.path();return;
+    }
+    const q=qs[i];
+    box.innerHTML=`<div class="muted">שאלה ${i+1}/${qs.length}</div><p><b>${esc(q.q)}</b></p><div class="opts">${q.o.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`;
+    box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ans.push(+b.dataset.k);i++;step();});
+  };
+  step();
+}
 
 /* Daily session: spaced cards + interleaved retrieval + elaboration, opened by an emotional check-in */
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
@@ -732,7 +902,7 @@ V.practice=()=>{
     sec.innerHTML=`<h2>${esc(ex.title)}</h2><p class="muted">${esc(ex.intro)}</p>${ex.items.map((it,k)=>`<div class="sort-item" data-k="${k}"><div>${esc(it[0])}</div><div class="chips">${ex.cats.map((c,j)=>`<button class="chip" data-j="${j}">${esc(c)}</button>`).join("")}</div><div class="why">${esc(it[2])}</div></div>`).join("")}<div class="row-btns"><button class="btn primary chk">בדיקה</button><button class="btn rst">ניסיון חוזר</button><span class="res"></span></div>`;
     const sel={};
     sec.querySelectorAll(".sort-item").forEach(el=>el.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{el.classList.remove("right","wrong");el.querySelectorAll(".chip").forEach(x=>x.classList.remove("sel"));ch.classList.add("sel");sel[el.dataset.k]=+ch.dataset.j;}));
-    sec.querySelector(".chk").onclick=()=>{let ok=0;sec.querySelectorAll(".sort-item").forEach(el=>{const k=+el.dataset.k,r=sel[k]===ex.items[k][1];el.classList.toggle("right",r);el.classList.toggle("wrong",!r);if(r)ok++;});sec.querySelector(".res").innerHTML=`<b>${ok}/${ex.items.length}</b> ${ok===ex.items.length?"— מושלם!":"— קראי את ההסברים בפריטים האדומים."}`;};
+    sec.querySelector(".chk").onclick=()=>{let ok=0;sec.querySelectorAll(".sort-item").forEach(el=>{const k=+el.dataset.k,r=sel[k]===ex.items[k][1];el.classList.toggle("right",r);el.classList.toggle("wrong",!r);if(r)ok++;});S.prac[ex.id]=Math.max(S.prac[ex.id]||0,Math.round(ok/ex.items.length*100));save();sec.querySelector(".res").innerHTML=`<b>${ok}/${ex.items.length}</b> ${ok===ex.items.length?"— מושלם!":"— קראי את ההסברים בפריטים האדומים."}`;};
     sec.querySelector(".rst").onclick=()=>{for(const k in sel)delete sel[k];sec.querySelectorAll(".sort-item").forEach(el=>{el.classList.remove("right","wrong");el.querySelectorAll(".chip").forEach(x=>x.classList.remove("sel"));});sec.querySelector(".res").textContent="";};
     $("#pr").appendChild(sec);
   });
@@ -882,6 +1052,7 @@ V.ai=()=>{
 
 /* ===================== ROUTER ===================== */
 function route(){
+  PATH_OPEN=null;
   const h=(location.hash||"#home").slice(1);const [v,arg]=h.split("/");
   const fn=V[v]||V.home; fn(arg);
   const tab=v==="chapter"?"chapters":(V[v]?v:"home");
