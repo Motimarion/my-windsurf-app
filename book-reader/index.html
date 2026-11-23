@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קורא ספרים</title>
+<style>
+  :root {
+    --bg: #f6f3ee; --surface: #ffffff; --text: #1f2328; --muted: #5f6670;
+    --accent: #2457c5; --accent-text: #ffffff; --border: #ddd6cc;
+    --hl: #ffe58a; --hl-text: #1f2328; --shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181c; --surface: #1f2228; --text: #e8e6e3; --muted: #a0a6ae;
+      --accent: #6d9bff; --accent-text: #0d1117; --border: #343842;
+      --hl: #5b4a12; --hl-text: #fff6d6; --shadow: 0 2px 10px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181c; --surface: #1f2228; --text: #e8e6e3; --muted: #a0a6ae;
+    --accent: #6d9bff; --accent-text: #0d1117; --border: #343842;
+    --hl: #5b4a12; --hl-text: #fff6d6; --shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', 'Arial Hebrew', Tahoma, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  button, select, input { font: inherit; color: inherit; }
+  button {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+    padding: 8px 14px; cursor: pointer; min-height: 40px;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Opening screen ---------- */
+  #home { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+  #home h1 { font-size: 2rem; margin: 0 0 6px; }
+  #home p.lead { color: var(--muted); margin: 0 0 24px; font-size: 1.05rem; }
+  #drop {
+    border: 2px dashed var(--border); border-radius: 16px; background: var(--surface);
+    padding: 36px 16px; text-align: center; box-shadow: var(--shadow);
+  }
+  #drop.over { border-color: var(--accent); }
+  #drop .big { font-size: 2.6rem; line-height: 1; margin-bottom: 10px; }
+  #drop .formats { color: var(--muted); font-size: .92rem; margin-top: 12px; }
+  .home-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  #recent { margin-top: 24px; }
+  #recent h2 { font-size: 1rem; color: var(--muted); margin: 0 0 8px; }
+  #recent ul { list-style: none; padding: 0; margin: 0; }
+  #recent li { padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--muted); font-size: .95rem; }
+  .msg { margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+  .msg.err { border-color: #c0392b; }
+  .note { color: var(--muted); font-size: .88rem; margin-top: 20px; line-height: 1.6; }
+
+  /* ---------- Reader ---------- */
+  #reader { display: none; }
+  header.bar {
+    position: sticky; top: 0; z-index: 5; background: var(--surface);
+    border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .bar-row { display: flex; align-items: center; gap: 8px; padding: 8px 16px; flex-wrap: wrap; max-width: 960px; margin: 0 auto; }
+  .bar-row .title { font-weight: 700; flex: 1 1 160px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-row select { max-width: 100%; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 7px 8px; min-height: 40px; }
+  #chapterSel { flex: 1 1 200px; min-width: 0; }
+  .ctrl { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); }
+  .ctrl input[type=range] { width: 110px; accent-color: var(--accent); }
+  #playBtn { min-width: 110px; }
+  .progress { height: 4px; background: var(--border); }
+  .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+
+  main#page {
+    max-width: 760px; margin: 0 auto; padding: 24px 16px 120px;
+    font-size: var(--fs, 20px); line-height: 1.85;
+  }
+  main#page h2.ch { font-size: 1.35em; margin: 0 0 .8em; }
+  main#page p { margin: 0 0 1em; }
+  .s { cursor: pointer; border-radius: 4px; transition: background .15s; }
+  .s:hover { background: color-mix(in srgb, var(--hl) 40%, transparent); }
+  .s.now { background: var(--hl); color: var(--hl-text); }
+  .chapter-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 32px; }
+  #voiceWarn { display: none; max-width: 960px; margin: 0 auto; padding: 6px 16px 10px; font-size: .88rem; color: var(--muted); }
+
+  @media (max-width: 600px) {
+    .bar-row { padding: 8px 12px; }
+    .ctrl input[type=range] { width: 80px; }
+    #voiceSel { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Opening screen ===== -->
+<section id="home">
+  <h1>📖 קורא ספרים</h1>
+  <p class="lead">פותחים ספר דיגיטלי, קוראים על המסך, ולוחצים ״הקראה״ כדי לשמוע אותו בקול. המשפט שמוקרא מסומן בצבע.</p>
+
+  <div id="drop">
+    <div class="big">📚</div>
+    <div>גוררים לכאן קובץ ספר, או</div>
+    <div class="home-actions">
+      <button class="primary" id="openBtn">בחירת קובץ…</button>
+      <button id="sampleBtn">ניסיון עם טקסט לדוגמה</button>
+    </div>
+    <div class="formats">פורמטים נתמכים: EPUB, PDF (עם טקסט), TXT</div>
+    <input type="file" id="fileInput" accept=".epub,.pdf,.txt,application/epub+zip,application/pdf,text/plain" hidden>
+  </div>
+  <div id="homeMsg"></div>
+
+  <div id="recent" hidden>
+    <h2>ספרים שנפתחו במכשיר הזה (ייפתחו במקום שבו עצרתם)</h2>
+    <ul id="recentList"></ul>
+  </div>
+
+  <p class="note">
+    הקובץ נקרא בתוך הדפדפן בלבד, ואינו נשלח לשום מקום. ההקראה משתמשת בקולות שמותקנים במכשיר.
+    ב־Chrome, ב־Edge, ב־Chromebook, ב־Android וב־iPhone יש בדרך כלל קול בעברית.
+    PDF סרוק (תמונה של דף) אי אפשר להקריא, כי אין בו טקסט. כדי לפתוח PDF צריך חיבור לאינטרנט.
+  </p>
+</section>
+
+<!-- ===== Reader ===== -->
+<section id="reader">
+  <header class="bar">
+    <div class="bar-row">
+      <button id="backBtn" title="חזרה לבחירת ספר" aria-label="חזרה">→</button>
+      <span class="title" id="bookTitle"></span>
+      <select id="chapterSel" aria-label="פרק"></select>
+    </div>
+    <div class="bar-row">
+      <button class="primary" id="playBtn">▶ הקראה</button>
+      <button id="stopBtn" title="עצירה וחזרה לתחילת הפרק">■</button>
+      <button id="prevSBtn" title="משפט קודם (חץ למעלה)">משפט קודם</button>
+      <button id="nextSBtn" title="משפט הבא (חץ למטה)">משפט הבא</button>
+      <label class="ctrl">מהירות <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"><span id="rateVal">1.0</span></label>
+      <select id="voiceSel" aria-label="קול"></select>
+      <label class="ctrl">גופן <input type="range" id="fontSize" min="14" max="34" step="1" value="20"></label>
+      <button id="themeBtn" title="מצב כהה / בהיר" aria-label="מצב כהה או בהיר">◐</button>
+    </div>
+    <div id="voiceWarn"></div>
+    <div class="progress"><div id="progressFill"></div></div>
+  </header>
+  <main id="page" tabindex="-1"></main>
+</section>
+
+<script>
+'use strict';
+/* =====================================================================
+   Book reader: opens EPUB / PDF / TXT, shows the text and reads it
+   aloud with the browser's speech synthesis (Web Speech API).
+   ===================================================================== */
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+const state = {
+  book: null,        // { id, title, chapters: [{ title, paras: [[sentence,...], ...] }] }
+  ch: 0,             // current chapter index
+  flat: [],          // sentences of current chapter: [{ text, el }]
+  pos: 0,            // index into flat
+  playing: false,
+  utterGen: 0        // increments to ignore callbacks from cancelled utterances
+};
+
+/* ---------- Text helpers ---------- */
+const segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter)
+  ? new Intl.Segmenter('he', { granularity: 'sentence' }) : null;
+
+function splitSentences(text) {
+  text = text.replace(/\s+/g, ' ').trim();
+  if (!text) return [];
+  let parts;
+  if (segmenter) parts = Array.from(segmenter.segment(text), s => s.segment);
+  else parts = text.match(/[^.!?…]+[.!?…]+["'״”׳)\]]*\s*|[^.!?…]+$/g) || [text];
+  // Break very long sentences at commas/semicolons so speech never runs too long.
+  const out = [];
+  for (let p of parts) {
+    p = p.trim();
+    if (!p) continue;
+    while (p.length > 260) {
+      let cut = Math.max(p.lastIndexOf(', ', 240), p.lastIndexOf('; ', 240), p.lastIndexOf(' – ', 240));
+      if (cut < 60) cut = p.lastIndexOf(' ', 240);
+      if (cut < 60) cut = 240;
+      out.push(p.slice(0, cut + 1).trim());
+      p = p.slice(cut + 1).trim();
+    }
+    if (p) out.push(p);
+  }
+  return out;
+}
+
+function textToChapters(text, fallbackTitle) {
+  const paras = text.replace(/\r\n?/g, '\n').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+  // If the text has no blank lines, use single line breaks as paragraphs.
+  const list = paras.length > 1 ? paras : text.split('\n').map(s => s.trim()).filter(Boolean);
+  // Split into chapters of ~40 paragraphs, or at lines that look like chapter headings.
+  const chapters = [];
+  let cur = null;
+  const heading = /^(פרק|chapter|part|חלק)\s+[\wא-ת׳"']+/i;
+  for (const p of list) {
+    if (!cur || (heading.test(p) && p.length < 80) || cur.paras.length >= 40) {
+      cur = { title: (heading.test(p) && p.length < 80) ? p : (fallbackTitle + ' – חלק ' + (chapters.length + 1)), paras: [] };
+      chapters.push(cur);
+      if (heading.test(p) && p.length < 80) continue;
+    }
+    cur.paras.push(splitSentences(p));
+  }
+  if (chapters.length === 1 && chapters[0].title.includes(' – חלק ')) chapters[0].title = fallbackTitle;
+  return chapters.filter(c => c.paras.length);
+}
+
+/* ---------- Minimal ZIP reader (for EPUB) — no external library ---------- */
+async function readZip(buf) {
+  const dv = new DataView(buf);
+  const u8 = new Uint8Array(buf);
+  // Find End Of Central Directory record.
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('הקובץ אינו EPUB תקין (לא נמצא מבנה ZIP).');
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const entries = {};
+  const dec = new TextDecoder();
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const csize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const commentLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nameLen));
+    entries[name] = { method, csize, local };
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return {
+    names: Object.keys(entries),
+    async text(name) {
+      const e = entries[name] || entries[decodeURIComponent(name)];
+      if (!e) return null;
+      const lNameLen = dv.getUint16(e.local + 26, true);
+      const lExtraLen = dv.getUint16(e.local + 28, true);
+      const start = e.local + 30 + lNameLen + lExtraLen;
+      const data = u8.subarray(start, start + e.csize);
+      if (e.method === 0) return dec.decode(data);
+      if (e.method !== 8) throw new Error('שיטת דחיסה לא נתמכת בקובץ.');
+      if (typeof DecompressionStream === 'undefined') throw new Error('הדפדפן ישן מדי לפתיחת EPUB. נסו Chrome מעודכן.');
+      const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return dec.decode(await new Response(stream).arrayBuffer());
+    }
+  };
+}
+
+function resolvePath(base, rel) {
+  const parts = (base.includes('/') ? base.slice(0, base.lastIndexOf('/') + 1) : '').concat(rel.split('#')[0]).split('/');
+  const out = [];
+  for (const s of parts) { if (s === '..') out.pop(); else if (s && s !== '.') out.push(s); }
+  return out.join('/');
+}
+
+function parseXml(str, type) {
+  let doc = new DOMParser().parseFromString(str, type || 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length && type !== 'text/html') {
+    doc = new DOMParser().parseFromString(str, 'text/html');
+  }
+  return doc;
+}
+
+const BLOCK = new Set(['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE','PRE','DD','DT','TD','TH','FIGCAPTION','DIV','SECTION','ARTICLE']);
+
+// Collect readable paragraphs from an XHTML chapter (text only — never HTML).
+function extractParas(doc) {
+  const body = doc.body || doc.getElementsByTagName('body')[0] || doc.documentElement;
+  const paras = [];
+  let heading = null;
+  (function walk(node) {
+    for (const child of node.childNodes) {
+      if (child.nodeType !== 1) continue;
+      const tag = child.tagName.toUpperCase().replace(/^.*:/, '');
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NAV') continue;
+      if (BLOCK.has(tag)) {
+        const hasBlockChild = Array.from(child.children).some(c => BLOCK.has(c.tagName.toUpperCase().replace(/^.*:/, '')));
+        if (hasBlockChild) { walk(child); continue; }
+        const t = child.textContent.replace(/\s+/g, ' ').trim();
+        if (!t) continue;
+        if (!heading && /^H[1-3]$/.test(tag)) heading = t;
+        paras.push(t);
+      } else {
+        walk(child);
+      }
+    }
+  })(body);
+  if (!paras.length) {
+    const t = (body.textContent || '').trim();
+    if (t) paras.push(...t.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean));
+  }
+  return { heading, paras };
+}
+
+async function parseEpub(buf, fileName) {
+  const zip = await readZip(buf);
+  const container = await zip.text('META-INF/container.xml');
+  if (!container) throw new Error('הקובץ אינו EPUB תקין (חסר META-INF/container.xml).');
+  const rootfile = parseXml(container).getElementsByTagName('rootfile')[0];
+  const opfPath = rootfile && rootfile.getAttribute('full-path');
+  const opf = parseXml(await zip.text(opfPath));
+  const titleEl = opf.getElementsByTagName('dc:title')[0] || opf.getElementsByTagName('title')[0];
+  const title = (titleEl && titleEl.textContent.trim()) || fileName.replace(/\.[^.]+$/, '');
+  const manifest = {};
+  for (const it of opf.getElementsByTagName('item')) manifest[it.getAttribute('id')] = it.getAttribute('href');
+  const chapters = [];
+  for (const ref of opf.getElementsByTagName('itemref')) {
+    const href = manifest[ref.getAttribute('idref')];
+    if (!href) continue;
+    const src = await zip.text(resolvePath(opfPath, href));
+    if (!src) continue;
+    const { heading, paras } = extractParas(parseXml(src, 'application/xhtml+xml'));
+    if (!paras.length) continue;
+    chapters.push({
+      title: heading || ('פרק ' + (chapters.length + 1)),
+      paras: paras.map(splitSentences).filter(a => a.length)
+    });
+  }
+  if (!chapters.length) throw new Error('לא נמצא טקסט בספר. ייתכן שהוא מכיל רק תמונות.');
+  return { title, chapters };
+}
+
+/* ---------- PDF (pdf.js, loaded only when needed) ---------- */
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res;
+    s.onerror = () => rej(new Error('לא ניתן לטעון את רכיב ה־PDF. בדקו שיש חיבור לאינטרנט.'));
+    document.head.appendChild(s);
+  });
+}
+async function parsePdf(buf, fileName, onProgress) {
+  if (!window.pdfjsLib) await loadScript(PDFJS + 'pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+  let meta = null;
+  try { meta = await pdf.getMetadata(); } catch (e) {}
+  const title = (meta && meta.info && meta.info.Title && meta.info.Title.trim()) || fileName.replace(/\.[^.]+$/, '');
+  const chapters = [];
+  let chars = 0;
+  for (let i = 1; i <= pdf.numPages; i++) {
+    onProgress && onProgress(i, pdf.numPages);
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    // Rebuild lines, then join lines into paragraphs (blank gap = new paragraph).
+    const lines = []; let line = ''; let lastY = null; const gaps = [];
+    for (const it of tc.items) {
+      if (!('str' in it)) continue;
+      const y = it.transform[5];
+      if (lastY !== null && Math.abs(y - lastY) > 2 && line) { lines.push(line); gaps.push(Math.abs(y - lastY)); line = ''; }
+      line += it.str;
+      if (it.hasEOL) { if (line.trim()) { lines.push(line); gaps.push(0); } line = ''; }
+      lastY = y;
+    }
+    if (line.trim()) lines.push(line);
+    const typical = gaps.filter(g => g > 0).sort((a, b) => a - b)[Math.floor(gaps.filter(g => g > 0).length / 2)] || 0;
+    const paras = []; let cur = '';
+    lines.forEach((l, idx) => {
+      const t = l.trim();
+      if (!t) { if (cur) { paras.push(cur); cur = ''; } return; }
+      cur += (cur && !cur.endsWith('-') ? ' ' : '') + t;
+      const g = gaps[idx];
+      if (/[.!?…:]["'״”)]?$/.test(t) && (g === 0 || (typical && g > typical * 1.4))) { paras.push(cur); cur = ''; }
+    });
+    if (cur) paras.push(cur);
+    chars += paras.join('').length;
+    const sent = paras.map(splitSentences).filter(a => a.length);
+    if (sent.length) chapters.push({ title: 'עמוד ' + i, paras: sent });
+  }
+  if (chars < 20) throw new Error('לא נמצא טקסט ב־PDF. כנראה שזה קובץ סרוק (תמונות), ואי אפשר להקריא אותו.');
+  return { title, chapters };
+}
+
+/* ---------- Opening a file ---------- */
+function hash(str) { let h = 5381; for (let i = 0; i < str.length; i++) h = (h * 33 ^ str.charCodeAt(i)) >>> 0; return h.toString(36); }
+
+function showMsg(text, isErr) {
+  $('homeMsg').innerHTML = '';
+  if (!text) return;
+  const d = document.createElement('div');
+  d.className = 'msg' + (isErr ? ' err' : '');
+  d.textContent = text;
+  $('homeMsg').appendChild(d);
+}
+
+async function openFile(file) {
+  if (!file) return;
+  const name = file.name || 'ספר';
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  showMsg('פותח את ' + name + '…');
+  try {
+    const buf = await file.arrayBuffer();
+    let book;
+    if (ext === 'epub' || file.type === 'application/epub+zip') book = await parseEpub(buf, name);
+    else if (ext === 'pdf' || file.type === 'application/pdf') book = await parsePdf(buf, name, (i, n) => showMsg('קורא עמוד ' + i + ' מתוך ' + n + '…'));
+    else if (ext === 'txt' || file.type.startsWith('text/')) {
+      let text = new TextDecoder('utf-8').decode(buf);
+      if (text.includes('�')) text = new TextDecoder('windows-1255').decode(buf); // old Hebrew encoding
+      book = { title: name.replace(/\.[^.]+$/, ''), chapters: textToChapters(text, name.replace(/\.[^.]+$/, '')) };
+    } else throw new Error('הפורמט ' + (ext || 'הזה') + ' לא נתמך. אפשר לפתוח EPUB, PDF או TXT.');
+    if (!book.chapters.length) throw new Error('לא נמצא טקסט בקובץ.');
+    book.id = hash(name + ':' + file.size);
+    showMsg('');
+    startReading(book);
+  } catch (e) {
+    console.error(e);
+    showMsg(e.message || 'אירעה שגיאה בפתיחת הקובץ.', true);
+  }
+}
+
+const SAMPLE = `פרק ראשון: איך עובד הקורא
+
+ברוכים הבאים לקורא הספרים! זהו טקסט לדוגמה, כדי שתוכלו לנסות את ההקראה לפני שפותחים ספר אמיתי.
+
+לחצו על הכפתור ״הקראה״ בראש המסך. המשפט שמוקרא עכשיו יסומן בצבע צהוב, והדף יגלול לבד כדי שתמיד תראו אותו.
+
+רוצים להתחיל ממקום אחר? לחצו על משפט כלשהו, וההקראה תמשיך ממנו. אפשר גם לשנות את מהירות ההקראה ואת גודל האותיות.
+
+פרק שני: טיפים לכיתה
+
+תלמידים שמתקשים בקריאה יכולים לעקוב אחרי הסימון הצהוב בזמן שהם שומעים את הטקסט. כך הם מחברים בין הצליל לבין המילה הכתובה.
+
+כדאי להאט את המהירות לשמונה או לתשע עשיריות בהתחלה. אחרי שמתרגלים, אפשר להגביר בהדרגה.
+
+המקום שבו עצרתם נשמר במכשיר. בפעם הבאה שתפתחו את אותו קובץ, תחזרו בדיוק לאותו משפט.`;
+
+/* ---------- Reader view ---------- */
+function startReading(book) {
+  stopSpeech();
+  state.book = book;
+  const saved = store.get('br:pos:' + book.id, null);
+  rememberRecent(book);
+  $('bookTitle').textContent = book.title;
+  document.title = book.title + ' · קורא ספרים';
+  const sel = $('chapterSel');
+  sel.innerHTML = '';
+  book.chapters.forEach((c, i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = c.title.length > 60 ? c.title.slice(0, 57) + '…' : c.title;
+    sel.appendChild(o);
+  });
+  $('home').style.display = 'none';
+  $('reader').style.display = 'block';
+  const ch = saved && saved.ch < book.chapters.length ? saved.ch : 0;
+  renderChapter(ch, saved && saved.ch === ch ? saved.pos : 0);
+  pickVoice();
+}
+
+function renderChapter(i, pos) {
+  const book = state.book;
+  state.ch = i;
+  $('chapterSel').value = i;
+  const page = $('page');
+  page.innerHTML = '';
+  state.flat = [];
+  const c = book.chapters[i];
+  const h = document.createElement('h2');
+  h.className = 'ch'; h.dir = 'auto'; h.textContent = c.title;
+  page.appendChild(h);
+  for (const para of c.paras) {
+    const p = document.createElement('p');
+    p.dir = 'auto';
+    para.forEach((s, k) => {
+      const span = document.createElement('span');
+      span.className = 's'; span.textContent = s;
+      const idx = state.flat.length;
+      span.addEventListener('click', () => { setPos(idx); if (state.playing) speakCurrent(); });
+      state.flat.push({ text: s, el: span });
+      p.appendChild(span);
+      if (k < para.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    page.appendChild(p);
+  }
+  const nav = document.createElement('div');
+  nav.className = 'chapter-nav';
+  const prev = document.createElement('button');
+  prev.textContent = '→ הפרק הקודם'; prev.disabled = i === 0;
+  prev.onclick = () => { stopSpeech(); renderChapter(i - 1, 0); window.scrollTo(0, 0); };
+  const next = document.createElement('button');
+  next.textContent = 'הפרק הבא ←'; next.disabled = i >= book.chapters.length - 1;
+  next.onclick = () => { stopSpeech(); renderChapter(i + 1, 0); window.scrollTo(0, 0); };
+  nav.append(prev, next);
+  page.appendChild(nav);
+  setPos(Math.min(pos || 0, state.flat.length - 1), !pos);
+  updateProgress();
+}
+
+function setPos(idx, noScroll) {
+  const old = state.flat[state.pos];
+  if (old) old.el.classList.remove('now');
+  state.pos = Math.max(0, idx);
+  const cur = state.flat[state.pos];
+  if (cur) {
+    cur.el.classList.add('now');
+    if (!noScroll) {
+      const r = cur.el.getBoundingClientRect();
+      const top = $('reader').querySelector('header').getBoundingClientRect().bottom;
+      if (r.top < top + 20 || r.bottom > window.innerHeight - 40) {
+        window.scrollBy({ top: r.top - top - window.innerHeight * 0.25, behavior: 'smooth' });
+      }
+    }
+  }
+  store.set('br:pos:' + state.book.id, { ch: state.ch, pos: state.pos });
+  updateProgress();
+}
+
+function updateProgress() {
+  const book = state.book; if (!book) return;
+  const frac = (state.ch + (state.flat.length ? state.pos / state.flat.length : 0)) / book.chapters.length;
+  $('progressFill').style.width = (frac * 100).toFixed(1) + '%';
+}
+
+function rememberRecent(book) {
+  const list = store.get('br:recent', []).filter(r => r.id !== book.id);
+  list.unshift({ id: book.id, title: book.title });
+  store.set('br:recent', list.slice(0, 8));
+}
+function showRecent() {
+  const list = store.get('br:recent', []);
+  $('recent').hidden = !list.length;
+  const ul = $('recentList'); ul.innerHTML = '';
+  for (const r of list) { const li = document.createElement('li'); li.textContent = '📘 ' + r.title; ul.appendChild(li); }
+}
+
+/* ---------- Speech ---------- */
+const synth = window.speechSynthesis;
+let voices = [];
+
+function loadVoices() {
+  if (!synth) return;
+  voices = synth.getVoices();
+  const sel = $('voiceSel');
+  const keep = sel.value || store.get('br:voice', '');
+  sel.innerHTML = '';
+  const sorted = voices.slice().sort((a, b) => {
+    const ah = /^he|^iw/i.test(a.lang) ? 0 : 1, bh = /^he|^iw/i.test(b.lang) ? 0 : 1;
+    return ah - bh || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name);
+  });
+  for (const v of sorted) {
+    const o = document.createElement('option');
+    o.value = v.voiceURI; o.textContent = v.name + ' (' + v.lang + ')';
+    sel.appendChild(o);
+  }
+  if (keep && sorted.some(v => v.voiceURI === keep)) sel.value = keep;
+  pickVoice();
+}
+
+// Choose a voice that matches the book's language (Hebrew if the text is Hebrew).
+function pickVoice() {
+  const warn = $('voiceWarn');
+  if (!synth) {
+    warn.style.display = 'block';
+    warn.textContent = 'הדפדפן הזה לא תומך בהקראה. נסו Chrome, Edge או Safari.';
+    $('playBtn').disabled = true;
+    return;
+  }
+  if (!voices.length || !state.book) return;
+  const sample = state.flat.slice(0, 20).map(s => s.text).join(' ');
+  const heb = (sample.match(/[֐-׿]/g) || []).length;
+  const lat = (sample.match(/[A-Za-z]/g) || []).length;
+  const want = heb >= lat ? 'he' : 'en';
+  const sel = $('voiceSel');
+  const current = voices.find(v => v.voiceURI === sel.value);
+  const matches = v => want === 'he' ? /^(he|iw)/i.test(v.lang) : v.lang.toLowerCase().startsWith(want);
+  if (!current || !matches(current)) {
+    const best = voices.find(v => matches(v) && v.localService === false) || voices.find(matches);
+    if (best) sel.value = best.voiceURI;
+  }
+  const hasMatch = voices.some(matches);
+  warn.style.display = hasMatch ? 'none' : 'block';
+  warn.textContent = want === 'he'
+    ? 'לא נמצא במכשיר קול בעברית. ב־Windows: הגדרות ← זמן ושפה ← דיבור ← הוספת קולות ← עברית. ב־Android: הגדרות ← נגישות ← המרת טקסט לדיבור.'
+    : 'No voice for this language was found on this device.';
+}
+
+function speakCurrent() {
+  if (!synth) return;
+  const gen = ++state.utterGen;
+  synth.cancel();
+  const item = state.flat[state.pos];
+  if (!item) { nextChapterOrStop(); return; }
+  const u = new SpeechSynthesisUtterance(item.text);
+  const v = voices.find(x => x.voiceURI === $('voiceSel').value);
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'he-IL';
+  u.rate = parseFloat($('rate').value);
+  u.onend = () => {
+    if (gen !== state.utterGen || !state.playing) return;
+    if (state.pos < state.flat.length - 1) { setPos(state.pos + 1); speakCurrent(); }
+    else nextChapterOrStop();
+  };
+  u.onerror = e => {
+    if (gen !== state.utterGen) return;
+    if (e.error === 'interrupted' || e.error === 'canceled') return;
+    console.warn('speech error', e.error);
+    if (state.playing && state.pos < state.flat.length - 1) { setPos(state.pos + 1); speakCurrent(); }
+    else setPlaying(false);
+  };
+  // Small delay after cancel() avoids a Chrome bug where the new utterance is dropped.
+  setTimeout(() => { if (gen === state.utterGen && state.playing) synth.speak(u); }, 60);
+}
+
+function nextChapterOrStop() {
+  if (state.ch < state.book.chapters.length - 1) {
+    renderChapter(state.ch + 1, 0);
+    window.scrollTo(0, 0);
+    speakCurrent();
+  } else setPlaying(false);
+}
+
+function setPlaying(on) {
+  state.playing = on;
+  $('playBtn').textContent = on ? '❚❚ השהיה' : '▶ הקראה';
+  if (!on) { state.utterGen++; if (synth) synth.cancel(); }
+}
+function stopSpeech() { if (state.playing) setPlaying(false); }
+
+/* ---------- Wiring ---------- */
+$('openBtn').onclick = () => $('fileInput').click();
+$('fileInput').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
+$('sampleBtn').onclick = () => startReading({ id: 'sample', title: 'טקסט לדוגמה', chapters: textToChapters(SAMPLE, 'טקסט לדוגמה') });
+
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => openFile(e.dataTransfer.files[0]));
+
+$('backBtn').onclick = () => {
+  stopSpeech();
+  $('reader').style.display = 'none';
+  $('home').style.display = 'block';
+  document.title = 'קורא ספרים';
+  showRecent();
+};
+$('chapterSel').onchange = e => { const was = state.playing; stopSpeech(); renderChapter(+e.target.value, 0); window.scrollTo(0, 0); if (was) { setPlaying(true); speakCurrent(); } };
+$('playBtn').onclick = () => { if (state.playing) setPlaying(false); else { setPlaying(true); speakCurrent(); } };
+$('stopBtn').onclick = () => { stopSpeech(); setPos(0); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('nextSBtn').onclick = () => { if (state.pos < state.flat.length - 1) { setPos(state.pos + 1); if (state.playing) speakCurrent(); } };
+$('prevSBtn').onclick = () => { if (state.pos > 0) { setPos(state.pos - 1); if (state.playing) speakCurrent(); } };
+$('rate').oninput = e => { $('rateVal').textContent = (+e.target.value).toFixed(1); store.set('br:rate', e.target.value); };
+$('rate').onchange = () => { if (state.playing) speakCurrent(); };
+$('voiceSel').onchange = e => { store.set('br:voice', e.target.value); if (state.playing) speakCurrent(); };
+$('fontSize').oninput = e => { document.documentElement.style.setProperty('--fs', e.target.value + 'px'); store.set('br:fs', e.target.value); };
+$('themeBtn').onclick = () => {
+  const dark = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === 'dark'
+    : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  store.set('br:theme', document.documentElement.dataset.theme);
+};
+document.addEventListener('keydown', e => {
+  if ($('reader').style.display !== 'block' || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); $('playBtn').click(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); $('nextSBtn').click(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); $('prevSBtn').click(); }
+});
+
+// Restore preferences.
+(function init() {
+  const rate = store.get('br:rate', '1'); $('rate').value = rate; $('rateVal').textContent = (+rate).toFixed(1);
+  const fs = store.get('br:fs', '20'); $('fontSize').value = fs; document.documentElement.style.setProperty('--fs', fs + 'px');
+  const th = store.get('br:theme', null); if (th) document.documentElement.dataset.theme = th;
+  if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
+  showRecent();
+  // Chrome stops speech when the tab is hidden for a long time; keep state honest.
+  window.addEventListener('beforeunload', () => { if (synth) synth.cancel(); });
+})();
+</script>
+</body>
+</html>
