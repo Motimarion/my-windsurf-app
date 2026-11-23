@@ -142,7 +142,7 @@ function buildPrompt_(grade, topic, skill, context, parts) {
 /* ---------- שמירה בגיליון ---------- */
 function log_(req) {
   const columns = Array.isArray(req.columns) ? req.columns.slice(0, 60).map(c => String(c)).filter((c, i, a) => /^[a-z_]{1,40}$/.test(c) && a.indexOf(c) === i) : [];
-  const rows = Array.isArray(req.rows) ? req.rows.slice(0, 50) : [];
+  const rows = Array.isArray(req.rows) ? req.rows.slice(0, 50).filter(r => r && typeof r === 'object') : [];
   if (!columns.length || !rows.length) return { ok: true, saved: 0 };
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
