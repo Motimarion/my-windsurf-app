@@ -22,7 +22,31 @@ export function pageBreaks(total: number, pageH: number, candidates: number[]): 
   return breaks;
 }
 
-export async function exportPdf(root: HTMLElement, filename: string) {
+/**
+ * שורת הבהרה לראש כל עמוד. מצוירת ב־Canvas ולא כטקסט של jsPDF, כי jsPDF לא מציג עברית בלי גופן מוטמע.
+ * מחזירה תמונה ואת יחס הגובה לרוחב שלה.
+ */
+function noteImage(text: string): { url: string; ratio: number } {
+  const w = 2000;
+  const h = 64;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#5b6070';
+  ctx.font = '600 30px Heebo, Arial, sans-serif';
+  ctx.direction = 'rtl';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, w / 2, h / 2 - 2, w - 40);
+  ctx.fillStyle = '#d9d5cb';
+  ctx.fillRect(0, h - 3, w, 3);
+  return { url: c.toDataURL('image/png'), ratio: h / w };
+}
+
+export async function exportPdf(root: HTMLElement, filename: string, pageNote?: string) {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
   const prevWidth = root.style.width;
   root.classList.add('pdf-mode');
@@ -42,6 +66,7 @@ export async function exportPdf(root: HTMLElement, filename: string) {
     const pxPerMm = canvas.width / contentW;
     const pageHpx = Math.floor(contentH * pxPerMm);
     const breaks = pageBreaks(canvas.height, pageHpx, candidates);
+    const note = pageNote ? noteImage(pageNote) : null;
 
     breaks.forEach((y, i) => {
       const h = Math.min((breaks[i + 1] ?? canvas.height) - y, pageHpx);
@@ -54,6 +79,8 @@ export async function exportPdf(root: HTMLElement, filename: string) {
       ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
       if (i > 0) pdf.addPage();
       pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', MARGIN_MM, MARGIN_MM, contentW, h / pxPerMm);
+      // שורת ההבהרה בשוליים העליונים של כל עמוד (מעל אזור התוכן, שמתחיל ב־10 מ"מ)
+      if (note) pdf.addImage(note.url, 'PNG', MARGIN_MM, 2.5, contentW, contentW * note.ratio, 'page-note');
       pdf.setFontSize(8);
       pdf.setTextColor(130);
       pdf.text(`${i + 1} / ${breaks.length}`, A4_W_MM / 2, A4_H_MM - 4, { align: 'center' });

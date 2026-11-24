@@ -9,6 +9,7 @@ import Quest from './screens/Quest';
 import Analyze from './screens/Analyze';
 import ReportView from './screens/ReportView';
 import About from './screens/About';
+import { EDITION_LABEL, FOOTER_NOTE } from './edition';
 
 function SessionScreens({ id, toast }: { id: string; toast: (m: string) => void }) {
   const route = useRoute();
@@ -60,7 +61,7 @@ export default function App() {
           </span>
           <span>
             כירופולוגיה
-            <small>מחקר והדגמה — לא אבחון</small>
+            <small>{EDITION_LABEL}</small>
           </span>
         </button>
         <nav className="row">
@@ -75,7 +76,7 @@ export default function App() {
         {route.name === 'about' && <About />}
         {sessionId && <SessionScreens key={sessionId} id={sessionId} toast={toast} />}
       </main>
-      <footer className="footer">כל הנתונים נשמרים במכשיר זה בלבד · גרסת MVP</footer>
+      <footer className="footer">{FOOTER_NOTE}</footer>
       {msg && (
         <div className="toast" role="status">
           {msg}

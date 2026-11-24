@@ -192,5 +192,22 @@ export const LEVEL_LABELS: Record<EvidenceLevel, { short: string; long: string }
   D: { short: 'לא נחקר / מסורת', long: 'אין מחקר אמפירי ידוע; מסורת או טענה בלבד' },
 };
 
+export const LEVELS: EvidenceLevel[] = ['A', 'B', 'C', 'D'];
+
+/** מה כל רמה אומרת למי שקורא את הדוח. בא אחרי LEVEL_LABELS.long ולכן לא חוזר עליו. מוצג בלחיצה על התג ובמקרא. */
+export const LEVEL_MEANING: Record<EvidenceLevel, string> = {
+  A: 'גם כך, תוצאה של אדם אחד היא אומדן ולא קביעה.',
+  B: 'לכן אי אפשר להסיק מזה על אדם אחד.',
+  C: 'כדאי לקרוא את זה כמסורת, לא כממצא.',
+  D: 'אין דרך לדעת אם זה מדויק, אז כדאי להתייחס לזה כהשערה בלבד.',
+};
+
+/** לכל רמה: הטענה הראשונה מהדוח באותה רמה, כדי שהמקרא יראה דוגמה מתוך הדוח עצמו. */
+export function levelExamples(claims: ResearchClaim[]): Partial<Record<EvidenceLevel, ResearchClaim>> {
+  const out: Partial<Record<EvidenceLevel, ResearchClaim>> = {};
+  for (const c of claims) if (!out[c.level]) out[c.level] = c;
+  return out;
+}
+
 export const claimById = (id: string) => CLAIMS.find((c) => c.id === id);
 export const sourceById = (id: string) => SOURCES.find((s) => s.id === id);

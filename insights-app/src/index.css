@@ -171,6 +171,16 @@ button { font: inherit; }
 .badge.lvB { background: var(--accent-soft); color: var(--accent); }
 .badge.lvC { background: var(--fail-soft); color: var(--fail); }
 .badge.lvD { background: var(--trad-soft); color: var(--trad); }
+/* תג עם משפט ארוך: נשבר לשורות במקום לחרוג מרוחב הטלפון */
+.badge.wrap { white-space: normal; border-radius: 12px; }
+/* תג רמה שנפתח בלחיצה: נראה כמו תג רגיל */
+.badge-btn { border: 0; font-family: inherit; line-height: inherit; cursor: pointer; }
+.badge-btn:hover { filter: brightness(0.96); }
+.badge-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* מקרא רמות הראיות בראש הדוח */
+.legend-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.legend-list li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.legend-list .tiny { margin-top: 2px; }
 
 .notice {
   border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface-2);

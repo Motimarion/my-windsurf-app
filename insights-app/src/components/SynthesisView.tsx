@@ -134,7 +134,7 @@ export default function SynthesisView({ synthesis: s }: { synthesis: Synthesis }
             <div className="card" key={t.id}>
               <h3 style={{ margin: 0 }}>{t.title}</h3>
               <div className="row" style={{ gap: 6, margin: '6px 0' }}>
-                <span className="badge ok">{anchorText(t)}</span>
+                <span className="badge ok wrap">{anchorText(t)}</span>
               </div>
               {t.riasec.length > 0 && (
                 <p className="tiny muted" style={{ margin: '0 0 6px' }}>

@@ -1,6 +1,6 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { CheckStatus, EvidenceLevel } from '../types';
-import { LEVEL_LABELS } from '../data/evidence';
+import { LEVEL_LABELS, LEVEL_MEANING } from '../data/evidence';
 
 const STATUS_TEXT: Record<CheckStatus, string> = { ok: 'תקין', warn: 'אזהרה', fail: 'נכשל' };
 const STATUS_ICON: Record<CheckStatus, string> = { ok: '✓', warn: '!', fail: '✕' };
@@ -13,11 +13,35 @@ export function StatusBadge({ status, label }: { status: CheckStatus; label?: st
   );
 }
 
+/** תג רמת ראיות. לחיצה פותחת הסבר (בטלפון אין ריחוף עכבר, ולכן title לבדו לא מספיק). */
 export function LevelBadge({ level }: { level: EvidenceLevel }) {
+  const [open, setOpen] = useState(false);
+  const titleId = useId();
   return (
-    <span className={`badge lv${level}`} title={LEVEL_LABELS[level].long}>
-      רמה {level} · {LEVEL_LABELS[level].short}
-    </span>
+    <>
+      <button
+        type="button"
+        className={`badge lv${level} badge-btn`}
+        title={LEVEL_LABELS[level].long}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
+        רמה {level} · {LEVEL_LABELS[level].short}
+      </button>
+      {open && (
+        <Modal onClose={() => setOpen(false)} labelId={titleId}>
+          <h3 id={titleId} style={{ marginTop: 0 }}>
+            רמה {level} · {LEVEL_LABELS[level].short}
+          </h3>
+          <p>{LEVEL_LABELS[level].long}.</p>
+          <p className="muted">{LEVEL_MEANING[level]}</p>
+          <p className="tiny muted">התג אומר כמה המחקר תומך בטענה, לא אם היא נכונה לגביך.</p>
+          <button className="btn" onClick={() => setOpen(false)} autoFocus>
+            סגירה
+          </button>
+        </Modal>
+      )}
+    </>
   );
 }
 

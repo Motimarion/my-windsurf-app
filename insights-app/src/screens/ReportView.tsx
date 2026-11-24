@@ -10,7 +10,8 @@ import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge } from '../compone
 import StepNav from '../components/StepNav';
 import SynthesisView from '../components/SynthesisView';
 import ReadingCard from '../components/ReadingCard';
-import { IS_CONSUMER } from '../edition';
+import LevelLegend from '../components/LevelLegend';
+import { IS_CONSUMER, PAGE_DISCLAIMER } from '../edition';
 import {
   InterestText,
   NotAssessedCard,
@@ -56,7 +57,7 @@ export default function ReportView({ session, images, toast }: { session: Sessio
     if (!sheet.current) return;
     setBusy(true);
     try {
-      await exportPdf(sheet.current, `insights-report-${session.id.slice(0, 6)}.pdf`);
+      await exportPdf(sheet.current, `insights-report-${session.id.slice(0, 6)}.pdf`, PAGE_DISCLAIMER);
     } catch (e) {
       toast(`ייצוא ה־PDF נכשל: ${e}`);
     } finally {
@@ -88,8 +89,12 @@ export default function ReportView({ session, images, toast }: { session: Sessio
         </button>
       </div>
 
+      {/* בהדפסה: שורת ההבהרה בתחתית כל עמוד (תיבות שוליים של @page; דפדפן שלא תומך פשוט מתעלם) */}
+      <style>{`@media print { @page { @bottom-center { content: ${JSON.stringify(PAGE_DISCLAIMER)}; font-family: Heebo, Arial, sans-serif; font-size: 8pt; color: #666; } } }`}</style>
+
       <div ref={sheet} className="report-sheet" style={{ margin: '0 auto' }}>
         <ReportHeader report={report} session={session} />
+        <LevelLegend claims={claimsUsed} />
 
         <SectionTitle num="1">כלים שהועברו</SectionTitle>
         <ToolsCard report={report} session={session} />

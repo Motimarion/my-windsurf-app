@@ -308,7 +308,8 @@ try {
     await mp.getByRole('button', { name: 'הדגמה עם נתונים סינתטיים' }).click();
     await mp.waitForURL(/#\/s\//);
     const id = mp.url().split('/s/')[1];
-    const noHScroll = async () => mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+    // מול clientWidth ולא innerWidth: בנייד הדפדפן מרחיב את innerWidth כשתוכן חורג, ואז החריגה לא נתפסת
+    const noHScroll = async () => mp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
     const views = [['hub', ''], ['quest', '/q/ipip'], ['channel', '/c/handwriting'], ['analyze', '/analyze'], ['report', '/report']];
     for (const [name, path] of views) {
       await mp.goto(`${BASE}#/s/${id}${path}`);
