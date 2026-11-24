@@ -177,6 +177,10 @@ button { font: inherit; }
 .badge-btn { border: 0; font-family: inherit; line-height: inherit; cursor: pointer; }
 .badge-btn:hover { filter: brightness(0.96); }
 .badge-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* ניסוי בארנום לפני הדוח */
+.barnum { margin-bottom: 14px; }
+.barnum-reading { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--surface); }
+.barnum-reading ul { margin: 0 0 10px; padding-inline-start: 18px; }
 /* מקרא רמות הראיות בראש הדוח */
 .legend-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
 .legend-list li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }

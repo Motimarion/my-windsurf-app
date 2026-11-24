@@ -92,6 +92,14 @@ try {
   check('traditions box labelled as not a finding', (await page.getByText('מה נטען במסורת — לא ממצא על האדם').count()) >= 4);
   check('evidence level badges present', (await page.locator('.badge.lvC, .badge.lvD').count()) > 3);
   check('no failed quality/QA badges in demo report', (await page.locator('.badge.fail').count()) === 0, String(await page.locator('.badge.fail').allTextContents()));
+  // ניסוי בארנום: שתי קריאות, דירוג של שתיהן, ואז חשיפה. מחוץ לגיליון הדוח.
+  const barnum = page.locator('.barnum');
+  check('Barnum check shows two readings outside the report sheet', (await barnum.locator('.barnum-reading').count()) === 2 && (await page.locator('.report-sheet .barnum').count()) === 0);
+  check('Barnum check hides the answer before rating', (await barnum.getByRole('status').count()) === 0);
+  await barnum.getByRole('radiogroup').nth(0).getByRole('radio', { name: '4' }).click();
+  await barnum.getByRole('radiogroup').nth(1).getByRole('radio', { name: '4' }).click();
+  const reveal = (await barnum.getByRole('status').innerText()) || '';
+  check('Barnum check reveals which reading was yours, with the Barnum explanation', /קריאה [אב] נבנתה מהתוצרים שלך/.test(reveal) && reveal.includes('אפקט בארנום'), reveal.slice(0, 60));
   // שלב השילוב: כל המקורות לפי נושאים
   check('integration stage shown in report', await page.getByText('סיכום ואינטגרציה: כל המקורות יחד').isVisible());
   check('assessment-format report: tools, process, findings, recommendations, not-assessed, signature', (await page.getByText('כלים שהועברו').isVisible()) && (await page.getByText('מהלך התהליך').isVisible()) && (await page.getByText('ממצאים: אישיות (Big Five, שאלון Mini-IPIP)').isVisible()) && (await page.getByText('תחומים שלא נבדקו', { exact: true }).isVisible()) && (await page.getByText('לא נבדק ולא נחתם על ידי פסיכולוג').isVisible()));

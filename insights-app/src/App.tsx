@@ -34,7 +34,7 @@ function SessionScreens({ id, toast }: { id: string; toast: (m: string) => void 
     case 'analyze':
       return <Analyze session={session} images={images} update={update} />;
     case 'report':
-      return <ReportView session={session} images={images} toast={toast} />;
+      return <ReportView session={session} images={images} toast={toast} update={update} />;
     default:
       return <Hub session={session} images={images} />;
   }

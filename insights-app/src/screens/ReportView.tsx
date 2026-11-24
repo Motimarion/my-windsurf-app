@@ -11,6 +11,7 @@ import StepNav from '../components/StepNav';
 import SynthesisView from '../components/SynthesisView';
 import ReadingCard from '../components/ReadingCard';
 import LevelLegend from '../components/LevelLegend';
+import BarnumCheck from '../components/BarnumCheck';
 import { IS_CONSUMER, PAGE_DISCLAIMER } from '../edition';
 import {
   InterestText,
@@ -42,7 +43,17 @@ function ClaimLine({ id }: { id: string }) {
   );
 }
 
-export default function ReportView({ session, images, toast }: { session: Session; images: ImageRecord[]; toast: (m: string) => void }) {
+export default function ReportView({
+  session,
+  images,
+  toast,
+  update,
+}: {
+  session: Session;
+  images: ImageRecord[];
+  toast: (m: string) => void;
+  update: (fn: (s: Session) => Session) => void;
+}) {
   const report = useMemo(
     () => buildReport(session, images, session.analyzedAt ?? Date.now()),
     [session, images],
@@ -88,6 +99,9 @@ export default function ReportView({ session, images, toast }: { session: Sessio
           מחיקת התהליך
         </button>
       </div>
+
+      {/* ניסוי בארנום: מחוץ לגיליון הדוח, ולכן לא נכנס ל־PDF (ו־no-print מסתיר אותו בהדפסה) */}
+      <BarnumCheck session={session} report={report} update={update} />
 
       {/* בהדפסה: שורת ההבהרה בתחתית כל עמוד (תיבות שוליים של @page; דפדפן שלא תומך פשוט מתעלם) */}
       <style>{`@media print { @page { @bottom-center { content: ${JSON.stringify(PAGE_DISCLAIMER)}; font-family: Heebo, Arial, sans-serif; font-size: 8pt; color: #666; } } }`}</style>

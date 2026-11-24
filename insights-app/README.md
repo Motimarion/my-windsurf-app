@@ -21,9 +21,9 @@
 cd insights-app
 npm install
 npm run dev        # שרת פיתוח: http://localhost:5173
-npm test           # 117 בדיקות יחידה (Vitest)
+npm test           # 123 בדיקות יחידה (Vitest)
 npm run build      # בנייה לייצור → dist/
-npm run e2e        # 61 בדיקות קצה־לקצה (Playwright; דורש build קודם)
+npm run e2e        # 64 בדיקות קצה־לקצה (Playwright; דורש build קודם)
 node docs/slides/render.mjs   # ייצוא שקפי הזרימה ל־PNG
 ```
 
