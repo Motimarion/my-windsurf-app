@@ -181,6 +181,9 @@ button { font: inherit; }
 .barnum { margin-bottom: 14px; }
 .barnum-reading { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--surface); }
 .barnum-reading ul { margin: 0 0 10px; padding-inline-start: 18px; }
+/* תצוגת הבקשה למודל בשליחה האוטומטית */
+.prompt-view { margin: 0 0 10px; }
+.prompt-view summary { cursor: pointer; }
 /* שאלה לחשיבה ליד הפרשנות המסורתית */
 .reflect { margin-top: 12px; display: grid; gap: 6px; }
 .reflect summary { cursor: pointer; color: var(--accent); }

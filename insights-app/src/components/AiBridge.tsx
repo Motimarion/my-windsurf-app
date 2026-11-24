@@ -7,6 +7,7 @@ import {
   adoptAi,
   buildRequest,
   compareWithHuman,
+  engineFeatures,
   parseResponse,
   recordRun,
   type GateResult,
@@ -213,6 +214,32 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
             ל־Gemini עם ההנחיה הסמויה. התשובה עוברת בשער הרשימה הסגורה.
             {IS_CONSUMER && ' השרת לא שומר את התמונה.'}
           </p>
+          {/* שקיפות לימודית (D34): מה המודל מתבקש לעשות — תקציר, והבקשה המלאה בלחיצה */}
+          <details className="prompt-view">
+            <summary className="small">
+              <strong>מה בדיוק נשלח למודל?</strong> <span className="muted">הצגת הבקשה</span>
+            </summary>
+            <ul className="small" style={{ margin: '8px 0', paddingInlineStart: 18 }}>
+              <li>התמונה בלבד, בלי מיקום ובלי פרטי מכשיר. בלי כינוי, בלי תשובות לשאלונים ובלי ציונים.</li>
+              <li>הנחיה סמויה: לתאר ולא לפרש, ולא להסיק דבר על אישיות, רגשות, בריאות, גיל, מגדר או עתיד.</li>
+              <li>
+                רשימה סגורה של {engineFeatures(channel).length} מאפיינים, ולכל אחד הערכים המותרים. המודל מחזיר JSON בלבד.
+              </li>
+              <li>הקוד מקבל רק ערכים מהרשימה, וכל טקסט אחר נזרק.</li>
+              {IS_CONSUMER && <li>בגרסה הזו ההנחיה והרשימה נמצאות בשרת, והן זהות למה שמוצג כאן.</li>}
+            </ul>
+            <details>
+              <summary className="tiny">הבקשה המלאה</summary>
+              <textarea
+                className="code-box"
+                readOnly
+                rows={10}
+                value={request}
+                aria-label="הבקשה המלאה שנשלחת למודל"
+                style={{ marginTop: 6 }}
+              />
+            </details>
+          </details>
           {!IS_CONSUMER && (
             <details className="auto-settings" open={settingsOpen} onToggle={(e) => setSettingsOpen(e.currentTarget.open)}>
               <summary className="small">

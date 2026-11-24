@@ -233,6 +233,12 @@ try {
   await page.goto(`${BASE}#/s/${sid}/c/palmRight`);
   await page.getByRole('radio', { name: 'אוטומטי (Gemini API)' }).click();
   autoEnabled = true;
+  // שקיפות: במצב אוטומטי אפשר לראות מה נשלח למודל — תקציר, והבקשה המלאה בלחיצה
+  await page.getByText('מה בדיוק נשלח למודל?').click();
+  await page.getByText('הבקשה המלאה', { exact: true }).click();
+  const shownReq = await page.getByLabel('הבקשה המלאה שנשלחת למודל').inputValue();
+  check('auto: the request sent to the model can be shown (hidden prompt + closed list, no questionnaire data)',
+    shownReq.includes('תפקידך לתאר בלבד') && shownReq.includes('מאפיינים וערכים מותרים') && !/Mini-IPIP|RIASEC/.test(shownReq));
   await page.getByLabel('מפתח Gemini API').fill('test-key');
   await page.getByText('שליחה אוטומטית פעילה').click();
   await page.getByText('אני מסכים/ה שכל תמונה שאעלה').click();
