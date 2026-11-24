@@ -12,6 +12,7 @@ import SynthesisView from '../components/SynthesisView';
 import ReadingCard from '../components/ReadingCard';
 import LevelLegend from '../components/LevelLegend';
 import BarnumCheck from '../components/BarnumCheck';
+import Reflection from '../components/Reflection';
 import { IS_CONSUMER, PAGE_DISCLAIMER } from '../edition';
 import {
   InterestText,
@@ -254,6 +255,7 @@ export default function ReportView({
                   <ClaimLine id={ch.traditions[0].claimId} />
                 </div>
               )}
+              {ch.traditions.length > 0 && <Reflection channel={ch.channel} kind={def.kind} session={session} update={update} />}
             </div>
           );
         })}

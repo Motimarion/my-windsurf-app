@@ -181,6 +181,12 @@ button { font: inherit; }
 .barnum { margin-bottom: 14px; }
 .barnum-reading { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--surface); }
 .barnum-reading ul { margin: 0 0 10px; padding-inline-start: 18px; }
+/* שאלה לחשיבה ליד הפרשנות המסורתית */
+.reflect { margin-top: 12px; display: grid; gap: 6px; }
+.reflect summary { cursor: pointer; color: var(--accent); }
+.reflect details ul { margin: 6px 0 0; padding-inline-start: 18px; }
+/* מה שמסומן no-print לא נכנס גם ל־PDF */
+.pdf-mode .no-print { display: none !important; }
 /* מקרא רמות הראיות בראש הדוח */
 .legend-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
 .legend-list li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }

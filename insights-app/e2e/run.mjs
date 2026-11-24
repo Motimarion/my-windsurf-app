@@ -100,6 +100,17 @@ try {
   await barnum.getByRole('radiogroup').nth(1).getByRole('radio', { name: '4' }).click();
   const reveal = (await barnum.getByRole('status').innerText()) || '';
   check('Barnum check reveals which reading was yours, with the Barnum explanation', /קריאה [אב] נבנתה מהתוצרים שלך/.test(reveal) && reveal.includes('אפקט בארנום'), reveal.slice(0, 60));
+  // שאלה לחשיבה ליד כל פרשנות מסורתית; התשובה והדירוג נשמרים גם אחרי טעינה מחדש
+  const tradBoxes = await page.getByText('מה נטען במסורת — לא ממצא על האדם').count();
+  const reflectCount = await page.locator('.reflect textarea').count();
+  check('reflection question next to every traditions box', reflectCount === tradBoxes && tradBoxes > 0, `${reflectCount}/${tradBoxes}`);
+  await page.locator('.reflect textarea').first().fill('אולי התאורה בצילום');
+  await page.locator('.reflect textarea').first().blur();
+  await page.waitForTimeout(300);
+  await page.reload();
+  await page.locator('.reflect textarea').first().waitFor();
+  check('reflection answer and Barnum ratings persist after reload',
+    (await page.locator('.reflect textarea').first().inputValue()) === 'אולי התאורה בצילום' && (await page.locator('.barnum').getByRole('status').count()) === 1);
   // שלב השילוב: כל המקורות לפי נושאים
   check('integration stage shown in report', await page.getByText('סיכום ואינטגרציה: כל המקורות יחד').isVisible());
   check('assessment-format report: tools, process, findings, recommendations, not-assessed, signature', (await page.getByText('כלים שהועברו').isVisible()) && (await page.getByText('מהלך התהליך').isVisible()) && (await page.getByText('ממצאים: אישיות (Big Five, שאלון Mini-IPIP)').isVisible()) && (await page.getByText('תחומים שלא נבדקו', { exact: true }).isVisible()) && (await page.getByText('לא נבדק ולא נחתם על ידי פסיכולוג').isVisible()));
