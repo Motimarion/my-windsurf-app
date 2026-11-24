@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מורה טראומה והחלמה</title>
+<meta name="description" content="מורה אינטראקטיבי לספר ״טראומה והחלמה״ של ג׳ודית הרמן: יחידות לימוד, בחנים עם משוב מנומק, כרטיסיות לחזרה מרווחת, תרגילי יישום ותוכנית ל־6 שבועות.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F8FAFC; --card:#FFFFFF; --ink:#0F172A; --muted:#475569; --line:#E2E8F0;
+  --accent:#0F766E; --accent-soft:#CCFBF1; --accent-2:#1D4ED8; --accent-2-soft:#DBEAFE;
+  --ok:#15803D; --ok-soft:#DCFCE7; --bad:#B91C1C; --bad-soft:#FEE2E2; --warn:#B45309; --warn-soft:#FEF3C7;
+  --s1:#0F766E; --s2:#1D4ED8; --s3:#7C3AED;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1220; --card:#111A2E; --ink:#E2E8F0; --muted:#94A3B8; --line:#1E293B;
+    --accent:#2DD4BF; --accent-soft:#134E4A; --accent-2:#60A5FA; --accent-2-soft:#1E3A5F;
+    --ok:#4ADE80; --ok-soft:#14532D; --bad:#F87171; --bad-soft:#450A0A; --warn:#FBBF24; --warn-soft:#451A03;
+    --s1:#2DD4BF; --s2:#60A5FA; --s3:#A78BFA; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1220; --card:#111A2E; --ink:#E2E8F0; --muted:#94A3B8; --line:#1E293B;
+  --accent:#2DD4BF; --accent-soft:#134E4A; --accent-2:#60A5FA; --accent-2-soft:#1E3A5F;
+  --ok:#4ADE80; --ok-soft:#14532D; --bad:#F87171; --bad-soft:#450A0A; --warn:#FBBF24; --warn-soft:#451A03;
+  --s1:#2DD4BF; --s2:#60A5FA; --s3:#A78BFA; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Heebo,system-ui,sans-serif;font-size:17px;line-height:1.7}
+h1,h2,h3{font-family:"Frank Ruhl Libre",Georgia,serif;line-height:1.3;margin:0 0 .5em}
+h1{font-size:clamp(1.6rem,4vw,2.3rem)} h2{font-size:1.45rem} h3{font-size:1.15rem}
+p{margin:.4em 0 .9em}
+a{color:var(--accent-2)}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:10;background:var(--paper);border-bottom:1px solid var(--line)}
+.top .bar{display:flex;align-items:center;gap:12px;padding:10px 0;flex-wrap:wrap}
+.brand{font-family:"Frank Ruhl Libre",serif;font-weight:700;font-size:1.15rem;color:var(--ink);text-decoration:none;margin-inline-end:auto}
+.tools{display:flex;gap:8px;align-items:center}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+nav.tabs a{white-space:nowrap;text-decoration:none;color:var(--muted);padding:6px 12px;border-radius:999px;font-size:.95rem;border:1px solid transparent}
+nav.tabs a.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-weight:700}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:10px;font-size:.95rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.btn.small{padding:4px 10px;font-size:.85rem}
+.btn[aria-pressed="true"]{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+main{padding:24px 0 64px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:.8rem;padding:2px 10px;border-radius:999px;background:var(--accent-2-soft);color:var(--accent-2);font-weight:500}
+.pill.p1{background:var(--accent-soft);color:var(--accent)}
+.notice{border-inline-start:4px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:8px;font-size:.95rem}
+.stat{font-family:"Frank Ruhl Libre",serif;font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.meter{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.chap-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.chap{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card)}
+.chap:hover{border-color:var(--accent)}
+.chap b{display:block;font-family:"Frank Ruhl Libre",serif;font-size:1.05rem}
+.chap .row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--muted);margin-top:6px}
+.done-mark{color:var(--ok);font-weight:700}
+.layer{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.layer.simple{background:var(--accent-soft);border-color:transparent}
+.layer h3{font-size:1rem;margin-bottom:.3em}
+dl.terms{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 14px;margin:0}
+dl.terms dt{font-weight:700;color:var(--accent)}
+dl.terms dd{margin:0}
+@media (max-width:560px){dl.terms{grid-template-columns:1fr} dl.terms dd{margin-bottom:6px}}
+.case{border:1px dashed var(--accent-2);border-radius:12px;padding:12px 16px;margin:10px 0}
+body.theory .case-body{display:none}
+body.theory .case::after{content:"מצב תיאורטי פעיל: תיאור המקרה מוסתר. אפשר לחזור אליו בכל עת דרך כפתור ״מצב תיאורטי״.";color:var(--muted);font-size:.9rem}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:90px;resize:vertical}
+input[type=text],input[type=date],input[type=time],select{min-height:auto;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:100%}
+.phase{border-inline-start:4px solid var(--line)}
+.phase.done{border-inline-start-color:var(--accent)}
+.phase.now{border-inline-start-color:var(--accent-2)}
+.phase>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.phase>summary::-webkit-details-marker{display:none}
+.phase>summary h2{margin:0;font-size:1.15rem}
+.field{margin:12px 0}.field>b{display:block;margin-bottom:6px}
+.choice{display:flex;flex-wrap:wrap;gap:6px}
+.choice label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.92rem}
+.choice label:has(input:checked){background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+.choice input{accent-color:var(--accent)}
+.intent{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:12px;margin-top:8px}
+.kmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.kmap label{display:flex;gap:6px;align-items:center;font-size:.9rem;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.wk{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline}
+.wk b{min-width:76px;flex:none}
+.metric{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;margin:10px 0}
+.metric .meter{grid-column:1/-1;position:relative}
+.metric .meter::after{content:"";position:absolute;inset-inline-start:80%;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+textarea:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opts{display:grid;gap:8px;margin:12px 0}
+.opt{text-align:start;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:10px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{border-radius:10px;padding:12px 14px;margin-top:8px}
+.fb.ok{background:var(--ok-soft)} .fb.no{background:var(--bad-soft)}
+.fb b{display:block}
+.flash{min-height:220px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.15rem;padding:28px;border:2px solid var(--accent);border-radius:16px;background:var(--card);cursor:pointer;user-select:none}
+.flash .a{color:var(--accent);font-weight:500}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.sort-item{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;background:var(--card)}
+.sort-item .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:.88rem}
+.chip.sel{background:var(--accent-2);border-color:var(--accent-2);color:var(--paper)}
+.sort-item.right{border-color:var(--ok);background:var(--ok-soft)}
+.sort-item.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.sort-item .why{font-size:.9rem;margin-top:6px;display:none}
+.sort-item.right .why,.sort-item.wrong .why{display:block}
+.week{border:1px solid var(--line);border-radius:12px;padding:0;margin:10px 0;background:var(--card);overflow:hidden}
+.week summary{padding:14px 16px;cursor:pointer;font-weight:700;display:flex;gap:10px;align-items:center}
+.week summary .n{margin-inline-start:auto;font-weight:400;color:var(--muted);font-size:.9rem}
+.week .body{padding:0 16px 14px}
+.task{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}
+.task input{margin-top:6px;width:18px;height:18px;accent-color:var(--accent)}
+.task label b{color:var(--accent)}
+.chat{display:grid;gap:10px}
+.msg{padding:12px 16px;border-radius:14px;max-width:92%}
+.msg.t{background:var(--accent-soft);justify-self:start}
+.msg.s{background:var(--accent-2-soft);justify-self:end}
+.msg small{display:block;font-weight:700;color:var(--muted);margin-bottom:2px}
+pre.prompt{white-space:pre-wrap;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;font-family:Heebo,sans-serif;font-size:.92rem;max-height:420px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:start;vertical-align:top}
+th{color:var(--muted);font-weight:500}
+.tbl-wrap{overflow-x:auto}
+.tbl-wrap table.cmp{min-width:640px}
+.cmp td:first-child{font-weight:600;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.filters button{font:inherit;font-size:.88rem;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer}
+.filters button.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.rsrc{display:flex;gap:12px;align-items:flex-start}
+.rsrc input{margin-top:6px;flex:none;width:18px;height:18px}
+.rsrc .meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.rsrc h3{margin:0;font-size:1.02rem;overflow-wrap:anywhere}
+.rsrc p{margin:4px 0 0;font-size:.92rem}
+.stars{color:var(--accent);letter-spacing:1px;white-space:nowrap}
+.src li{margin-bottom:8px;overflow-wrap:anywhere}
+.daily-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-color:var(--accent)}
+.daily-cta>div:first-child{flex:1 1 220px}
+.streak{font-size:2rem;font-weight:700;color:var(--accent);text-align:center;line-height:1}
+.streak small{display:block;font-size:.75rem;font-weight:500;color:var(--muted)}
+.steps{display:flex;gap:4px;margin:8px 0 14px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+.pretest{border:1px dashed var(--accent);border-radius:14px;padding:14px;margin:12px 0}
+.recall label{display:flex;gap:8px;align-items:center;margin:4px 0}
+.method dt{font-weight:700;margin-top:10px}
+.method dd{margin:2px 0 0}
+.spiral text{font-family:Heebo,sans-serif}
+.hidden{display:none!important}
+.toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:420px;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-size:.88rem}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="#home">טראומה והחלמה · מורה אישי</a>
+      <div class="tools">
+        <button class="btn small" id="theoryBtn" aria-pressed="false" title="מסתיר תיאורי מקרים ונשאר ברמה התיאורטית">מצב תיאורטי</button>
+        <button class="btn small" id="themeBtn" title="החלפת ערכת צבעים">◐</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <a href="#home">בית</a>
+      <a href="#path">מסלול הטמעה</a>
+      <a href="#daily">אימון יומי</a>
+      <a href="#chapters">פרקים</a>
+      <a href="#lesson">שיעור סוקרטי</a>
+      <a href="#quiz">בוחן</a>
+      <a href="#cards">כרטיסיות</a>
+      <a href="#practice">תרגול יישומי</a>
+      <a href="#research">מחקר עדכני</a>
+      <a href="#resources">משאבים</a>
+      <a href="#plan">תוכנית 6 שבועות</a>
+      <a href="#ai">מורה AI חיצוני</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<footer>
+  <div class="wrap">
+    לימוד אקדמי בלבד — אינו ייעוץ, אבחון או טיפול נפשי. הסיכומים מבוססים על מקורות אקדמיים ומדריכי קריאה, ואינם מחליפים קריאה בספר (Judith L. Herman, <i>Trauma and Recovery</i>; בעברית: <i>טראומה והחלמה</i>, עם עובד). אם עולה מצוקה — אפשר לעצור בכל רגע, ולפנות לער״ן 1201 או לגורם מקצועי.
+    · <a href="#" id="resetBtn">איפוס התקדמות</a>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===================== DATA ===================== */
+const CH = [
+{id:1,part:1,title:"היסטוריה נשכחת",en:"A Forgotten History",
+ simple:"דמייני חברה שמנסה לשכוח אירוע קשה, כי האמת דורשת ממנה לשנות חוקים ומעמדות. בלי גב ציבורי, גם מטפלים נוטים לפרש כאב של נפגעים כ״דמיון״ או כ״חולשת אופי״.",
+ summary:"הרמן טוענת שחקר הטראומה סובל מ״אמנזיה אפיזודית״: תקופות של מחקר אינטנסיבי מתחלפות בהכחשה חברתית בכל פעם שההכרה בטראומה מאיימת על מערכות כוח. היא סוקרת שלושה גלים שצמחו מתנועות פוליטיות: חקר ההיסטריה בצרפת הרפובליקנית של סוף המאה ה־19; הלם הקרב במלחמות העולם ובווייטנאם; והמאבק הפמיניסטי של שנות ה־70 באלימות מינית ומשפחתית.",
+ claim:"העדות לטראומה אינה מאפשרת ניטרליות מוסרית: מי ששותק מצדד בתוקף. מדע הפסיכולוגיה עצמו תלוי באקלים פוליטי שמאפשר לשמוע את הנפגעים.",
+ terms:[["אמנזיה אפיזודית","מחזוריות של גילוי ושכחה במחקר הטראומה, תלויה בתמיכה ציבורית."],["דיאלקטיקת הטראומה","המתח בין הרצון להכחיש זוועות לבין הדחף לזעוק אותן."],["היסטריה ותיאוריית הפיתוי","פרויד ייחס תחילה תסמינים לפגיעה מינית ממשית, ואז חזר בו (1897) לטובת ״פנטזיה״."],["הלם קרב","Shell Shock — תגובות חיילים במלחמת העולם הראשונה, שפורשו כחולשת אופי."],["תסמונת טראומת אונס","ברג׳ס והולמסטרום (1974)."]],
+ caseTxt:"חייל שחוזר מקרב עם רעידות וסיוטים מאובחן ב־1916 כ״בעל נטייה נוירוטית מולדת״; ב־1980, אחרי מאבק ותיקי וייטנאם וההכרה ב־DSM-III, אותו מופע מאובחן כתגובה טראומטית לאירוע קיצון.",
+ links:"מניח את התשתית הפוליטית לכל הספר: ההקבלה בין טראומה ״ציבורית״ (חיילים) ל״פרטית״ (נשים וילדים) מובילה לפרק 4 (שבי) ולפרק 11 (שותפות).",
+ people:"שארקו, פייר ז׳אנה (דיסוציאציה), פרויד וברויאר, אברהם קרדינר (1941), חיים שטן ורוברט ג׳יי ליפטון, ברג׳ס והולמסטרום, לנור ווקר.",
+ critique:"המסגור ההיסטורי מדויק בקווים כלליים, אך היסטוריונים מציינים שנטישת תיאוריית הפיתוי נבעה גם ממניעים תיאורטיים וקליניים פנימיים (פיתוח מודל הדחפים) ולא רק מלחץ חברתי — זו פרשנות סוציו־פוליטית של הרמן.",
+ qs:["מדוע הרמן טוענת ש״אמנזיה אפיזודית״ היא תופעה פוליטית?","מה המשותף לגל חקר ההיסטריה ולגל ותיקי וייטנאם?","היכן עובר הגבול בין אובייקטיביות מדעית לעמדה מוסרית בטיפול?","כיצד #MeToo מאשרת או מאתגרת את מודל הגלים של הרמן?"],
+ key:"חקר הטראומה מתקדם רק כשתנועה חברתית תומכת בנפגעים; בלי תמיכה ציבורית — ההכחשה חוזרת."},
+{id:2,part:1,title:"אימה",en:"Terror",
+ simple:"מערכת האזעקה של הגוף נתקעת על ״חירום״ (עוררות יתר), ולכן זיכרון האירוע קופץ כסרט חי ולא כסיפור מהעבר (חודרנות). כדי לשרוד את ההצפה, המוח ״מכבה את המתג״ (צמצום).",
+ summary:"הפרק מנתח את התגובה המיידית לאירוע טראומטי — ״מצוקת חסרי האונים״. הטראומה מציפה את מערכות ההגנה הרגילות ומייצרת שלושה אשכולות תסמינים: עוררות יתר (Hyperarousal), חודרנות (Intrusion) וצמצום (Constriction).",
+ claim:"טראומה אינה חוויה נדירה; היא משנה לאורך זמן את ויסות הגוף והזיכרון, והאדם נע במטוטלת בין הצפה לקהות.",
+ terms:[["עוררות יתר","דריכות מתמדת, תגובת בהלה מוגזמת, קשיי שינה."],["חודרנות","פלשבקים, סיוטים, זיכרון חושי שאינו נרטיבי."],["צמצום","קהות רגשית, דיסוציאציה, צמצום טווח היוזמה והימנעות."],["הדיאלקטיקה של הטראומה","התנודה המתמשכת בין חודרנות לצמצום — היא שמשמרת את התסמונת."]],
+ caseTxt:"שורדת תאונת דרכים נבהלת מצפירה חולפת (עוררות יתר), רואה הבזקי אורות (חודרנות), ובמקביל מתנתקת רגשית משיחה עם חברים ונמנעת מנהיגה (צמצום).",
+ links:"המנגנון הבסיסי של פוסט־טראומה; בפרקים 4–6 יורחב להשפעות על הזהות, ובפרק 9 יהיה בסיס לעיבוד הנרטיבי.",
+ people:"קרדינר, לורנס קולב, מרדי הורוביץ, ז׳אנה, בסל ואן דר קולק (״אימה חסרת מילים״).",
+ critique:"שלושת האשכולות מקבילים ל־DSM-III/IV. מחקרי fMRI של רות לניוס (2010) מראים שהתנודה משקפת שני דפוסים עצביים: תת־מודולציה (הצפה) מול יתר־מודולציה (דיסוציאציה). ה־DSM-5 הרחיב לארבעה אשכולות.",
+ qs:["מה ההבדל בין זיכרון רגיל לזיכרון טראומטי?","מדוע צמצום רגשי נתפס בטעות כתכונת אישיות?","איך הדיאלקטיקה בין חודרנות לצמצום משמרת את התסמונת?","איך ה־DSM-5 הרחיב את התמונה לארבעה אשכולות?"],
+ key:"ליבת ה־PTSD: תנודה בין הצפה חודרנית לקיפאון וניתוק, הנובעת משינוי במערכת העוררות והזיכרון."},
+{id:3,part:1,title:"ניתוק",en:"Disconnection",
+ simple:"אחרי פגיעה קשה נשברת המפה הפנימית שאומרת ״העולם צפוי ובטוח״. אם הסביבה מגיבה בחשדנות או ב״למה לא נזהרת?״, הנפגע חווה בגידה כפולה ומתכנס בבידוד.",
+ summary:"מהממד הגופני אל הממד הבין־אישי: הטראומה מנתצת את ״העולם המובן מאליו״, הורסת את האמון הבסיסי ופוגעת באוטונומיה ובמשמעות. תגובת הקהילה — הכרה ופיצוי מול פקפוק והאשמה — קובעת אם הקרע יתאחה או יעמיק.",
+ claim:"טראומה היא תמיד פצע יחסי. אשמה ובושה של השורד הן גם ניסיון להשיב שליטה דמיונית (״אם אני אשם, יכולתי למנוע״).",
+ terms:[["ניפוץ הנחות היסוד","Shattered Assumptions — ג׳נוף-בולמן."],["אשמת שורדים","מנגנון קוגניטיבי שמשמר אשליית שליטה."],["פציעה שנייה","Second Injury — פגיעה נוספת מחוסר אמון מוסדי ומשפטי."],["טראומה קולקטיבית","קאי אריקסון: פגיעה במרקם הקהילתי עצמו."]],
+ caseTxt:"מתלוננת על תקיפה נחקרת בשאלות על לבושה; הבושה והבדידות מחריפות הרבה מעבר לאירוע עצמו, והיא מפסיקה לסמוך גם על קרובים תומכים.",
+ links:"מחבר בין הנזק היחסי (חלק א׳) לעיקרון המכונן של חלק ב׳ (פרקים 7, 11): ההחלמה חייבת להתרחש בתוך קשר.",
+ people:"רוני ג׳נוף-בולמן, קאי אריקסון, אריק אריקסון (אמון בסיסי מול חשדנות), קרדינר ושפיגל.",
+ critique:"תמיכה חברתית נתפסת היא מהמנבאים החזקים להחלמה; אך מחקרי חוסן (Bonanno) מראים שרוב הנחשפים לאירוע חד־פעמי מפגינים מסלול חוסן טבעי ללא PTSD כרוני.",
+ qs:["מדוע אשמת השורד משמשת כמנגנון הגנה?","כיצד מערכת המשפט יוצרת לעיתים ״פציעה שנייה״?","מה ההבדל בין טראומה אישית לקולקטיבית לפי קאי אריקסון?"],
+ key:"טראומה מנתקת מהאמון בעולם ובזולת; תגובת הסביבה היא גורם קריטי בהחלמה."},
+{id:4,part:1,title:"שבי",en:"Captivity",
+ simple:"כאשר תוקף שולט באוכל, בשינה, בקשרים ובתחושת המציאות — ואז נותן מדי פעם ״פרס קטן״ — המוח של הקורבן לומד לראות בו את מקור ההצלה היחיד.",
+ summary:"הרמן מבחינה בין טראומה חד־פעמית לטראומה ממושכת וחוזרת, המתרחשת בתנאי שבי: הקורבן אינו יכול לברוח ונמצא תחת שליטה כופה (Coercive Control). היא משווה שיטות שליטה במחנות ושבי מלחמה לשיטות של בני זוג מכים, פוגעים בילדים וכתות.",
+ claim:"הקורבן אינו נשאר ״מרצונו״ או מ״מזוכיזם״; התלות הפרדוקסלית בתוקף היא תוצאה של טרור שיטתי, בידוד והתשה.",
+ terms:[["שליטה כופה","תרשים בידרמן: בידוד, מונופול על התפיסה, התשה, איומים, חסדים מזדמנים, הפגנת כל־יכולת, השפלה, אכיפת דרישות טריוויאליות."],["היקשרות טראומטית","Traumatic Bonding — דאטון ופיינטר."],["כניעה מוחלטת","שבירת הרצון האוטונומי לאחר שבי ממושך."]],
+ caseTxt:"בן זוג מנתק את אשתו ממשפחתה, שולט בחשבון הבנק, מעיר על סידור הכוסות, ואחרי התפרצות אלימה קונה פרחים. התנודה בין איום ל״חסד״ משמרת אותה בדריכות מתמדת לרַצות.",
+ links:"המפתח לפרק 5 (הילד כשבוי) ולפרק 6 (מדוע PTSD רגיל אינו מתאר את השבי).",
+ people:"אלברט בידרמן (1957), אמנסטי (1973), לנור ווקר, דאטון ופיינטר, רוברט ג׳יי ליפטון.",
+ critique:"״שליטה כופה״ אומצה במחקר ובמשפט (עוגנה בחוק הפלילי בבריטניה); מבקרים מציינים שהקבלה מבנית מוחלטת בין אלימות זוגית למחנות עלולה לטשטש הבדלים ביכולת היציאה.",
+ qs:["מה תפקידם של ״חסדים מזדמנים״ בשימור השליטה?","מדוע ״חוסר אונים נלמד״ מסביר רק חלקית הישארות בקשר מתעלל?","איך שליטה כופה משנה את הזהות לאורך זמן?"],
+ key:"טראומה כרונית נוצרת בתנאי שבי ושליטה כופה — באותם מנגנונים בזירה הפוליטית ובזירה הביתית."},
+{id:5,part:1,title:"התעללות בילדים",en:"Child Abuse",
+ simple:"ילד לא יכול לשרוד אם יחשוב ״ההורה שלי מסוכן״. לכן הוא מפצל: ״אבא טוב, אני ילד רע״. בבגרות הפיצול הופך לקול פנימי מאשים ולקושי בוויסות רגשות.",
+ summary:"ילד במשפחה מתעללת נתון בשבי התפתחותי: אין לו לאן לברוח והוא תלוי באותם מבוגרים שפוגעים בו. כדי לשמר את ההיקשרות הוא מפעיל דיסוציאציה, עיוות מציאות והאשמה עצמית — המעצבים את אישיותו המתהווה.",
+ claim:"לילד ״עדיף״ להאמין שהוא רע מאשר להכיר בכך שאין מי שישמור עליו. כך נבנית אישיות שסועה המועדת לפגיעה חוזרת.",
+ terms:[["חשיבה כפולה (Doublethink)","בהשאלה מאורוול: החזקת שתי אמונות סותרות בו־זמנית."],["עצמי כפול / דיסוציאציה","פיצול החוויה כדי לשמר את הקשר למטפל."],["תקיפות הגוף","פגיעה עצמית, הפרעות אכילה, סומטיזציה — לעיתים כוויסות רגשי."],["Revictimization","סיכון מוגבר לפגיעה חוזרת בבגרות."]],
+ caseTxt:"בוגרת שעברה הזנחה והתעללות בילדותה אינה זוכרת חלקים מילדותה, פוגעת בעצמה בעת מצוקה כדי להירגע, ומוותרת על גבולות בקשרים כדי לא להינטש.",
+ links:"מסביר מדוע פגיעה מוקדמת יוצרת תסמינים הדומים להפרעות אישיות (פרק 6), ומכין את שלבי הביטחון והאבל (פרקים 8–9).",
+ people:"דיאנה ראסל, פינקלהור ובראון (דינמיקות טראומגניות), רולנד סאמיט, קלופט ופטנם (דיסוציאציה).",
+ critique:"הקשר בין התעללות מוקדמת לדיסוציאציה וקשיי ויסות מבוסס (כולל מחקרי ACEs). מנגד, מודל סאמיט (CSAAS) ספג ביקורת כשהוצג ככלי אבחון בבית משפט, וטענות על אמנזיה מוחלטת והדחקה שנויות במחלוקת (Otgaar et al., 2019).",
+ qs:["מהו ההיגיון ההישרדותי של Doublethink אצל ילד נפגע?","מדוע פגיעה עצמית משמשת לעיתים לוויסות ולא כניסיון אובדני?","מדוע חשיפת התעללות אצל ילדים נוטה להתעכב?"],
+ key:"התעללות בילדות מתרחשת בתוך תלות הישרדותית ומעצבת דיסוציאציה, אשמה עצמית וקשיי ויסות בבגרות."},
+{id:6,part:1,title:"אבחנה חדשה",en:"A New Diagnosis",
+ simple:"אם מטופלת חווה זעם, ריקנות ופחד נטישה אחרי שנות התעללות, התיוג ״אישיות גבולית״ מאשים את האישיות שלה במקום לראות את הנזק שגרמה הטראומה המתמשכת.",
+ summary:"אבחנת ה־PTSD הקלאסית עוצבה סביב אירועים ממוקדים ואינה מכסה את השינויים העמוקים בוויסות, בתודעה, בזהות ובקשרים אצל שורדי שבי והתעללות ממושכת. בהיעדר אבחנה מתאימה, רבים מאובחנים בהפרעות אישיות סטיגמטיות.",
+ claim:"נדרשת קטגוריה ייעודית — Complex PTSD (DESNOS) — שתשייך את התסמינים להיסטוריה של טראומה מתמשכת ולא לפגם אופי.",
+ terms:[["C-PTSD","PTSD מורכבת — אבחנת ICD-11 ‏6B41."],["DESNOS","הפרעות דחק קיצוניות שלא הוגדרו אחרת (ניסויי שדה DSM-IV)."],["DSO","הפרעה בארגון העצמי (ICD-11): דיסרגולציה רגשית, תפיסה עצמית שלילית, הפרעות ביחסים."],["אבחנה מבדלת מול BPD","ב־CPTSD דימוי עצמי שלילי ויציב; ב־BPD — תנודתי."]],
+ caseTxt:"סטודנטית בת 25 עם רקע של אלימות הורית מתמשכת מגיעה למיון עקב דיסוציאציה ופגיעה עצמית ומקבלת אבחנת BPD; במסגרת מיודעת־טראומה מזוהה CPTSD, והטיפול מתמקד בביטחון ובוויסות.",
+ links:"סוגר את חלק א׳: אם הטראומה מורכבת, ההחלמה אינה חשיפה קצרה אלא תהליך רב־שלבי.",
+ people:"הרמן (1992), ואן דר קולק, פלקוביץ, מנדל (ניסויי DSM-IV); מאוחר יותר קלויטר וברווין.",
+ critique:"DSM-IV ו־DSM-5 לא הפרידו את CPTSD, אך ארגון הבריאות העולמי אימץ אותה ב־ICD-11 (6B41; Karatzias et al., 2018). מחקרים מראים ש־BPD ו־CPTSD נבדלים אמפירית ואינם זהים.",
+ qs:["מהן שלוש קטגוריות ה־DSO ב־ICD-11?","מדוע חשוב להבחין קלינית בין CPTSD ל־BPD?","מה הסיכון באבחון־יתר של CPTSD ללא היסטוריה של טראומה?"],
+ key:"פרק 6 הוליד את אבחנת ה־Complex PTSD, שהתקבלה רשמית ב־ICD-11."},
+{id:7,part:2,title:"יחסי ריפוי",en:"A Healing Relationship",
+ simple:"המטפל אינו ״מושיע״ שמחליט בשביל המטופל (זה שחזור של חוסר אונים), וגם אינו אדיש לפגיעה. הוא עומד לצדו ואומר בבירור שהאלימות לא הייתה צודקת — תוך כיבוד האוטונומיה שלו.",
+ summary:"העצמה (Empowerment) ושחזור קשר בטוח הם לב הריפוי: השורד נשאר המחבר והשליט בתהליך, והמטפל הוא בן ברית אמין בגבולות ברורים. הרמן מנתחת העברה טראומטית (המטפל כמושיע, כתוקף או כצופה אדיש) וטראומטיזציה עקיפה של המטפל.",
+ claim:"אף מטפל לא עובד עם טראומה לבדו; הדרכה ושמירה על גבולות מונעות קריסה ל״מציל כל־יכול״ או לניתוק הגנתי.",
+ terms:[["העצמה","השבת השליטה לנפגע."],["ניטרליות טכנית מול סולידריות מוסרית","לא לכפות החלטות — אך לא להיות ניטרלי מוסרית כלפי הפגיעה."],["העברה / העברה נגדית טראומטית","שחזור תפקידי תוקף–קורבן–מציל בחדר."],["טראומטיזציה עקיפה","Vicarious Traumatization — מקאן ופרלמן."]],
+ caseTxt:"מטופל מבקש מהמטפלת להתקשר לבן זוגו במקומו כדי ״להציל אותו״; היא מביעה אמפתיה אך מסרבת לקחת שליטה, ועוזרת לו לתכנן צעדים עצמאיים מוגנים.",
+ links:"מתקן את אובדן השליטה והאמון מפרקים 3–4 ומשמש מסגרת מחזיקה לשלושת השלבים (8–10).",
+ people:"ג׳ון בולבי, מקאן ופרלמן, קארן סקוויטנה, צ׳ארלס פיגלי (דחק טראומטי משני).",
+ critique:"הברית הטיפולית כגורם מרכזי מבוססת היטב; מבקרים מזהירים שגבולות מעורפלים סביב ״סולידריות מוסרית״ עלולים להוביל להזדהות־יתר.",
+ qs:["מה ההבדל בין ניטרליות טכנית לניטרליות מוסרית?","מדוע תפקיד ״המציל״ פוגע בשיקום האוטונומיה?","מדוע המטפל זקוק לרשת תמיכה מקצועית משלו?"],
+ key:"העצמה בתוך קשר בטוח וגבולות ברורים; המטפל שותף לעדות אך אינו לוקח את השליטה."},
+{id:8,part:2,title:"ביטחון — שלב א׳",en:"Safety",
+ simple:"לפני שפותחים פצעים ישנים, מוודאים שהאדם במקום מוגן, ישן מספיק, לא פוגע בעצמו, ויודע להרגיע גל חרדה כשהוא עולה.",
+ summary:"שלב א׳ מתמקד בהשבת תחושת שליטה וביטחון — בגוף ובסביבה — לפני חקירה מעמיקה של הזיכרון. מתחילים במתן שם לתסמונת (פסיכו־חינוך), ויסות שינה ותזונה, טיפול בשימוש בחומרים ובפגיעה עצמית, ובניית סביבה ותמיכה בטוחות.",
+ claim:"אי אפשר לעבד טראומה כשהאדם עדיין בסכנה או בלי כלי ייצוב בסיסיים; ההחלמה היא מרתון, לא ספרינט של קתרזיס.",
+ terms:[["ייצוב","Stabilization — בסיס לפני עיבוד."],["שליטה בגוף ובסביבה","שני מעגלי הביטחון: פנימי וחיצוני."],["פסיכו־חינוך","נרמול: ״תגובה נורמלית למצב לא נורמלי״."]],
+ caseTxt:"מטופלת שעדיין גרה עם בן זוג אלים מבקשת לעבוד על זיכרונות ילדות; המטפלת ממקדת את השלב בתוכנית הגנה, מקלט בטוח וויסות שינה.",
+ links:"מתרגם את עוררות היתר (פרק 2) והשליטה הכופה (פרק 4) לתנאי מקדים לשלב ב׳ (פרק 9).",
+ people:"אריך לינדמן, מרדי הורוביץ, מודלים לטיפול בהתמכרויות ומשבר.",
+ critique:"מטה־אנליזה של 16 ניסויים (Lee, Park & Cho, 2026): עיבוד טראומה ישיר (PE/EMDR) בלי שלב ייצוב ארוך השיג תוצאות דומות על תסמיני PTSD (g = 0.04) ללא נשירה גבוהה יותר; ייצוב רב־שלבי (כמו STAIR) מועיל במיוחד לדיסרגולציה רגשית.",
+ qs:["מדוע מתן שם ל־PTSD עשוי להביא הקלה?","מתי עיכוב שלב ב׳ מוצדק, ומתי הוא הופך להימנעות?","מה הראיות העדכניות לשאלת ״ייצוב חובה לפני חשיפה״?"],
+ key:"ביטחון וייצוב הם שלב א׳; כיום המחקר תומך בהתאמה גמישה ולא בהמתנה נוקשה לכולם."},
+{id:9,part:2,title:"זיכרון ואבל — שלב ב׳",en:"Remembrance and Mourning",
+ simple:"זיכרון טראומטי הוא כמו דפים מפוזרים ותמונות רועשות בלי סדר. בשלב הזה כותבים יחד את הפרק בספר החיים, כדי שאפשר יהיה לסגור אותו ולהתאבל על המחיר שגבה.",
+ summary:"השורד בונה מחדש את הסיפור כזיכרון נרטיבי רציף בתוך מרחב בטוח, ומשלב עובדות עם רגשות שנחסמו. החלק המכריע הוא האבל: ויתור על פנטזיות של נקמה, פיצוי קסום או סליחה מוקדמת, והתאבלות על מה שאבד.",
+ claim:"הסיפור אינו נועד ל״שחרור קתרטי״ אלא להפוך זיכרון חושי קפוא (״טרום־נרטיב״) להיסטוריה אישית משולבת.",
+ terms:[["טרום־נרטיב ← נרטיב","מזיכרון חושי מקוטע לסיפור בעל רצף ומשמעות."],["עדות","Testimony — שיטת העדות בטיפול בפליטים (מולינר)."],["ויתור על פנטזיית נקמה/פיצוי","תנאי לאבל אמיתי."],["מינון (Pacing)","קצב חשיפה שאינו מציף."]],
+ caseTxt:"שורד תאונה מדלג שנים על רגע ההתנגשות; בטיפול הוא מתאר אותו בהדרגה, כולל תחושת האימה, ובהמשך מתאבל על הקריירה הספורטיבית שאיבד.",
+ links:"מטפל בפער הזיכרון החושי מפרק 2 ומאפשר מעבר לבניית עתיד בפרק 10.",
+ people:"פייר ז׳אנה (זיכרון נרטיבי מול טראומטי), ואן דר קולק, ריצ׳רד מולינר, ג׳נוף-בולמן.",
+ critique:"תמיכת הרמן בהיפנוזה לשחזור זיכרונות ״מודחקים״ עוררה ביקורת ב״מלחמות הזיכרון״: מחקרי זיכרון (Otgaar et al., 2019) מראים שטכניקות סוגסטיביות עלולות להשתיל זיכרונות שווא; עיבוד נרטיבי מבוקר של זיכרונות נגישים (CPT, NET) זוכה לתיקוף חזק.",
+ qs:["מה ההבדל בין שחזור סיפור לקתרזיס?","מדוע פנטזיית הנקמה מעכבת החלמה לפי הרמן?","איך נדע שהשורד מוכן לעבור לשלב ג׳?"],
+ key:"שלב ב׳: ארגון נרטיבי של הזיכרון ועבודת אבל — בלי שיטות סוגסטיביות לחילוץ זיכרונות."},
+{id:10,part:2,title:"קשר מחודש — שלב ג׳",en:"Reconnection",
+ simple:"שלב א׳ — לבנות מקלט; שלב ב׳ — לסדר את האלבום הכואב; שלב ג׳ — לצאת החוצה, לבחור חברים אמינים, ללמוד לומר ״לא״ ולתכנן עתיד עם תקווה.",
+ summary:"לאחר האבל השורד בונה עצמי ועתיד חדשים: ״ללמוד להילחם״ (גבולות והגנה עצמית אסרטיבית), השלמה עם העצמי, קשרים הדדיים, ואצל חלק — הפיכת הסבל ל״משימת שורדים״ חברתית.",
+ claim:"ההחלמה אינה חזרה ל״מי שהיית״ אלא זהות אינטגרטיבית חדשה; תסמינים עשויים לחזור בצמתי חיים — ההחלמה ספירלית, לא קווית.",
+ terms:[["ללמוד להילחם","חשיפה מבוקרת לפחד והצבת גבולות."],["משימת שורדים","Survivor Mission — ליפטון."],["חזרה מחזורית","Life-Cycle Recurrence — גל זמני בצמתים כמו לידה או אובדן."],["מדדי החלמה","יכולת ליהנות מהחיים ולקיים קשרים הדדיים."]],
+ caseTxt:"שורדת אלימות בילדותה מציבה לראשונה גבול למעסיק פוגעני ומתנדבת בקו סיוע. כשהיא יולדת, עולה חרדה ישנה — והיא מזהה אותה כגל זמני.",
+ links:"מתקן את הניתוק מפרק 3 ומכין את המעבר לשייכות קבוצתית בפרק 11.",
+ people:"אריק אריקסון (Generativity), רוברט ג׳יי ליפטון, ספרות הצמיחה הפוסט־טראומטית.",
+ critique:"״משימת שורדים״ מתכתבת עם מחקרי צמיחה פוסט־טראומטית (Tedeschi & Calhoun), אך צמיחה אינה תנאי להחלמה ואין לצפות מכל שורד להפוך לפעיל חברתי.",
+ qs:["מה פירוש ״ללמוד להילחם״ בהקשר שאינו אלים?","מדוע חזרת תסמינים בצמתי חיים אינה ״כישלון״?","מה מבדיל בין משימת שורדים בריאה לשחזור כפייתי?"],
+ key:"החלמה נמדדת ביכולת ליהנות, ליצור קשרים הדדיים ולבחור עתיד — בתנועה ספירלית לאורך החיים."},
+{id:11,part:2,title:"שותפות ואחרית הדבר",en:"Commonality",
+ simple:"לשמוע מישהו אחר אומר ״גם לי זה קרה״ שובר בשנייה בושה של שנים. אבל כדי שהקבוצה לא תציף, מתאימים אותה לשלב שבו המשתתפים נמצאים.",
+ summary:"הספר נחתם בכוח המרפא של קבוצות: אוניברסליות והכרה קהילתית. הרמן מתאימה שלושה סוגי קבוצות לשלבים: קבוצות ייצוב מובנות (א׳), קבוצות מוגבלות־זמן וממוקדות־טראומה (ב׳), קבוצות בין־אישיות פתוחות (ג׳). באחרית הדבר (1997, 2015, 2022) היא עונה לביקורת על זיכרונות מודחקים, מבקרת קיצוץ בטיפולים ארוכים ומתייחסת למחקרי מוח, נוירופידבק ו־MDMA.",
+ claim:"״אם הטראומה מבודדת, הקבוצה משיבה שייכות״ — גשר בין המרפאה לחברה.",
+ terms:[["שותפות (Commonality)","שייכות מחודשת דרך חוויה משותפת."],["אוניברסליות","גורם מרפא לפי יאלום."],["התאמת קבוצה לשלב","ייצוב ← ממוקדת־טראומה ← בין־אישית."],["Truth and Repair (2023)","ספר ההמשך: צדק מאחה המבוסס על הכרה, אחריות ותיקון קהילתי."]],
+ caseTxt:"שורד מלחמה שסירב לדבר שנים מצטרף לקבוצת ותיקים; לראשונה הוא מרגיש מובן בלי להסביר למה רעש פתאומי מקפיץ אותו.",
+ links:"סוגר את המעגל של פרק 1: מהתנועה החברתית שהולידה את חקר הטראומה — אל הקהילה שמרפאה אותה.",
+ people:"אירווין יאלום, קבוצות ה־Rap של ותיקי וייטנאם, קבוצות העלאת מודעות פמיניסטיות; מאוחר יותר פישר, פונגי, ואן דר קולק.",
+ critique:"קבוצות מובנות (כמו STAIR) יעילות בחיזוק תפקוד בין־אישי; קבוצות לא־מובנות בשלב א׳ עלולות לייצר ״הדבקה משנית״ בלי מנחה מיומן וגבולות חשיפה.",
+ qs:["מה נותנת קבוצה שטיפול פרטני מתקשה לתת?","מדוע לא להכניס מטופל בשלב א׳ לקבוצת חשיפה אינטנסיבית?","איך מתחבר פרק 11 לרעיון ״הצדק המאחה״ (2023)?"],
+ key:"שייכות קבוצתית מותאמת־שלב משלימה את הטיפול הפרטני ומחזירה את השורד לקהילה."}
+];
+
+const QUIZ = [
+{c:1,q:"מה פירוש ״אמנזיה אפיזודית״ אצל הרמן?",o:["שכחה של אירוע טראומטי אצל אדם יחיד","מחזוריות היסטורית של גילוי ושכחה במחקר הטראומה","הפרעת זיכרון נוירולוגית אחרי פגיעת ראש","הדחקה לא מודעת של זיכרונות ילדות"],a:1,w:"הרמן מתארת תופעה חברתית־מדעית: חקר הטראומה פורח כשיש תנועה פוליטית תומכת, ונשכח כשהתמיכה נעלמת. היא אינה מתכוונת לזיכרון של אדם בודד."},
+{c:1,q:"איזו תנועה פוליטית ליוותה את הגל השלישי — ההכרה באלימות מינית ומשפחתית?",o:["הרפובליקניזם הצרפתי","התנועה האנטי־מלחמתית","הגל השני של הפמיניזם (שנות ה־70)","תנועת זכויות האזרח בשנות ה־50"],a:2,w:"שלושת הגלים: היסטריה ← רפובליקניזם צרפתי; הלם קרב/PTSD ← תנועה אנטי־מלחמתית; אלימות מינית וביתית ← הפמיניזם של שנות ה־70."},
+{c:1,q:"מה הביקורת המרכזית על פרשנות הרמן לנסיגת פרויד מתיאוריית הפיתוי?",o:["פרויד מעולם לא הציע את תיאוריית הפיתוי","הנסיגה נבעה גם משיקולים תיאורטיים פנימיים, לא רק מלחץ חברתי","פרויד חזר בו רק ב־1930","התיאוריה הוכחה כנכונה במלואה"],a:1,w:"היסטוריונים של הפסיכואנליזה מציינים שפיתוח מודל הדחפים השפיע גם הוא. זו פרשנות סוציו־פוליטית של הרמן, לא עובדה מוסכמת."},
+{c:2,q:"שורדת נבהלת קשות מצפירה חולפת. לאיזה אשכול שייך התסמין?",o:["חודרנות","עוררות יתר","צמצום","דיסוציאציה"],a:1,w:"תגובת בהלה מוגזמת ודריכות מתמדת הן עוררות יתר — מערכת האזעקה ״תקועה על חירום״."},
+{c:2,q:"מהי ״הדיאלקטיקה של הטראומה״ בפרק 2?",o:["הוויכוח בין פרויד לז׳אנה","התנודה בין חודרנות לצמצום","המעבר בין שלב א׳ לשלב ב׳","הפער בין DSM ל־ICD"],a:1,w:"השורד נע בין הצפה (חודרנות) לקהות וניתוק (צמצום); התנודה עצמה היא שמשמרת את התסמונת."},
+{c:2,q:"מה הוסיפו מחקרי ה־fMRI של לניוס להבנת התנודה?",o:["שהיא התנהגותית בלבד","שני דפוסים עצביים: תת־מודולציה (הצפה) ויתר־מודולציה (דיסוציאציה)","שאין הבדל מוחי בין נפגעים ללא נפגעים","שהאמיגדלה אינה מעורבת"],a:1,w:"לניוס (2010) הראתה שהתנודה משקפת שני מעגלים: עיכוב פרה־פרונטלי חלש (הצפה) מול עיכוב־יתר (דיסוציאציה) — הבסיס לתת־הסוג הדיסוציאטיבי ב־DSM-5."},
+{c:3,q:"לפי הרמן, מדוע שורדים רבים מאשימים את עצמם?",o:["כי הם אכן אשמים","כדי לשמר אשליית שליטה: ״אם אני אשם — יכולתי למנוע״","בגלל הפרעת אישיות קודמת","כי זה דרוש לאבחנה"],a:1,w:"אשמה היא גם ניסיון להשיב תחושת שליטה: עדיף להרגיש אשם מאשר חסר אונים לחלוטין."},
+{c:3,q:"מהי ״פציעה שנייה״ (Second Injury)?",o:["פגיעה פיזית נוספת באותו אירוע","פגיעה מחוסר אמון ומהאשמה של מוסדות וסביבה","חזרת תסמינים אחרי החלמה","טראומה עקיפה של מטפל"],a:1,w:"כשהמשטרה, בית המשפט או הקרובים מפקפקים או מאשימים — נוצרת פגיעה נוספת, לעיתים קשה מהאירוע עצמו."},
+{c:3,q:"מה מוסיף מחקר החוסן (Bonanno) לטענות פרק 3?",o:["שרוב הנחשפים לאירוע חד־פעמי מפגינים מסלול חוסן ללא PTSD כרוני","שתמיכה חברתית אינה משפיעה","שכל טראומה מובילה ל־CPTSD","שהרמן צדקה בכל פרט"],a:0,w:"תמיכה חברתית אכן מנבאת החלמה, אבל רוב האנשים מגיבים בחוסן טבעי — חשוב לא להפוך כל חשיפה לפתולוגיה."},
+{c:4,q:"בן זוג מתפרץ ואז קונה פרחים. איזה רכיב בתרשים בידרמן זה?",o:["בידוד","חסדים מזדמנים","מונופול על התפיסה","אכיפת דרישות טריוויאליות"],a:1,w:"״חסדים מזדמנים״ יוצרים תלות ותקווה, ומחזקים את ההיקשרות הטראומטית דווקא בגלל חוסר הצפיות."},
+{c:4,q:"מה מאפיין ״שבי״ במובן של הרמן?",o:["כליאה פיזית בלבד","מצב שבו אי אפשר לברוח ויש שליטה כופה מתמשכת של תוקף","כל אירוע טראומטי חד־פעמי","טיפול ממושך בבית חולים"],a:1,w:"השבי יכול להיות פיזי, כלכלי, רגשי או התפתחותי; העיקר הוא חוסר האפשרות לברוח ושליטה שיטתית."},
+{c:4,q:"מדוע לפי הרמן קורבן נשאר בקשר מתעלל?",o:["מזוכיזם","בחירה חופשית","תוצאה של טרור שיטתי, בידוד והתשה ששוברים רצון עצמאי","חוסר אינטליגנציה"],a:2,w:"הרמן דוחה במפורש הסברים של ״מרצון״ או ״מזוכיזם״; התלות היא תוצר של שיטת השליטה."},
+{c:5,q:"מהי ״חשיבה כפולה״ (Doublethink) אצל ילד נפגע?",o:["דו־לשוניות","החזקת שתי אמונות סותרות — ״ההורה טוב״ ו״אני רע״ — כדי לשמר את הקשר","תכנון כפול של בריחה","פיצול אישיות קליני תמיד"],a:1,w:"המונח מאורוול: הילד משמר את דמות ההורה כ״טובה״ במחיר של האשמה עצמית — הישרדות בתוך תלות."},
+{c:5,q:"מדוע פגיעה עצמית אצל שורדי התעללות היא לעיתים לא ניסיון אובדני?",o:["כי היא תמיד מזויפת","כי היא משמשת לעיתים לוויסות רגשי — להרגיע או ״להרגיש משהו״","כי אין לה קשר לטראומה","כי היא נובעת מהשפעה חברתית"],a:1,w:"הרמן מתארת ״תקיפות הגוף״ כדרכי ויסות של מצבים בלתי נסבלים. ועדיין — כל פגיעה עצמית מצריכה התייחסות מקצועית."},
+{c:5,q:"איזו טענה מפרק 5 שנויה כיום במחלוקת מדעית?",o:["קשר בין התעללות לדיסוציאציה","קשר בין פגיעה בילדות לקשיי ויסות","אמנזיה מוחלטת והדחקה לא מודעת של התעללות","סיכון מוגבר לפגיעה חוזרת"],a:2,w:"הקשרים לדיסוציאציה ולוויסות מבוססים (כולל ACEs); הדחקה מוחלטת ושחזור מאוחר שנויים במחלוקת (Otgaar et al., 2019)."},
+{c:6,q:"מה הקוד של Complex PTSD ב־ICD-11?",o:["6B40","6B41","F43.1","309.81"],a:1,w:"6B40 הוא PTSD; ‏6B41 הוא CPTSD. ה־DSM-5-TR לא אימץ אבחנה נפרדת."},
+{c:6,q:"מהם שלושת אשכולות ה־DSO (הפרעה בארגון העצמי) ב־ICD-11?",o:["חודרנות, הימנעות, עוררות","דיסרגולציה רגשית, תפיסה עצמית שלילית, הפרעות ביחסים","דיכאון, חרדה, התמכרות","דיסוציאציה, סומטיזציה, פסיכוזה"],a:1,w:"CPTSD = תסמיני PTSD + שלושת אשכולות ה־DSO. האשכולות הראשונים שייכים ל־PTSD עצמו."},
+{c:6,q:"מה מבחין אמפירית בין CPTSD ל־BPD?",o:["אין שום הבדל","ב־CPTSD דימוי עצמי שלילי ויציב; ב־BPD דימוי תנודתי ופחד נטישה","BPD נגרם תמיד מטראומה","CPTSD קיים רק אצל חיילים"],a:1,w:"החפיפה קיימת, אבל המחקר מראה הבדלים — למשל יציבות הדימוי העצמי ופחד הנטישה."},
+{c:7,q:"מה פירוש ״ניטרליות טכנית ללא ניטרליות מוסרית״?",o:["המטפל מחליט בשביל המטופל","המטפל לא כופה החלטות, אך מכיר בבירור בעוול שנעשה","המטפל נשאר אדיש לגמרי","המטפל מעמת את המטופל עם התוקף"],a:1,w:"המטפל מכבד את האוטונומיה (לא מחליט במקומו) ובו בזמן אינו ניטרלי מוסרית כלפי האלימות."},
+{c:7,q:"מטופל מבקש מהמטפלת להתקשר לבן הזוג ״ולהציל אותו״. מה ההתנהגות המתאימה לפי הרמן?",o:["להתקשר מיד","לסרב בקרירות ולסיים את הפגישה","להביע אמפתיה, לא לקחת שליטה, ולעזור לו לתכנן צעדים עצמאיים מוגנים","להפנות לטיפול אחר"],a:2,w:"תפקיד ״המציל״ משחזר חוסר אונים. העצמה = השבת השליטה למטופל, עם תמיכה ותכנון בטיחות."},
+{c:7,q:"מהי טראומטיזציה עקיפה?",o:["טראומה שעוברת בתורשה","שינויים בתפיסת העולם של מטפלים בעקבות חשיפה מתמשכת לסיפורי טראומה","טראומה מצפייה בחדשות בלבד","טראומה של בני משפחה"],a:1,w:"מקאן ופרלמן: המטפל נחשף לעדויות ומשתנה. לכן הרמן מדגישה הדרכה ורשת תמיכה מקצועית."},
+{c:8,q:"מה המשימה הראשונה של שלב א׳?",o:["שחזור מפורט של הזיכרון","השבת ביטחון ושליטה בגוף ובסביבה","הצטרפות לקבוצת חשיפה","עימות עם התוקף"],a:1,w:"שלב א׳ = ביטחון: פסיכו־חינוך, שינה, תזונה, פגיעה עצמית, סביבה מוגנת — לפני עיבוד הזיכרון."},
+{c:8,q:"מה מצאה המטה־אנליזה של Lee, Park & Cho (2026)?",o:["שעיבוד ישיר בלי ייצוב ארוך משיג תוצאות דומות על תסמיני PTSD ללא נשירה גבוהה יותר","שייצוב חובה תמיד","שחשיפה מסוכנת לכולם","ש־EMDR אינו יעיל"],a:0,w:"g = 0.04 — הבדל זניח. ייצוב רב־שלבי (כמו STAIR) עדיין מועיל במיוחד לדיסרגולציה. מכאן: התאמה גמישה, לא כלל נוקשה."},
+{c:8,q:"מטופלת עדיין גרה עם בן זוג אלים ורוצה לעבוד על זיכרונות ילדות. מה הצעד לפי הרמן?",o:["להתחיל מיד בעיבוד הזיכרונות","להתמקד קודם בתוכנית הגנה וביטחון","להפנות לקבוצת חשיפה","להתעלם מהמצב הנוכחי"],a:1,w:"אי אפשר לעבד טראומה כשהסכנה עדיין נוכחת; ביטחון חיצוני הוא תנאי מקדים."},
+{c:9,q:"מה מטרת שחזור הסיפור בשלב ב׳?",o:["פריקה קתרטית","הפיכת זיכרון חושי קפוא לנרטיב משולב בהיסטוריה האישית","איתור זיכרונות מודחקים בהיפנוזה","עימות עם התוקף"],a:1,w:"הרמן מדגישה: לא קתרזיס, אלא ארגון — מ״טרום־נרטיב״ לסיפור בעל רצף ומשמעות."},
+{c:9,q:"מה צריך השורד לוותר עליו כדי להתאבל באמת?",o:["על הזיכרון","על פנטזיות של נקמה, פיצוי קסום או סליחה מוקדמת","על הקשר עם המטפל","על כל הרגשות"],a:1,w:"הפנטזיות מחזיקות את השורד קשור לתוקף; הוויתור עליהן מאפשר אבל על מה שאבד."},
+{c:9,q:"מה עמדת מחקר הזיכרון העדכני לגבי היפנוזה לשחזור זיכרונות?",o:["מומלצת לכל מטופל","עלולה להשתיל זיכרונות שווא; עדיף עיבוד נרטיבי של זיכרונות נגישים (CPT, NET)","אין לה השפעה","מחליפה את שלב א׳"],a:1,w:"״מלחמות הזיכרון״ הובילו לזהירות מטכניקות סוגסטיביות; CPT ו־NET מתוקפים היטב."},
+{c:10,q:"מה פירוש ״ללמוד להילחם״ בשלב ג׳?",o:["אימון באמנויות לחימה בלבד","חשיפה מבוקרת לפחד והצבת גבולות אסרטיבית","נקמה בתוקף","הימנעות מכל סיכון"],a:1,w:"המשמעות היא השבת כוח: גבולות, אסרטיביות, ולעיתים גם הגנה עצמית — לא אלימות."},
+{c:10,q:"חרדה ישנה חוזרת אחרי לידה אצל שורדת שהחלימה. איך הרמן רואה זאת?",o:["כישלון הטיפול","חזרה מחזורית צפויה בצמתי חיים — ההחלמה ספירלית","סימן לאבחנה חדשה","הוכחה שאין החלמה"],a:1,w:"Life-Cycle Recurrence: צמתים התפתחותיים מעוררים גלים זמניים; השורדת יודעת לזהות ולווסת."},
+{c:10,q:"מהם שני המדדים המסכמים להחלמה לפי הרמן?",o:["היעדר תסמינים ושכחת האירוע","יכולת ליהנות מהחיים ולקיים קשרים הדדיים","סליחה לתוקף ופעילות ציבורית","חזרה מלאה למי שהיית"],a:1,w:"החלמה אינה מחיקת העבר אלא חיים מלאים: הנאה, מעורבות וקשרים הדדיים."},
+{c:11,q:"איזה סוג קבוצה מתאים לשלב א׳?",o:["קבוצה פתוחה בין־אישית","קבוצה ממוקדת־טראומה עם חשיפה","קבוצת ייצוב מובנית","קבוצה ללא מנחה"],a:2,w:"שלב א׳ ← קבוצות ייצוב מובנות; שלב ב׳ ← ממוקדות־טראומה ומוגבלות בזמן; שלב ג׳ ← בין־אישיות פתוחות."},
+{c:11,q:"מה הסיכון בקבוצה לא מובנית בשלב א׳?",o:["שעמום","הדבקה משנית והצפה","שיפור מהיר מדי","אין סיכון"],a:1,w:"בלי מנחה מיומן וגבולות חשיפה, סיפורים קשים עלולים להציף משתתפים שעדיין לא מיוצבים."},
+{c:11,q:"במה עוסק ספר ההמשך Truth and Repair (2023)?",o:["נוירוביולוגיה של PTSD","צדק מאחה: הכרה, קבלת אחריות ותיקון קהילתי","טיפול תרופתי","היסטוריה של ההיסטריה"],a:1,w:"הרמן מרחיבה מהחלמה קלינית אל צדק — מה השורדים צריכים מהקהילה ומהתוקף."}
+];
+
+const CARDS = [
+["מהם שלושת הגלים הפוליטיים שאפשרו את חקר הטראומה?","(1) רפובליקניזם צרפתי ← היסטריה; (2) תנועה אנטי־מלחמתית ← הלם קרב/PTSD; (3) פמיניזם של שנות ה־70 ← אלימות מינית וביתית.",1],
+["אמנזיה אפיזודית","מחזוריות של גילוי ושכחה במחקר הטראומה, התלויה בתמיכה של תנועה חברתית.",1],
+["שלושת אשכולות התסמינים בפרק 2","עוררות יתר, חודרנות, צמצום.",2],
+["הדיאלקטיקה של הטראומה","תנודה בין חודרנות (הצפה) לצמצום (קהות) — היא שמשמרת את התסמונת.",2],
+["פציעה שנייה","פגיעה נוספת מחוסר אמון, פקפוק או האשמה של הסביבה והמוסדות.",3],
+["מדוע אשמת שורדים?","כדי לשמר אשליית שליטה: ״אם אני אשם — יכולתי למנוע״.",3],
+["8 רכיבי תרשים בידרמן","בידוד, מונופול על התפיסה, התשה, איומים, חסדים מזדמנים, הפגנת כל־יכולת, השפלה, אכיפת דרישות טריוויאליות.",4],
+["היקשרות טראומטית","קשר רגשי חזק לתוקף שנוצר מהתנודה בין אימה ל״חסד״ (דאטון ופיינטר).",4],
+["Doublethink אצל ילד נפגע","החזקת ״ההורה טוב״ ו״אני רע״ בו־זמנית כדי לשמר את ההיקשרות.",5],
+["ICD-11: ‏6B40 / ‏6B41","6B40 = PTSD; ‏6B41 = Complex PTSD.",6],
+["שלושת אשכולות ה־DSO","דיסרגולציה רגשית, תפיסה עצמית שלילית, הפרעות ביחסים.",6],
+["CPTSD מול BPD","CPTSD: דימוי עצמי שלילי ויציב. BPD: דימוי תנודתי ופחד נטישה בולט.",6],
+["העיקרון המנחה של חלק ב׳","העצמה בתוך קשר בטוח — השורד הוא המחבר של ההחלמה.",7],
+["ניטרליות טכנית מול מוסרית","לא להחליט במקום המטופל — אך לא להיות ניטרלי כלפי העוול.",7],
+["שלושת שלבי ההחלמה","א׳ ביטחון; ב׳ זיכרון ואבל; ג׳ קשר מחודש.",8],
+["ממצא Lee, Park & Cho (2026)","עיבוד ישיר ללא ייצוב ארוך ≈ תוצאות זהות (g = 0.04); ייצוב מועיל לדיסרגולציה. ← התאמה גמישה.",8],
+["טרום־נרטיב ← נרטיב","הפיכת זיכרון חושי קפוא לסיפור רציף ומשולב (שלב ב׳).",9],
+["על מה מוותרים כדי להתאבל?","פנטזיות נקמה, פיצוי קסום וסליחה מוקדמת.",9],
+["משימת שורדים","הפיכת הסבל לפעולה חברתית (ליפטון) — אפשרות, לא חובה.",10],
+["מדדי החלמה לפי הרמן","יכולת ליהנות מהחיים וקשרים הדדיים; ההחלמה ספירלית.",10],
+["קבוצות לפי שלבים","א׳ ייצוב מובנית; ב׳ ממוקדת־טראומה מוגבלת בזמן; ג׳ בין־אישית פתוחה.",11],
+["Truth and Repair (2023)","ספר ההמשך — צדק מאחה: הכרה, אחריות ותיקון קהילתי.",11]
+];
+
+const PRACTICE = [
+{id:"sym",title:"מיון תסמינים לאשכולות (פרק 2)",intro:"לכל תיאור — בחרי לאיזה אשכול הוא שייך.",cats:["עוררות יתר","חודרנות","צמצום"],
+ items:[["קופצת מכל טריקת דלת",0,"תגובת בהלה מוגזמת = עוררות יתר."],["סיוטים חוזרים על האירוע",1,"סיוטים ופלשבקים = חודרנות."],["מרגיש ״כאילו אני צופה בעצמי מבחוץ״",2,"דיסוציאציה היא חלק מהצמצום."],["לא מצליחה להירדם ובודקת שוב ושוב שהדלת נעולה",0,"דריכות וקשיי שינה = עוררות יתר."],["ריח מסוים מחזיר אותה לרגע האירוע כאילו הוא קורה עכשיו",1,"זיכרון חושי חי = חודרנות."],["הפסיק להיפגש עם חברים ונמנע מכל מה שמזכיר",2,"הימנעות וצמצום טווח החיים = צמצום."]]},
+{id:"bid",title:"תרשים בידרמן — זיהוי שיטות שליטה (פרק 4)",intro:"איזו שיטת שליטה מתוארת?",cats:["בידוד","חסדים מזדמנים","אכיפת דרישות טריוויאליות","מונופול על התפיסה"],
+ items:[["אוסר עליה לבקר את הוריה",0,"ניתוק ממקורות תמיכה = בידוד."],["אחרי התפרצות — מתנצל ומביא מתנה",1,"״חסד״ בלתי צפוי מחזק את התלות."],["דורש שהכוסות יסודרו בסדר מסוים, ומעניש על טעות",2,"דרישות שרירותיות מלמדות כניעה."],["משכנע אותה שכולם נגדה ושרק הוא אומר לה את האמת",3,"שליטה בפרשנות המציאות = מונופול על התפיסה."]]},
+{id:"dx",title:"PTSD, CPTSD או BPD? (פרק 6)",intro:"בחרי את האבחנה שהתיאור מתאים לה ביותר (לפי ICD-11 והמחקר). זהו תרגיל לימודי — לא אבחון.",cats:["PTSD","CPTSD","BPD"],
+ items:[["אחרי תאונה חד־פעמית: פלשבקים, הימנעות, דריכות — דימוי עצמי ויחסים תקינים",0,"תסמיני ליבה בלבד, ללא DSO = PTSD."],["שנות התעללות בילדות: פלשבקים + תחושת ״אני חסרת ערך״ יציבה, קושי בוויסות רגשי וריחוק מקשרים",1,"PTSD + שלושת אשכולות ה־DSO = CPTSD."],["דימוי עצמי משתנה מקצה לקצה, פחד עז מנטישה ומאמצים קיצוניים למנוע אותה, ללא תסמיני חודרנות",2,"תנודתיות בזהות ופחד נטישה בולט מאפיינים BPD."]]},
+{id:"stage",title:"באיזה שלב החלמה? (פרקים 8–10)",intro:"שייכי כל משימה לשלב המתאים במודל של הרמן.",cats:["א׳ ביטחון","ב׳ זיכרון ואבל","ג׳ קשר מחודש"],
+ items:[["בניית תוכנית בטיחות ומקלט",0,"ביטחון חיצוני = שלב א׳."],["כתיבת סיפור האירוע ברצף, כולל רגשות",1,"ארגון נרטיבי = שלב ב׳."],["הצבת גבול למעסיק פוגעני",2,"״ללמוד להילחם״ = שלב ג׳."],["פסיכו־חינוך: ״התגובה שלך נורמלית למצב קיצוני״",0,"מתן שם לתסמונת פותח את שלב א׳."],["ויתור על פנטזיית הנקמה",1,"תנאי לאבל = שלב ב׳."],["התנדבות בקו סיוע",2,"משימת שורדים = שלב ג׳."]]},
+{id:"crit",title:"הרמן 1992 מול המחקר העדכני",intro:"האם הטענה נתמכת היום, נתמכת חלקית, או שנויה במחלוקת?",cats:["נתמכת","חלקית / מוגבלת","שנויה במחלוקת"],
+ items:[["CPTSD היא אבחנה נפרדת מ־PTSD",0,"אומצה ב־ICD-11 (6B41); ה־DSM-5-TR לא — אבל הבסיס האמפירי איתן."],["תמיד חובה שלב ייצוב ארוך לפני חשיפה",1,"Lee et al. (2026): עיבוד ישיר יעיל באותה מידה על PTSD; ייצוב מועיל לדיסרגולציה."],["אפשר לשחזר זיכרונות מודחקים בהיפנוזה",2,"Otgaar et al. (2019): סיכון להשתלת זיכרונות שווא."],["תמיכה חברתית חיונית להחלמה",0,"מהמנבאים החזקים ביותר להחלמה."],["כל שורד צריך לפתח משימה חברתית כדי להחלים",1,"צמיחה פוסט־טראומטית אפשרית אך אינה תנאי."]]}
+];
+
+const PLAN = [
+{w:1,t:"הקדמה + פרקים 1–2 (היסטוריה נשכחת, אימה)",h:"~4.5 שעות",goal:"להסביר בעל־פה ״אמנזיה אפיזודית״ ואת 3 אשכולות התסמינים בלי הערות.",
+ tasks:["קריאת פרקים 1–2 + ערך פסיכופדיה (טיפולנט)","צפייה: ריאיון Conversations with History (UC Berkeley)","יחידות 1–2 באתר + השיעור הסוקרטי","בוחן פרקים 1–2 (80%+)","תרגיל מיון תסמינים","פסקה של 150 מילה: ״מדוע מחקר טראומה הוא פוליטי״"]},
+{w:2,t:"פרקים 3–4 (ניתוק, שבי)",h:"~4.5 שעות",goal:"להדגים 4 מתוך 8 רכיבי בידרמן ולהסביר אשמת שורדים כמנגנון קוגניטיבי.",
+ tasks:["קריאת פרקים 3–4 + סיכום מכון אנאפה","האזנה: Meaningful Voices Book Club","יחידות 3–4 באתר","תרגיל תרשים בידרמן","חזרה על כרטיסיות שבוע 1","הסבר בעל־פה: למה היקשרות טראומטית אינה ״בחירה״"]},
+{w:3,t:"פרקים 5–6 (התעללות בילדים, אבחנה חדשה)",h:"~5 שעות",goal:"להבחין בין PTSD, CPTSD ו־BPD ולהסביר Doublethink.",
+ tasks:["קריאת פרקים 5–6 + פודקאסט ״מתחת לפני השטח״","יחידות 5–6 באתר","תרגיל PTSD / CPTSD / BPD","חזרה מצטברת ראשונה: בוחן פרקים 1–4","השוואה כתובה קצרה בין CPTSD ל־BPD","ציון 80%+ בבוחן פרקים 5–6"]},
+{w:4,t:"פרקים 7–8 (יחסי ריפוי, שלב א׳)",h:"~4.5 שעות",goal:"להסביר ניטרליות טכנית מול מוסרית ולהציג 4 משימות ייצוב.",
+ tasks:["קריאת פרקים 7–8 + Counselling Tutor / מאמר B17","יחידות 7–8 באתר","חזרה על כרטיסיות שבועות 1–3","תכנון התערבות שלב א׳ למקרה היפותטי","טכניקת פיינמן: להסביר טראומטיזציה עקיפה"]},
+{w:5,t:"פרקים 9–11 (זיכרון ואבל, קשר מחודש, שותפות)",h:"~5 שעות",goal:"לתאר 3 סוגי קבוצות לפי שלב ולנתח מדוע ויתור על פנטזיית נקמה נחוץ לאבל.",
+ tasks:["קריאת פרקים 9–11 + סיכום עמי ברונסקי","צפייה: פאנל מכללת הדסה עם הרמן","יחידות 9–11 באתר","תרגיל שלבי ההחלמה","חזרה מצטברת שנייה: בוחן פרקים 5–8","שרטוט ספירלת ההחלמה מהזיכרון"]},
+{w:6,t:"אחרית דבר, ביקורת מדעית וסינתזה",h:"~5 שעות",goal:"להציג ביקורת מאוזנת על 3 נקודות: זיכרונות שווא, ייצוב מול חשיפה, התיאוריה הפולי־וגאלית.",
+ tasks:["קריאת אחרית הדבר + The Healing Trauma Podcast","עמוד ״מחקר עדכני״ באתר","תרגיל ״הרמן 1992 מול המחקר העדכני״","בוחן מסכם על כל הפרקים","מעבר על כל הכרטיסיות","ניסוח עמדה קצרה: תרומתה ומגבלותיה של הרמן"]}
+];
+
+const SYSTEM_PROMPT = `אתה מורה פרטי אישי לפסיכולוגיה, מומחה לתיאוריה של ג׳ודית לואיס הרמן (״טראומה והחלמה״) ולמחקר העדכני על PTSD וטראומה מורכבת (ICD-11, DSM-5-TR). אני סטודנטית לפסיכולוגיה הלומדת את הספר לעומק בעברית (עם שמירת מונחים באנגלית).
+
+כללי הוראה מחייבים:
+1. אבחון מהיר לפני הסבר: לפני נושא חדש, שאל אותי שאלה קצרה כדי לבדוק מה אני כבר יודעת. אל תסביר מושגים שכבר הפגנתי בהם שליטה.
+2. למידה סוקרטית הדרגתית: בלי הרצאות ארוכות. חלק כל רעיון לשני שלבים — הסבר נגיש + הרחבה אקדמית ומחקרית — ובקש ממני לנסח את העיקרון במילים שלי.
+3. התנהלות אפיסטמית וזכויות יוצרים: הסתמך רק על החומרים שהעליתי ועל מחקרים מאומתים. אל תמציא ציטוטים מהספר ואל תציין מספרי עמודים שלא אומתו. הבחן במפורש בין טענות הרמן (1992) לבין ממצאים עדכניים (למשל הביקורת על זיכרונות מודחקים או על שלב א׳ כחובה).
+4. תרגול ומשוב מנומק: שלב שאלות רב־ברירה, שאלות פתוחות ומקרי בוחן היפותטיים. על כל תשובה שלי הסבר מדוע היא מדויקת או מה חסר בה, וקשר לפרקים קודמים.
+5. מעקב התקדמות: שמור סיכום קצר של ״נקודות חוזק״ ו״פערים לחזרה״, והתחל כל שיחה חדשה בשתי שאלות שליפה על נושא חלש מהמפגש הקודם.
+6. רגישות וגבולות: הנושא עוסק בטראומה. אם אבקש הפסקה או דילוג על תיאורים קשים — כבד זאת מיד ועבור לרמה תיאורטית. הבהר שהלימוד אקדמי בלבד ואינו ייעוץ או טיפול.`;
+
+/* 17 resources — verified list from the study guide (checked Nov 2026). l: he/en/ru; wk: suggested weeks */
+const RES = [
+ {n:"Conversations with History: Judith Herman",o:"UCTV / UC Berkeley",u:"https://www.youtube.com/watch?v=USTKmffoQms",l:"en",t:"ריאיון אקדמי מצולם (60 דק׳)",rel:"ישיר — התזה הפוליטית־קלינית",cost:"חינם",fit:"פתיחת הקורס: ישירות מפי המחברת. מגבלה: משנת 2002, לפני ICD-11.",wk:[1],r:5},
+ {n:"ג׳ודית הרמן – טראומה והחלמה (סיכום חלקי)",o:"מכון אנאפה לפסיכותרפיה",u:"https://www.annafa.co.il/%D7%92%D7%95%D7%93%D7%99%D7%AA-%D7%94%D7%A8%D7%9E%D7%9F-%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94-%D7%A1%D7%99%D7%9B%D7%95%D7%9D-%D7%97%D7%9C%D7%A7%D7%99-%D7%A9/",l:"he",t:"סיכום קליני מעמיק",rel:"ישיר — פרקים 2–7 ו־CPTSD",cost:"חינם",fit:"משמר במדויק את מינוח עם עובד. מגבלה: מדלג על ההיסטוריה של פרק 1.",wk:[2,3],r:5},
+ {n:"טיפול בפוסט טראומה – הכנה לקבוצות",o:"עמי ברונסקי (פסיכולוג קליני)",u:"https://www.bronskyami.com/%D7%98%D7%99%D7%A4%D7%95%D7%9C-%D7%91%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%A1%D7%99%D7%9B%D7%95%D7%9D",l:"he",t:"סיכום קליני עם מספרי עמודים",rel:"ישיר — פרקים 7–11",cost:"חינם",fit:"מפנה למספרי עמודים בעברית; מעולה ליישום. מגבלה: מתמקד בחלק ב׳ ובקבוצות.",wk:[4,5],r:5},
+ {n:"Джудит Герман — о травме, исцелении и культуре отмены",o:"Дневник Чистых Когниций",u:"https://www.youtube.com/watch?v=BI9XbVJD5I8",l:"ru",t:"ריאיון מדובב עם חותמות זמן (62 דק׳)",rel:"ישיר — PTSD, CPTSD מול BPD",cost:"חינם",fit:"חזרה ממוקדת: 35:15 CPTSD, 41:26 BPD. מגבלה: שו״ת, לא רצף פרקים.",wk:[3],r:5},
+ {n:"Trauma and Recovery Summary & Study Guide",o:"SuperSummary",u:"https://www.supersummary.com/trauma-and-recovery/summary/",l:"en",t:"מדריך פרקים ובחנים",rel:"ישיר — כל הפרקים + 2015/2022",cost:"Freemium",fit:"חזק בהכנה לבחינות. מגבלה: ניתוחי העומק בתשלום.",wk:[1,2,3,4,5,6],r:4},
+ {n:"החלמה והעצמה בהתמודדות עם טראומה",o:"המכללה האקדמית הדסה",u:"https://www.youtube.com/watch?v=QhIHxgJhkuA",l:"he",t:"פאנל אקדמי עם הרמן (עברית/אנגלית)",rel:"ישיר — העצמה והקשר ישראלי",cost:"חינם",fit:"מחבר את התיאוריה לשדה הישראלי. מגבלה: פאנל רב־משתתפים.",wk:[5],r:4},
+ {n:"Three-Stage Recovery Model",o:"Counselling Tutor",u:"https://counsellingtutor.com/trauma-informed-practice/three-stage-recovery-model/",l:"en",t:"מדריך קליני + PDF חינמי",rel:"ישיר — חלק ב׳",cost:"חינם",fit:"מתרגם את שלושת השלבים למיומנויות טיפוליות. מגבלה: משמיט את חלק א׳.",wk:[4],r:4},
+ {n:"Meaningful Voices Book Club with Judith Herman",o:"FaithTrust Institute & CONNECT",u:"https://www.youtube.com/watch?v=EY_1gIlJIt0",l:"en",t:"מועדון קריאה מוקלט",rel:"ישיר — אחרית דבר 1997, אלימות במשפחה",cost:"חינם",fit:"הרמן על הקשר בין אלימות ביתית לטרור פוליטי. מגבלה: שיחה חופשית.",wk:[2],r:4},
+ {n:"Interrogative Design Workshop (4.370) Syllabus",o:"MIT",u:"https://web.mit.edu/idw/4370/syllabus.html",l:"en",t:"סילבוס אוניברסיטאי",rel:"ישיר — פרקים 9–11",cost:"חינם",fit:"הרמן בהקשר של אתיקה ועדות ציבורית. מגבלה: רשימת קריאה בלבד.",wk:[5],r:4},
+ {n:"Онлайн-курс проф. Джудит Герман «Травма и исцеление»",o:"IAPpsy",u:"https://iappsy.org/judith_herman2025",l:"ru",t:"קורס 4 הרצאות (תרגום סימולטני)",rel:"ישיר — בושה, CPTSD, התעללות בילדות",cost:"$59–$95",fit:"הוראה ישירה מפי הרמן, הקלטה לשנה. מגבלה: בתשלום — אופציונלי.",wk:[3,4],r:4},
+ {n:"The Origins of Complex PTSD",o:"The Healing Trauma Podcast",u:"https://podcasts.apple.com/us/podcast/the-origins-of-complex-ptsd-a-conversation/id1444361384?i=1000716890316",l:"en",t:"פודקאסט (35 דק׳)",rel:"ישיר — מ־1992 עד Truth and Repair",cost:"חינם",fit:"עדכון שמע קצר לנסיעות. מגבלה: חלקו על ספר 2023.",wk:[6],r:4},
+ {n:"ג׳ודית לואיס הרמן – ערך פסיכופדיה",o:"בטיפולנט",u:"https://www.betipulnet.co.il/lexicon/%D7%92%D7%95%D7%93%D7%99%D7%AA_%D7%9C%D7%95%D7%90%D7%99%D7%A1_%D7%94%D7%A8%D7%9E%D7%9F",l:"he",t:"ערך לקסיקון אקדמי",rel:"ישיר — ביוגרפיה ו־CPTSD",cost:"חינם",fit:"מסגור לעבודת סמינר וביבליוגרפיה בסיסית. מגבלה: סקירת־על.",wk:[1],r:4},
+ {n:"האם טראומה משפיעה על האישיות שלנו?",o:"מתחת לפני השטח (ד״ר עמית פכלר)",u:"https://music.youtube.com/podcast/PWk1dUFwhx4",l:"he",t:"פודקאסט קליני (50 דק׳)",rel:"נושא קשור — CPTSD מול אישיות",cost:"חינם",fit:"ביקורת על תיוג הפרעות אישיות. מגבלה: שיחה רחבה.",wk:[3],r:4},
+ {n:"Терапия травмы в рамках 3-фазной модели Джудит Герман",o:"B17.ru (Гелена Мифтахутдинова)",u:"https://www.b17.ru/article/911779/",l:"ru",t:"מאמר קליני",rel:"ישיר — 3 השלבים + ACT",cost:"חינם",fit:"פירוט טכני של כל שלב. מגבלה: בלוג מקצועי ללא שיפוט עמיתים.",wk:[4],r:3},
+ {n:"Лекция «Травма и исцеление»",o:"ספריית בלינסקי",u:"https://www.youtube.com/watch?v=ilz8-saW294",l:"ru",t:"הרצאה פומבית (48 דק׳)",rel:"נושא קשור — השלכות התפתחותיות",cost:"חינם",fit:"הסבר נגיש של פסיכולוגית קלינית. מגבלה: רמה פופולרית.",wk:[2],r:3},
+ {n:"Краткое содержание книги «Травма и исцеление»",o:"Briefly.ru",u:"https://briefly.ru/dzhudit_german/travma_i_istcelenie/",l:"ru",t:"תקציר מובנה (35 דק׳)",rel:"ישיר — מושגי יסוד",cost:"Freemium",fit:"תמצות מהיר לפני הקריאה. מגבלה: ההמשך דורש מנוי.",wk:[1],r:3},
+ {n:"סיכומי מאמרים של ג׳ודית לואיס הרמן",o:"Sicumim.co.il",u:"https://sicumim.co.il/articleauthor/%D7%92%D7%95%D7%93%D7%99%D7%AA-%D7%9C%D7%95%D7%90%D7%99%D7%A1-%D7%94%D7%A8%D7%9E%D7%9F-judith-lewis-herman/",l:"he",t:"קובצי סיכום (.docx)",rel:"מאמרים משלימים (1998–2012)",cost:"₪29–₪39 לקובץ",fit:"חוסך זמן בכתיבת עבודה. מגבלה: בתשלום ואינו מסכם את הספר עצמו.",wk:[6],r:3}
+];
+const LANG={he:"עברית",en:"אנגלית",ru:"רוסית"};
+
+const SOURCES = [
+ ["Basic Books / Hachette — Trauma and Recovery (30th Anniversary Ed.)","https://www.hachettebookgroup.com/titles/judith-lewis-herman-md/trauma-and-recovery/9781541602953/?lens=basic-books"],
+ ["Basic Books / Hachette — Truth and Repair (2023)","https://www.hachettebookgroup.com/titles/judith-lewis-herman-md/truth-and-repair/9781541600546/?lens=basic-books"],
+ ["עם עובד — מהדורת 1994","https://www.am-oved.co.il/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94"],
+ ["עם עובד — מהדורת 2017 (חידוש)","https://www.am-oved.co.il/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94_%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94_%D7%97%D7%99%D7%93%D7%95%D7%A9"],
+ ["תוכן העניינים — ספריית פסיק","https://ebooks.psik.io/book/1789/%D7%98%D7%A8%D7%90%D7%95%D7%9E%D7%94-%D7%95%D7%94%D7%97%D7%9C%D7%9E%D7%94"],
+ ["Karatzias, Cloitre, Maercker, Brewin et al. (2018). PTSD and Complex PTSD: ICD-11 updates on concept and measurement. European Journal of Psychotraumatology.","https://pmc.ncbi.nlm.nih.gov/articles/PMC5774423/"],
+ ["Lee, Park & Cho (2026). Phase-based versus non-phase-based psychological interventions for complex PTSD: a systematic review and meta-analysis.","https://pmc.ncbi.nlm.nih.gov/articles/PMC13063326/"],
+ ["Otgaar, Howe, Patihis, Loftus et al. (2019). The Return of the Repressed: The Persistent and Problematic Claims of Long-Forgotten Trauma.","https://pmc.ncbi.nlm.nih.gov/articles/PMC6826861/"],
+ ["Lanius et al. (2010). Emotion Modulation in PTSD: Clinical and Neurobiological Evidence for a Dissociative Subtype.","https://pmc.ncbi.nlm.nih.gov/articles/PMC3226703/"],
+ ["Grossman et al. (2026). Why the Polyvagal Theory Is Untenable: An international expert evaluation. Clinical Neuropsychiatry.","https://pmc.ncbi.nlm.nih.gov/articles/PMC12937499/"],
+ ["Scheeringa (2025). Evaluating evidence behind popular trauma narratives. BJPsych Bulletin.","https://pmc.ncbi.nlm.nih.gov/articles/PMC13386322/"],
+ ["World Health Organization — ICD-11 Clinical Descriptions and Diagnostic Requirements.","https://iris.who.int/server/api/core/bitstreams/dcf73611-9e0f-4d5c-85f6-85a58b0da6de/content"],
+ ["(שיטת הלמידה) Carpenter et al. (2022). The science of effective learning with spacing and retrieval practice. Nature Reviews Psychology.","https://consensus.app/papers/details/w:8b7abddc-f3bf-4487-8185-c46694487418/"],
+ ["(שיטת הלמידה) Agarwal et al. (2021). Retrieval Practice Consistently Benefits Student Learning. Educational Psychology Review.","https://consensus.app/papers/details/w:d75ede03-68ab-4a33-86db-d4049f68e80c/"],
+ ["(שיטת הלמידה) Ruitenburg et al. (2026). Retrieval, Distributed and Interleaved Practice in Authentic Classrooms: a meta-analysis. Educational Psychology Review.","https://consensus.app/papers/details/w:08a94097-7a5b-468e-b319-4fa0764eadcb/"],
+ ["(שיטת הלמידה) Weinstein, Madan & Sumeracki (2018). Teaching the science of learning. Cognitive Research: Principles and Implications.","https://consensus.app/papers/details/w:be0abde1-d6bd-4855-be17-dcf8daccf73a/"],
+ ["(שיטת הלמידה) Roediger & Pyc (2012). Inexpensive techniques to improve education. Journal of Applied Research in Memory and Cognition.","https://consensus.app/papers/details/w:bc7351c1-a2cc-4c87-8e0f-aec76b5ac76b/"],
+ ["(שיטת הלמידה) Rea et al. (2022). Students Can (Mostly) Recognize Effective Learning, So Why Do They Not Do It? Journal of Intelligence.","https://consensus.app/papers/details/w:52e0c303-d391-47e2-a40c-eae3ad8fed4e/"]
+];
+
+/* ===================== STATE ===================== */
+const KEY="traumaTutor.v1";
+const FRESH=()=>({read:{},notes:{},quiz:{},wrong:{},cards:{},plan:{},lesson:{},res:{},pre:{},recall:{},daily:{last:-1,streak:0,n:0},prac:{},path:{goal:"",date:"",hours:4.5,days:[],time:"",place:"",known:{},src:{},pilot:{},refl:{},checks:[],start:null},theory:false,theme:null});
+let S=FRESH();
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
+const today=()=>Math.floor(Date.now()/86400000);
+
+/* theme + theory */
+function applyPrefs(){
+  if(S.theme) document.documentElement.setAttribute("data-theme",S.theme); else document.documentElement.removeAttribute("data-theme");
+  document.body.classList.toggle("theory",!!S.theory);
+  $("#theoryBtn").setAttribute("aria-pressed",S.theory?"true":"false");
+}
+$("#themeBtn").onclick=()=>{const dark=S.theme?S.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;S.theme=dark?"light":"dark";save();applyPrefs();};
+$("#theoryBtn").onclick=()=>{S.theory=!S.theory;save();applyPrefs();toast(S.theory?"מצב תיאורטי: תיאורי מקרים מוסתרים":"תיאורי המקרים מוצגים שוב");};
+$("#resetBtn").onclick=e=>{e.preventDefault();if(confirm("למחוק את כל ההתקדמות, ההערות והכרטיסיות?")){const th=S.theme;S=FRESH();S.theme=th;save();applyPrefs();route();toast("ההתקדמות אופסה");}};
+
+/* ===================== HELPERS ===================== */
+function chapterMastery(id){
+  const qs=QUIZ.filter(q=>q.c===id).length;
+  const best=S.quiz[id]||0;
+  return {read:!!S.read[id],best,of:qs,pct:Math.round(((S.read[id]?1:0)*0.3+(best/qs)*0.7)*100)};
+}
+function overall(){const v=CH.map(c=>chapterMastery(c.id).pct);return Math.round(v.reduce((a,b)=>a+b,0)/v.length);}
+function weakest(){
+  const scored=CH.map(c=>({c,w:(S.wrong[c.id]||0),m:chapterMastery(c.id)})).filter(x=>x.w>0||x.m.read);
+  scored.sort((a,b)=>b.w-a.w||a.m.pct-b.m.pct);
+  return scored.filter(x=>x.w>0).slice(0,3).map(x=>x.c);
+}
+function dueCards(){const t=today();return CARDS.map((c,i)=>i).filter(i=>{const s=S.cards[i];return !s||s.due<=t;});}
+function planDone(){let n=0,t=0;PLAN.forEach(w=>w.tasks.forEach((_,i)=>{t++;if(S.plan[w.w+"-"+i])n++;}));return [n,t];}
+
+function mcq(container,q,onAnswer){
+  const box=document.createElement("div");
+  box.innerHTML=`<p><b>${esc(q.q)}</b></p><div class="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbx"></div>`;
+  box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i, ok=i===q.a;
+    box.querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(+x.dataset.i===q.a)x.classList.add("right");});
+    if(!ok)b.classList.add("wrong");
+    box.querySelector(".fbx").innerHTML=`<div class="fb ${ok?"ok":"no"}"><b>${ok?"נכון!":"לא בדיוק."}</b>${esc(q.w)}</div>`;
+    onAnswer&&onAnswer(ok);
+  });
+  container.appendChild(box);
+}
+
+function spiralSVG(){
+  return `<svg class="spiral" viewBox="0 0 600 260" role="img" aria-label="ספירלת ההחלמה: שלב א׳ ביטחון, שלב ב׳ זיכרון ואבל, שלב ג׳ קשר מחודש, עם חזרות מחזוריות" style="width:100%;height:auto">
+  <path d="M60 200 C 140 200, 160 120, 230 130 S 300 210, 360 160 S 420 60, 480 80 S 560 120, 560 60" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M60 200 C 140 200, 160 120, 230 130" fill="none" stroke="var(--s1)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M230 130 S 300 210, 360 160" fill="none" stroke="var(--s2)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M360 160 S 420 60, 480 80 S 560 120, 560 60" fill="none" stroke="var(--s3)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="60" cy="200" r="9" fill="var(--s1)"/><circle cx="230" cy="130" r="9" fill="var(--s2)"/><circle cx="360" cy="160" r="9" fill="var(--s3)"/><circle cx="560" cy="60" r="9" fill="var(--s3)"/>
+  <text x="70" y="240" fill="var(--s1)" font-weight="700" font-size="17">א׳ ביטחון</text>
+  <text x="60" y="258" fill="var(--muted)" font-size="13">גוף · סביבה · פסיכו־חינוך</text>
+  <text x="200" y="100" fill="var(--s2)" font-weight="700" font-size="17">ב׳ זיכרון ואבל</text>
+  <text x="196" y="82" fill="var(--muted)" font-size="13">נרטיב · אבל · מינון</text>
+  <text x="455" y="40" fill="var(--s3)" font-weight="700" font-size="17">ג׳ קשר מחודש</text>
+  <text x="430" y="22" fill="var(--muted)" font-size="13">גבולות · קשרים · שותפות</text>
+  <text x="330" y="215" fill="var(--muted)" font-size="12">↺ חזרה מחזורית בצמתי חיים</text>
+  </svg>`;
+}
+
+/* ===================== VIEWS ===================== */
+const V={};
+
+V.home=()=>{
+  const due=dueCards().length,[pd,pt]=planDone(),w=weakest();
+  const nextCh=CH.find(c=>!S.read[c.id])||CH[0];
+  let html=`
+  <section class="card">
+    <span class="pill p1">ג׳ודית לואיס הרמן · 1992–2022</span>
+    <h1>טראומה והחלמה — מורה אינטראקטיבי</h1>
+    <p class="muted">לומדים פרק אחר פרק בשתי שכבות (פשוט ← אקדמי), עונים, מקבלים משוב מנומק, וחוזרים בזמן הנכון. ההתקדמות נשמרת בדפדפן שלך בלבד.</p>
+    <div class="row-btns"><a class="btn primary" href="#chapter/${nextCh.id}">המשיכי: פרק ${nextCh.id} — ${esc(nextCh.title)}</a><a class="btn" href="#lesson">שיעור סוקרטי ראשון</a></div>
+  </section>
+  ${(()=>{const ns=nextStep();return ns.i>=0&&ns.i<4?`<section class="card"><span class="pill">מסלול ההטמעה · שלב ${ns.i+1} מתוך 5</span><h2 style="margin:6px 0 0">השלב הבא: ${esc(ns.txt)}</h2><div class="row-btns"><a class="btn" href="#path">למסלול</a></div></section>`:"";})()}
+  <section class="card daily-cta"><div><h2 style="margin:0">אימון יומי · כ־10 דקות</h2><p class="muted" style="margin:4px 0 0">${S.daily.last===today()?"✓ האימון של היום הושלם. אפשר לעשות עוד אחד — זה לא מזיק.":"כרטיסיות בזמן הנכון, שאלות מעורבבות מפרקים שונים ושאלת ״למה?״ אחת. הכול מוכן — רק ללחוץ."}</p></div><div class="streak" aria-label="רצף ימים">${S.daily.streak||0}<small>ימי רצף</small></div><div class="row-btns" style="width:100%"><a class="btn primary" href="#daily">${S.daily.last===today()?"אימון נוסף":"להתחיל את האימון של היום"}</a></div></section>
+  <div class="grid g3">
+    <div class="card"><div class="muted">שליטה כוללת</div><div class="stat">${overall()}%</div><div class="meter"><i style="width:${overall()}%"></i></div></div>
+    <div class="card"><div class="muted">כרטיסיות לחזרה היום</div><div class="stat">${due}</div><div class="row-btns"><a class="btn small" href="#cards">לחזרה</a></div></div>
+    <div class="card"><div class="muted">משימות בתוכנית</div><div class="stat">${pd}/${pt}</div><div class="meter"><i style="width:${Math.round(pd/pt*100)}%"></i></div></div>
+  </div>`;
+  if(w.length){
+    html+=`<section class="card"><h2>חזרת שליפה: שתי שאלות על נושא חלש</h2><p class="muted">לפי הטעויות הקודמות שלך — ${w.map(c=>"פרק "+c.id).join(", ")}. מתחילים בשליפה לפני חומר חדש.</p><div id="warm"></div></section>`;
+  }
+  html+=`<section class="card"><h2>מפת הספר</h2><p class="muted">חלק א׳ ממפה את הפגיעה; חלק ב׳ מתווה את ההחלמה — בתוך קשר וקהילה.</p>
+  <h3>חלק א׳ · הפרעות טראומטיות</h3><div class="chap-list">${CH.filter(c=>c.part===1).map(chipCard).join("")}</div>
+  <h3 style="margin-top:16px">חלק ב׳ · שלבי החלמה</h3><div class="chap-list">${CH.filter(c=>c.part===2).map(chipCard).join("")}</div></section>
+  <section class="card"><h2>ספירלת ההחלמה</h2>${spiralSVG()}<p class="muted">ההחלמה אינה קו ישר: גלים של תסמינים יכולים לחזור בצמתי חיים, והשורדת חוזרת למיומנויות של שלבים קודמים — מנקודה גבוהה יותר.</p></section>
+  <div class="notice"><b>על בטיחות רגשית:</b> החומר עוסק באלימות ובהתעללות. הכפתור ״מצב תיאורטי״ למעלה מסתיר את תיאורי המקרים בכל האתר. אפשר לעצור בכל רגע — הלימוד אקדמי ואינו תחליף לליווי מקצועי.</div>`;
+  $("#app").innerHTML=html;
+  if(w.length){
+    const pool=QUIZ.filter(q=>w.some(c=>c.id===q.c));
+    const pick=pool.sort(()=>Math.random()-.5).slice(0,2);
+    pick.forEach(q=>mcq($("#warm"),q,ok=>{if(ok&&S.wrong[q.c]>0){S.wrong[q.c]--;save();}}));
+  }
+};
+function chipCard(c){const m=chapterMastery(c.id);return `<a class="chap" href="#chapter/${c.id}"><span class="muted" style="font-size:.8rem">פרק ${c.id}</span><b>${esc(c.title)}</b><span class="muted" style="font-size:.85rem">${esc(c.en)}</span><div class="meter"><i style="width:${m.pct}%"></i></div><div class="row"><span>${m.read?'<span class="done-mark">✓ נקרא</span>':"טרם נקרא"}</span><span>בוחן ${m.best}/${m.of}</span></div></a>`;}
+
+/* ===================== IMPLEMENTATION PATH =====================
+   Backward design: goal + success evidence first, then pilot, adaptive schedule,
+   retention checkpoints, metrics and weekly reflection (self-regulated learning cycle). */
+const GOALS={exam:"בחינה",paper:"עבודת סמינר",class:"דיון בכיתה",self:"העמקה אישית"};
+const DAYS=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+const SRC_ITEMS=[
+ ["book","עותק חוקי של הספר (עם עובד 2017 או Basic Books 2022)"],
+ ["folder","תיקיית קורס אחת לכל החומרים והסיכומים שלי"],
+ ["sum","סיכום עברי אחד לעיגון המינוח (מכון אנאפה או עמי ברונסקי)","#resources"],
+ ["papers","4–5 מאמרי עומק (Karatzias 2018, Lee 2026, Otgaar 2019 ...)","#research"],
+ ["anki","Anki מותקן (רשות — יש כרטיסיות מובנות כאן)","https://apps.ankiweb.net/"]
+];
+const P=()=>S.path;
+const dayMs=86400000;
+const fmtDate=d=>new Date(d*dayMs).toLocaleDateString("he-IL",{day:"numeric",month:"numeric"});
+function pilotDone(){return !!(S.pre[1]&&(S.notes[1]||"").trim()&&S.quiz[1]!=null&&S.daily.n>0);}
+function phaseState(){
+  const p=P();
+  return [
+    !!(p.goal&&p.days.length&&p.time),
+    SRC_ITEMS.slice(0,4).every(s=>p.src[s[0]]),
+    pilotDone()&&!!p.pilot.pace,
+    p.checks.length>0,
+    false
+  ];
+}
+function capacity(){const p=P();let cap=(+p.hours||4.5)/2.25;if(p.pilot.pace==="fast")cap*=.75;if(p.pilot.pace==="slow")cap*=1.25;if(p.pilot.load==="heavy")cap*=.8;return Math.max(.5,cap);}
+function schedule(){
+  const p=P(),t=today(),rem=CH.filter(c=>!S.read[c.id]&&!p.known[c.id]);
+  const cap=capacity(),need=Math.ceil(rem.length/cap)||0;
+  let avail=null;if(p.date){const end=Math.floor(new Date(p.date).getTime()/dayMs);avail=Math.floor((end-t)/7)-1;} // keep last week as buffer
+  const weeks=Math.max(1,avail!=null?Math.min(Math.max(avail,1),Math.max(need,1)):Math.max(need,1));
+  const per=Math.ceil(rem.length/weeks)||0,out=[];
+  for(let w=0;w<weeks;w++){const chs=rem.slice(w*per,(w+1)*per);if(chs.length)out.push({start:t+w*7,chs});}
+  const mid=Math.floor((out.length-1)/2);
+  out.forEach((w,k)=>{w.check=(k===mid&&out.length>2)||k===out.length-1;});
+  return {rem,cap,need,avail,weeks:out};
+}
+function metrics(){
+  const read=CH.filter(c=>S.read[c.id]);
+  const tot=read.reduce((a,c)=>a+c.terms.length,0),got=read.reduce((a,c)=>a+((S.recall[c.id]||[]).length),0);
+  const app=["sym","bid","dx","stage"].map(k=>S.prac[k]).filter(v=>v!=null);
+  return [
+    {n:"מדד 1 — הסבר עצמי",d:"אחוז המושגים שנשלפו בלי להציץ, בפרקים שסומנו כנלמדו",v:tot?Math.round(got/tot*100):null,how:"בכל פרק: ⑧ ← ״השוואה״ ← סימון המושגים שנשלפו"},
+    {n:"מדד 2 — יישום וחיבור",d:"ממוצע ארבעת תרגילי המיון (תסמינים, בידרמן, אבחנה, שלבים)",v:app.length?Math.round(app.reduce((a,b)=>a+b,0)/app.length):null,how:"עמוד ״תרגול יישומי״"},
+    {n:"מדד 3 — חשיבה ביקורתית",d:"תרגיל ״הרמן 1992 מול המחקר העדכני״",v:S.prac.crit!=null?S.prac.crit:null,how:"עמוד ״מחקר עדכני״ ← תרגיל הביקורת"}
+  ];
+}
+function nextStep(){
+  const ph=phaseState(),names=["להגדיר יעד וזמני לימוד","לארגן את המקורות","להריץ פיילוט על פרק 1","לבצע בדיקת שימור ראשונה","להמשיך באימון יומי ולעקוב אחרי המדדים"];
+  const i=ph.findIndex(x=>!x);return {i,txt:names[i<0?4:i]};
+}
+let PATH_OPEN=null; // remembers open phases across re-renders within the view
+V.path=()=>{
+  const p=P(),ph=phaseState(),ns=nextStep();
+  if(p.start==null){p.start=today();save();}
+  const sc=schedule(),M=metrics();
+  const wkNo=Math.floor((today()-p.start)/7)+1,refl=p.refl[wkNo]||{};
+  const status=k=>ph[k]?"done":(k===ns.i?"now":"");
+  const isOpen=(k,def)=>PATH_OPEN?(PATH_OPEN.has(k)||k===ns.i):def;
+  const intent=p.days.length&&p.time?`כש${p.days.length>1?"מגיעים ימי":"מגיע יום"} <b>${p.days.map(d=>DAYS[d]).join(", ")}</b> בשעה <b>${esc(p.time)}</b>, אשב במקום הקבוע שלי${p.place?` (<b>${esc(p.place)}</b>)`:""} ואפתח את האימון היומי. אם אין לי 10 דקות — אעשה רק 3 כרטיסיות.`:"בחרי ימים ושעה, והתוכנית תנוסח כאן כמשפט ״אם–אז״.";
+  $("#app").innerHTML=`<h1>מסלול ההטמעה</h1><p class="muted">התוכנית שבנינו, בתבנית שעובדת בהטמעת תוכניות למידה: מתחילים מהיעד ומהראיות להצלחה, מריצים פיילוט קטן, מתאימים קצב, ובודקים שימור לאורך הדרך.</p>
+  <div class="card"><div class="muted">השלב הבא</div><h2 style="margin:4px 0">${esc(ns.txt)}</h2><div class="steps">${ph.map(x=>`<i class="${x?"on":""}"></i>`).join("")}</div></div>
+
+  <details class="card phase ${status(0)}" data-ph="0" ${isOpen(0,status(0)==="now")?"open":""}><summary><h2>יום 1 · יעד ומיפוי ידע</h2><span class="muted">${ph[0]?"✓":"1/5"}</span></summary>
+   <div class="field"><b>למה אני לומדת את הספר?</b><div class="choice">${Object.entries(GOALS).map(([k,t])=>`<label><input type="radio" name="goal" value="${k}" ${p.goal===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>תאריך יעד (רשות)</b><input type="date" id="pDate" value="${esc(p.date)}"></div>
+   <div class="field"><b>שעות בשבוע</b><select id="pHours">${[3,4.5,6,8].map(h=>`<option value="${h}" ${+p.hours===h?"selected":""}>${h} שעות</option>`).join("")}</select></div>
+   <div class="field"><b>מתי ואיפה אלמד?</b><div class="choice">${DAYS.map((d,k)=>`<label><input type="checkbox" class="pDay" value="${k}" ${p.days.includes(k)?"checked":""}>${d}</label>`).join("")}</div>
+     <div class="row-btns" style="margin-top:8px"><input type="time" id="pTime" value="${esc(p.time)}" aria-label="שעה"><input type="text" id="pPlace" value="${esc(p.place)}" placeholder="מקום (ספרייה, שולחן הכתיבה...)" style="flex:1;min-width:160px"></div>
+     <div class="intent" id="intent">${intent}</div>
+     <p class="muted" style="font-size:.88rem">תוכנית ״אם–אז״ מוגדרת מראש (implementation intention) מעלה משמעותית את הסיכוי לבצע בפועל, לעומת כוונה כללית ״ללמוד השבוע״.</p></div>
+   <div class="field"><b>מיפוי ידע: אילו פרקים כבר מוכרים לי?</b><div class="kmap">${CH.map(c=>`<label><input type="checkbox" class="pKnown" value="${c.id}" ${p.known[c.id]?"checked":""}>${c.id}. ${esc(c.title)}</label>`).join("")}</div>
+     <p class="muted" style="font-size:.88rem">פרק ״מוכר״ יוצא מלוח הזמנים — אבל כדאי לאמת: הבוחן הקצר בסוף הפרק מראה אם ההיכרות מספיקה. תחושת ״אני יודעת״ נוטה להטעות.</p></div>
+  </details>
+
+  <details class="card phase ${status(1)}" data-ph="1" ${isOpen(1,status(1)==="now")?"open":""}><summary><h2>יום 2 · ארגון מקורות חוקי</h2><span class="muted">${SRC_ITEMS.filter(s=>p.src[s[0]]).length}/${SRC_ITEMS.length}</span></summary>
+   ${SRC_ITEMS.map(([k,t,u])=>`<div class="task"><input type="checkbox" class="pSrc" id="s_${k}" value="${k}" ${p.src[k]?"checked":""}><label for="s_${k}">${esc(t)}${u?` · <a href="${u}" ${u.startsWith("http")?'target="_blank" rel="noopener"':""}>קישור</a>`:""}</label></div>`).join("")}
+  </details>
+
+  <details class="card phase ${status(2)}" data-ph="2" ${isOpen(2,status(2)==="now")?"open":""}><summary><h2>ימים 3–4 · פיילוט על פרק 1</h2><span class="muted">${ph[2]?"✓":""}</span></summary>
+   <p class="muted">מנסים את כל המעגל על יחידה אחת לפני שמתחייבים לקצב. הסימונים מתעדכנים לבד.</p>
+   ${[[S.pre[1],"שאלות ״לפני הקריאה״ בפרק 1"],[(S.notes[1]||"").trim(),"הסבר עצמי במילים שלי בפרק 1"],[S.quiz[1]!=null,"בוחן הפרק"],[S.daily.n>0,"אימון יומי ראשון"]].map(([ok,t])=>`<div class="task"><span aria-hidden="true">${ok?"✅":"⬜"}</span><span>${t}</span></div>`).join("")}
+   <div class="row-btns"><a class="btn" href="#chapter/1">לפרק 1</a><a class="btn" href="#daily">לאימון היומי</a></div>
+   ${pilotDone()?`<div class="field"><b>איך היה הקצב?</b><div class="choice">${[["slow","איטי מדי — אפשר יותר"],["ok","מתאים"],["fast","מהיר מדי"]].map(([k,t])=>`<label><input type="radio" name="pace" value="${k}" ${p.pilot.pace===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>והעומס הרגשי?</b><div class="choice">${[["ok","סביר"],["heavy","כבד"]].map(([k,t])=>`<label><input type="radio" name="load" value="${k}" ${p.pilot.load===k?"checked":""}>${t}</label>`).join("")}</div></div>
+   <div class="field"><b>הסברים לא מדויקים או לא ברורים שמצאתי</b><textarea id="pIssues" placeholder="למשל: מושג שהוסבר אחרת בספר...">${esc(p.pilot.issues||"")}</textarea></div>
+   ${p.pilot.load==="heavy"?`<div class="notice">לפי פרוטוקול הבטיחות: הקצב בלוח הזמנים הורד, מומלץ להפעיל ״מצב תיאורטי״ ולשמור על מנות קצרות. <button class="btn small" id="pTheory">${S.theory?"מצב תיאורטי פעיל ✓":"הפעלת מצב תיאורטי"}</button></div>`:""}`:`<p class="muted">אחרי שארבעת הסעיפים מסומנים, יופיעו כאן שאלות הערכה לפיילוט.</p>`}
+  </details>
+
+  <details class="card phase ${status(3)}" data-ph="3" ${isOpen(3,status(3)==="now"||ph[2])?"open":""}><summary><h2>שבועות ההטמעה · לוח זמנים מותאם</h2><span class="muted">${sc.rem.length} פרקים נותרו</span></summary>
+   <p class="muted">מחושב מהיעד, מהשעות שבחרת ומתוצאות הפיילוט (קצב: כ־${sc.cap.toFixed(1)} פרקים בשבוע). השבוע האחרון לפני תאריך היעד נשמר לחזרה.</p>
+   ${sc.avail!=null&&sc.need>Math.max(sc.avail,1)?`<div class="notice">בקצב הזה צריך כ־${sc.need} שבועות, ועד היעד יש ${Math.max(sc.avail,0)}. הלוח דחוס בהתאם — שקלי להוסיף שעות, או לתעדף את הפרקים הרלוונטיים ל${GOALS[p.goal]||"יעד"}.</div>`:""}
+   ${sc.weeks.length?sc.weeks.map((w,k)=>`<div class="wk"><b>שבוע ${k+1}<br><span class="muted" style="font-weight:400;font-size:.85rem">${fmtDate(w.start)}</span></b><div>${w.chs.map(c=>`<a href="#chapter/${c.id}">פרק ${c.id}: ${esc(c.title)}</a>`).join(" · ")}${w.check?`<div><span class="pill p1">בדיקת שימור בסוף השבוע</span></div>`:""}</div></div>`).join(""):`<p>כל הפרקים נלמדו או סומנו כמוכרים. נשאר: סינתזה, ביקורת ובוחן מסכם.</p>`}
+   <h3 style="margin-top:16px">בדיקת שימור</h3><p class="muted" style="font-size:.92rem">10 שאלות מעורבבות מכל מה שנלמד, <b>בלי משוב עד הסוף</b> — כדי למדוד מה באמת נשמר, לא מה שזוכרים מלפני רגע.</p>
+   ${p.checks.length?`<div>${p.checks.map((c,k)=>`<span class="pill" style="margin-inline-end:6px">${k+1}: ${c.s}% · ${fmtDate(c.d)}</span>`).join("")}</div>`:""}
+   <div class="row-btns"><button class="btn primary" id="runCheck">התחלת בדיקת שימור</button></div><div id="chk"></div>
+  </details>
+
+  <section class="card"><h2>מדדי הצלחה</h2><p class="muted">שלושת המדדים מתוכנית ההטמעה, מחושבים אוטומטית. הקו האנכי = רף 80%.</p>
+   ${M.map(m=>`<div class="metric"><b>${m.n}</b><span class="stat" style="font-size:1.3rem">${m.v==null?"—":m.v+"%"}</span><div class="meter"><i style="width:${m.v||0}%"></i></div><span class="muted" style="font-size:.88rem;grid-column:1/-1">${m.d}${m.v==null?` · איך מתחילים: ${m.how}`:""}</span></div>`).join("")}
+  </section>
+
+  <section class="card"><h2>רפלקציה שבועית · שבוע ${wkNo}</h2><p class="muted">שלוש שאלות קצרות בסוף כל שבוע סוגרות את מעגל הלמידה: תכנון ← ביצוע ← הערכה ← תיקון.</p>
+   <div class="field"><b>מה עבד לי השבוע?</b><textarea class="pRefl" data-k="good">${esc(refl.good||"")}</textarea></div>
+   <div class="field"><b>מה היה קשה (תוכן, זמן או עומס רגשי)?</b><textarea class="pRefl" data-k="hard">${esc(refl.hard||"")}</textarea></div>
+   <div class="field"><b>מה אשנה בשבוע הבא — שינוי אחד, קונקרטי?</b><textarea class="pRefl" data-k="change">${esc(refl.change||"")}</textarea></div>
+   ${Object.keys(p.refl).filter(k=>+k!==wkNo).length?`<details><summary class="muted">רפלקציות קודמות</summary>${Object.entries(p.refl).filter(([k])=>+k!==wkNo).map(([k,r])=>`<p><b>שבוע ${k}:</b> ${esc(r.change||r.good||"")}</p>`).join("")}</details>`:""}
+  </section>
+
+  <section class="card"><h2>הלאה: התרחבות לקורסים נוספים</h2><p>אותו שלד — יעד ← מקורות ← פיילוט ← אימון יומי ← בדיקות שימור ← מדדים — מתאים לכל קורס. מחליפים רק את חומרי המקור (ב־NotebookLM) ואת הכרטיסיות.</p><div class="row-btns"><a class="btn" href="#ai">להקמת מורה AI חיצוני</a></div></section>`;
+
+  const rerender=()=>{const y=scrollY;PATH_OPEN=new Set([...document.querySelectorAll("details.phase[open]")].map(d=>+d.dataset.ph));V.path();scrollTo(0,y);};
+  const set=(k,v,re)=>{p[k]=v;save();if(re)rerender();};
+  document.querySelectorAll("[name=goal]").forEach(r=>r.onchange=()=>set("goal",r.value,true));
+  $("#pDate").onchange=e=>set("date",e.target.value,true);
+  $("#pHours").onchange=e=>set("hours",+e.target.value,true);
+  document.querySelectorAll(".pDay").forEach(cb=>cb.onchange=()=>set("days",[...document.querySelectorAll(".pDay:checked")].map(x=>+x.value),true));
+  $("#pTime").onchange=e=>set("time",e.target.value,true);
+  $("#pPlace").onchange=e=>set("place",e.target.value,true);
+  document.querySelectorAll(".pKnown").forEach(cb=>cb.onchange=()=>{p.known[cb.value]=cb.checked;save();rerender();});
+  document.querySelectorAll(".pSrc").forEach(cb=>cb.onchange=()=>{p.src[cb.value]=cb.checked;save();rerender();});
+  document.querySelectorAll("[name=pace],[name=load]").forEach(r=>r.onchange=()=>{p.pilot[r.name]=r.value;save();rerender();});
+  const iss=$("#pIssues");if(iss)iss.oninput=()=>{p.pilot.issues=iss.value;save();};
+  const pt=$("#pTheory");if(pt)pt.onclick=()=>{S.theory=true;save();applyPrefs();rerender();};
+  document.querySelectorAll(".pRefl").forEach(ta=>ta.oninput=()=>{p.refl[wkNo]=Object.assign(p.refl[wkNo]||{},{[ta.dataset.k]:ta.value});save();});
+  $("#runCheck").onclick=runCheck;
+};
+function runCheck(){
+  const done=CH.filter(c=>S.read[c.id]||P().known[c.id]).map(c=>c.id);
+  const box=$("#chk");
+  if(!done.length){box.innerHTML=`<p class="notice">עוד אין פרקים שסומנו כנלמדו או כמוכרים — אין עדיין מה לבדוק.</p>`;return;}
+  const qs=interleave(shuffle(QUIZ.filter(q=>done.includes(q.c))).slice(0,10)),ans=[];let i=0;
+  $("#runCheck").disabled=true;
+  const step=()=>{
+    if(i>=qs.length){
+      const s=Math.round(ans.filter((a,k)=>a===qs[k].a).length/qs.length*100);
+      P().checks.push({d:today(),s});
+      qs.forEach((q,k)=>{if(ans[k]!==q.a)S.wrong[q.c]=(S.wrong[q.c]||0)+1;});save();
+      box.innerHTML=`<div class="fb ${s>=80?"ok":"no"}"><b>שימור: ${s}%</b>${s>=80?"הידע נשמר היטב.":"השאלות שפספסת נכנסו לאימון היומי."}</div>${qs.map((q,k)=>`<div class="task"><span>${ans[k]===q.a?"✅":"❌"}</span><span><b>פרק ${q.c}:</b> ${esc(q.q)}<br><span class="muted">${esc(q.o[q.a])} — ${esc(q.w)}</span></span></div>`).join("")}<div class="row-btns"><button class="btn" id="chkClose">עדכון התצוגה</button></div>`;
+      $("#chkClose").onclick=()=>V.path();return;
+    }
+    const q=qs[i];
+    box.innerHTML=`<div class="muted">שאלה ${i+1}/${qs.length}</div><p><b>${esc(q.q)}</b></p><div class="opts">${q.o.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`;
+    box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ans.push(+b.dataset.k);i++;step();});
+  };
+  step();
+}
+
+/* Daily session: spaced cards + interleaved retrieval + elaboration, opened by an emotional check-in */
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+function studiedChapters(){
+  const ids=CH.map(c=>c.id).filter(id=>S.read[id]||S.pre[id]||S.quiz[id]!=null||S.wrong[id]);
+  if(ids.length) return ids;
+  const n=(CH.find(c=>!S.read[c.id])||CH[0]).id; return [n];
+}
+function interleave(qs){ // avoid two questions from the same chapter in a row
+  const out=[],rest=[...qs];
+  while(rest.length){const i=rest.findIndex(q=>!out.length||q.c!==out[out.length-1].c);out.push(rest.splice(i<0?0:i,1)[0]);}
+  return out;
+}
+function buildDaily(){
+  const ch=studiedChapters(),items=[{t:"check"}];
+  dueCards().filter(i=>ch.includes(CARDS[i][2])).slice(0,3).forEach(i=>items.push({t:"card",i}));
+  const pool=shuffle(QUIZ.filter(q=>ch.includes(q.c))).sort((a,b)=>(S.wrong[b.c]||0)-(S.wrong[a.c]||0));
+  interleave(pool.slice(0,4)).forEach(q=>items.push({t:"mcq",q}));
+  const gaps=[];ch.forEach(id=>{const c=CH.find(x=>x.id===id),got=S.recall[id];if(got)c.terms.forEach((t,k)=>{if(!got.includes(k))gaps.push({c,t});});});
+  if(gaps.length){const g=shuffle(gaps)[0];items.push({t:"term",c:g.c,term:g.t});}
+  const c=CH.find(x=>x.id===shuffle(ch)[0]);items.push({t:"why",c,q:shuffle(c.qs)[0]});
+  items.push({t:"end"});
+  return {items,ch};
+}
+V.daily=()=>{
+  const {items,ch}=buildDaily();let i=0,right=0,asked=0;
+  $("#app").innerHTML=`<h1>אימון יומי</h1><p class="muted">מבוסס על ${ch.length>1?"פרקים":"פרק"} ${ch.join(", ")}. השאלות מעורבבות בין פרקים בכוונה — כך לומדים להבחין בין מושגים דומים.</p><div class="steps" id="steps">${items.map(()=>"<i></i>").join("")}</div><div class="card" id="dz"></div>`;
+  const next=()=>{i++;draw();};
+  const nextBtn=(label="הבא ←")=>{const b=document.createElement("div");b.className="row-btns";b.innerHTML=`<button class="btn primary" id="dn">${label}</button>`;$("#dz").appendChild(b);$("#dn").onclick=next;$("#dn").focus();};
+  const draw=()=>{
+    document.querySelectorAll("#steps i").forEach((el,k)=>el.classList.toggle("on",k<=i));
+    const it=items[i],z=$("#dz");
+    if(it.t==="check"){
+      z.innerHTML=`<h2>רגע לפני שמתחילים</h2><p>החומר עוסק בפגיעה ובאלימות. איך מתאים לך ללמוד היום?</p><div class="row-btns"><button class="btn primary" data-m="go">רגיל</button><button class="btn" data-m="theory">רק ברמה תיאורטית</button><button class="btn" data-m="stop">לא היום</button></div>`;
+      z.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const m=b.dataset.m;
+        if(m==="stop"){z.innerHTML=`<h2>בסדר גמור</h2><p>הפסקה היא חלק מלמידה טובה. החומר יחכה, והכרטיסיות לא ״נשרפות״. אם עלה משהו קשה — ער״ן 1201, בכל שעה.</p><div class="row-btns"><a class="btn" href="#home">לדף הבית</a></div>`;return;}
+        if(m==="theory"&&!S.theory){S.theory=true;save();applyPrefs();toast("מצב תיאורטי הופעל");}
+        next();});
+    } else if(it.t==="card"){
+      const c=CARDS[it.i];
+      z.innerHTML=`<div class="muted">כרטיסייה לחזרה · פרק ${c[2]}</div><div class="flash" id="fl" tabindex="0" role="button" aria-label="הפיכת הכרטיס"><div>${esc(c[0])}<div class="muted" style="font-size:.85rem;margin-top:10px">ענִי בראש, ואז לחצי</div></div></div><div class="row-btns hidden" id="rate"><button class="btn" id="no">לא ידעתי</button><button class="btn primary" id="yes">ידעתי</button></div>`;
+      const flip=()=>{$("#fl").innerHTML=`<div><div class="muted" style="font-size:.9rem">${esc(c[0])}</div><div class="a" style="margin-top:10px">${esc(c[1])}</div></div>`;$("#rate").classList.remove("hidden");};
+      $("#fl").onclick=flip;$("#fl").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}};
+      const ivl=[1,1,3,7,14,30];
+      $("#yes").onclick=()=>{const s=S.cards[it.i]||{box:0};s.box=Math.min(5,s.box+1);s.due=today()+ivl[s.box];S.cards[it.i]=s;save();right++;asked++;next();};
+      $("#no").onclick=()=>{S.cards[it.i]={box:0,due:today()+1};S.wrong[c[2]]=(S.wrong[c[2]]||0)+1;save();asked++;next();};
+    } else if(it.t==="mcq"){
+      z.innerHTML=`<div class="muted">שליפה · פרק ${it.q.c}</div><div id="dq"></div>`;
+      mcq($("#dq"),it.q,ok=>{asked++;if(ok){right++;if(S.wrong[it.q.c]>0)S.wrong[it.q.c]--;}else S.wrong[it.q.c]=(S.wrong[it.q.c]||0)+1;save();nextBtn();});
+    } else if(it.t==="term"){
+      z.innerHTML=`<div class="muted">מושג שלא נשלף בפעם הקודמת · פרק ${it.c.id}</div><h2>מה זה ״${esc(it.term[0])}״?</h2><textarea id="ta" placeholder="הסבר קצר במילים שלך..."></textarea><div class="row-btns"><button class="btn" id="rv">השוואה</button></div><div id="fbx"></div>`;
+      $("#rv").onclick=()=>{$("#fbx").innerHTML=`<div class="fb ok"><b>${esc(it.term[0])}</b>${esc(it.term[1])}</div><p class="muted">אם ההסבר שלך תפס את העיקר, סמני את המושג כ״נשלף״ בעמוד הפרק.</p>`;$("#rv").disabled=true;nextBtn();};
+    } else if(it.t==="why"){
+      z.innerHTML=`<div class="muted">שאלת ״למה?״ · פרק ${it.c.id}: ${esc(it.c.title)}</div><h2>${esc(it.q)}</h2><p class="muted" style="font-size:.92rem">2–3 משפטים. נסי לחבר לפרק אחר או לדוגמה.</p><textarea id="ta" placeholder="לדעתי, כי..."></textarea><div class="row-btns"><button class="btn" id="rv">הצגת הרעיון המרכזי</button></div><div id="fbx"></div>`;
+      $("#rv").onclick=()=>{$("#rv").disabled=true;$("#fbx").innerHTML=`<div class="fb ok"><b>הרעיון המרכזי של הפרק</b>${esc(it.c.key)}<br><span class="muted">${esc(it.c.links)}</span></div><p><b>עד כמה התשובה שלך כיסתה את זה?</b></p><div class="row-btns"><button class="btn" data-s="0">לא ממש</button><button class="btn" data-s="1">חלקית</button><button class="btn primary" data-s="2">היטב</button></div>`;
+        $("#fbx").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=+b.dataset.s;asked++;if(s===2)right++;if(s===0)S.wrong[it.c.id]=(S.wrong[it.c.id]||0)+1;save();next();});};
+    } else {
+      const t=today();if(S.daily.last!==t){S.daily.streak=S.daily.last===t-1?S.daily.streak+1:1;S.daily.last=t;}S.daily.n=(S.daily.n||0)+1;save();
+      const w=weakest(),nextCh=CH.find(c=>!S.read[c.id]);
+      z.innerHTML=`<h2>סיימת!${asked?` ${right}/${asked}`:""}</h2><p>רצף: <b>${S.daily.streak}</b> ${S.daily.streak===1?"יום":"ימים"} · סה״כ ${S.daily.n} אימונים.</p>
+      <p class="muted">${right/asked>=.8?"שליפה חזקה. מחר האימון יתבסס על מה שנשאר חלש.":"זה בדיוק הזמן שבו הלמידה קורית: מה ששכחת וחזרת אליו נשמר טוב יותר. הנושאים שבהם טעית יחזרו מחר."}</p>
+      ${w.length?`<p>כדאי לחזור על: ${w.map(c=>`<a href="#chapter/${c.id}">פרק ${c.id}</a>`).join(", ")}</p>`:""}
+      <div class="row-btns">${nextCh?`<a class="btn primary" href="#chapter/${nextCh.id}">לפרק הבא: ${esc(nextCh.title)}</a>`:""}<a class="btn" href="#home">לדף הבית</a></div>`;
+    }
+  };
+  draw();
+};
+
+V.chapters=()=>{
+  $("#app").innerHTML=`<h1>יחידות לימוד</h1><p class="muted">כל יחידה: הסבר פשוט ← סיכום אקדמי ← מושגים ← מקרה ← ביקורת מדעית ← שאלות לחשיבה ← ניסוח במילים שלך ← בוחן קצר.</p>
+  <h2>חלק א׳ · הפרעות טראומטיות</h2><div class="chap-list">${CH.filter(c=>c.part===1).map(chipCard).join("")}</div>
+  <h2 style="margin-top:24px">חלק ב׳ · שלבי החלמה</h2><div class="chap-list">${CH.filter(c=>c.part===2).map(chipCard).join("")}</div>`;
+};
+
+V.chapter=(id)=>{
+  const c=CH.find(x=>x.id===+id); if(!c){location.hash="#chapters";return;}
+  const prev=CH.find(x=>x.id===c.id-1), next=CH.find(x=>x.id===c.id+1);
+  $("#app").innerHTML=`
+  <p><a href="#chapters">→ כל הפרקים</a></p>
+  <span class="pill ${c.part===1?"p1":""}">חלק ${c.part===1?"א׳":"ב׳"} · פרק ${c.id}</span>
+  <h1>${esc(c.title)} <span class="muted" style="font-size:.6em">${esc(c.en)}</span></h1>
+  <details class="pretest" ${S.pre[c.id]?"":"open"}><summary><b>⓪ לפני הקריאה: נחשי</b> <span class="muted" style="font-size:.88rem">${S.pre[c.id]?"(בוצע)":"— 2 שאלות, טעויות כאן לא נספרות"}</span></summary>
+    <p class="muted" style="font-size:.92rem">ניסיון לענות <i>לפני</i> הלימוד — גם כשטועים — מכוון את הקשב למה שחשוב ומשפר את הזכירה אחר כך (״אפקט השאלות המקדימות״).</p><div id="pre"></div></details>
+  <div class="layer simple"><h3>① בפשטות</h3><p>${esc(c.simple)}</p></div>
+  <div class="card"><h3>② הסיכום האקדמי</h3><p>${esc(c.summary)}</p><p><b>הטענה המרכזית:</b> ${esc(c.claim)}</p></div>
+  <div class="card"><h3>③ מושגי יסוד</h3><dl class="terms">${c.terms.map(t=>`<dt>${esc(t[0])}</dt><dd>${esc(t[1])}</dd>`).join("")}</dl></div>
+  <div class="case"><h3>④ מקרה היפותטי</h3><p class="case-body">${esc(c.caseTxt)}</p></div>
+  <div class="grid g2">
+    <div class="card"><h3>⑤ קשרים בספר</h3><p>${esc(c.links)}</p><p class="muted" style="font-size:.9rem"><b>חוקרים ותיאורטיקנים:</b> ${esc(c.people)}</p></div>
+    <div class="card"><h3>⑥ ביקורת מדעית עדכנית</h3><p>${esc(c.critique)}</p></div>
+  </div>
+  <div class="card"><h3>⑦ שאלות לחשיבה</h3><ol>${c.qs.map(q=>`<li>${esc(q)}</li>`).join("")}</ol></div>
+  <div class="card"><h3>⑧ הסבר עצמי — במילים שלך</h3><p class="muted">לפני שמסתכלים על ״נקודה לזכירה״: נסחי ב־2–3 משפטים את רעיון הפרק. (נשמר אוטומטית.)</p>
+    <textarea id="note" placeholder="הרעיון המרכזי של הפרק הוא...">${esc(S.notes[c.id]||"")}</textarea>
+    <div class="row-btns"><button class="btn" id="revealKey">השוואה לנקודה לזכירה</button></div>
+    <div id="keyBox" class="fb ok hidden"><b>נקודה לזכירה</b>${esc(c.key)}<br><span class="muted" style="font-size:.9rem">בדקי: האם הניסוח שלך כולל את אותו רעיון? מה חסר?</span>
+      <div class="recall" style="margin-top:10px"><b>שליפה חופשית — אילו מושגים הזכרת בלי להציץ?</b>${c.terms.map((t,k)=>`<label><input type="checkbox" data-k="${k}" ${(S.recall[c.id]||[]).includes(k)?"checked":""}> ${esc(t[0])}</label>`).join("")}<div class="muted" id="recallMsg" style="font-size:.9rem"></div></div></div>
+  </div>
+  <div class="card"><h3>⑨ בוחן קצר על הפרק</h3><div id="cq"></div><div id="cqRes"></div></div>
+  <div class="row-btns">
+    <button class="btn primary" id="markRead">${S.read[c.id]?"✓ סומן כנלמד":"סימון היחידה כנלמדה"}</button>
+    ${prev?`<a class="btn" href="#chapter/${prev.id}">→ פרק ${prev.id}</a>`:""}
+    ${next?`<a class="btn" href="#chapter/${next.id}">פרק ${next.id} ←</a>`:""}
+  </div>`;
+  const ta=$("#note"); ta.oninput=()=>{S.notes[c.id]=ta.value;save();};
+  $("#revealKey").onclick=()=>{if(!ta.value.trim()&&!confirm("עוד לא כתבת כלום. הניסיון לשלוף לבד הוא מה שמחזק את הזיכרון — להציג בכל זאת?"))return;$("#keyBox").classList.remove("hidden");};
+  const recallMsg=()=>{const n=(S.recall[c.id]||[]).length,t=c.terms.length;$("#recallMsg").textContent=n?`${n}/${t} מושגים נשלפו. ${n<t?"המושגים שלא סימנת יחזרו אלייך באימון היומי.":"מצוין — שליפה מלאה."}`:"";};
+  document.querySelectorAll(".recall input").forEach(cb=>cb.onchange=()=>{const set=new Set(S.recall[c.id]||[]);cb.checked?set.add(+cb.dataset.k):set.delete(+cb.dataset.k);S.recall[c.id]=[...set];save();recallMsg();});
+  recallMsg();
+  QUIZ.filter(q=>q.c===c.id).slice(0,2).forEach(q=>mcq($("#pre"),q,()=>{S.pre[c.id]=true;save();}));
+  $("#markRead").onclick=()=>{S.read[c.id]=!S.read[c.id];save();$("#markRead").textContent=S.read[c.id]?"✓ סומן כנלמד":"סימון היחידה כנלמדה";toast(S.read[c.id]?"היחידה סומנה כנלמדה":"הסימון הוסר");};
+  const qs=QUIZ.filter(q=>q.c===c.id); let score=0,ans=0;
+  qs.forEach(q=>mcq($("#cq"),q,ok=>{ans++;if(ok)score++;else{S.wrong[c.id]=(S.wrong[c.id]||0)+1;}
+    if(ans===qs.length){S.quiz[c.id]=Math.max(S.quiz[c.id]||0,score);save();
+      $("#cqRes").innerHTML=`<div class="fb ${score===qs.length?"ok":"no"}"><b>${score}/${qs.length}</b>${score===qs.length?"שליטה מלאה בפרק.":"כדאי לחזור על ההסברים של השאלות שבהן טעית — הן יחזרו אלייך בדף הבית כחזרת שליפה."}</div>`;} else save();}));
+  window.scrollTo(0,0);
+};
+
+V.quiz=()=>{
+  $("#app").innerHTML=`<h1>בוחן שליפה</h1><p class="muted">שליפה פעילה מחזקת זיכרון יותר מקריאה חוזרת. בחרי טווח פרקים — השאלות מעורבבות, וכל תשובה מקבלת הסבר.</p>
+  <div class="card"><div class="row-btns" id="ranges">
+   <button class="btn" data-r="1-2">פרקים 1–2</button><button class="btn" data-r="3-4">3–4</button><button class="btn" data-r="5-6">5–6</button>
+   <button class="btn" data-r="1-4">חזרה מצטברת 1–4</button><button class="btn" data-r="7-8">7–8</button><button class="btn" data-r="9-11">9–11</button>
+   <button class="btn" data-r="5-8">חזרה מצטברת 5–8</button><button class="btn primary" data-r="1-11">בוחן מסכם — כל הספר</button></div></div>
+  <div id="qz"></div>`;
+  document.querySelectorAll("#ranges button").forEach(b=>b.onclick=()=>runQuiz(b.dataset.r));
+};
+function runQuiz(r){
+  const [a,b]=r.split("-").map(Number);
+  let pool=QUIZ.filter(q=>q.c>=a&&q.c<=b).sort(()=>Math.random()-.5);
+  if(pool.length>10) pool=pool.slice(0,10);
+  let i=0,score=0;const box=$("#qz");
+  const step=()=>{
+    if(i>=pool.length){
+      const pct=Math.round(score/pool.length*100);
+      box.innerHTML=`<div class="card"><h2>${score}/${pool.length} · ${pct}%</h2><p>${pct>=80?"עברת את רף השליטה (80%). מצוין!":"עוד לא 80%. השאלות שבהן טעית יחזרו אלייך בדף הבית; כדאי לעבור שוב על הפרקים הרלוונטיים."}</p><div class="row-btns"><button class="btn primary" id="again">בוחן נוסף באותו טווח</button><a class="btn" href="#home">לדף הבית</a></div></div>`;
+      $("#again").onclick=()=>runQuiz(r);return;
+    }
+    const q=pool[i];
+    box.innerHTML=`<div class="card"><div class="muted">שאלה ${i+1} מתוך ${pool.length} · פרק ${q.c}</div><div id="qq"></div><div class="row-btns"><button class="btn primary hidden" id="nx">הבאה ←</button></div></div>`;
+    mcq($("#qq"),q,ok=>{if(ok)score++;else S.wrong[q.c]=(S.wrong[q.c]||0)+1;save();$("#nx").classList.remove("hidden");$("#nx").focus();});
+    $("#nx").onclick=()=>{i++;step();};
+  };
+  step(); box.scrollIntoView({behavior:"smooth"});
+}
+
+V.cards=()=>{
+  const due=dueCards();
+  $("#app").innerHTML=`<h1>כרטיסיות — חזרה מרווחת</h1><p class="muted">שיטת לייטנר: כרטיס שידעת חוזר בעוד 1, 3, 7 ואז 14 יום; כרטיס שלא ידעת חוזר מחר. נסי לענות בראש לפני שהופכים.</p>
+  <div class="card" id="fc"></div>
+  <div class="card"><h3>ייצוא ל־Anki</h3><p class="muted">קובץ CSV (שאלה, תשובה, תגית) לייבוא ישיר ב־Anki. מומלץ לבדוק ידנית הגדרות קליניות מול הספר.</p><button class="btn" id="exp">הורדת CSV</button></div>`;
+  let q=[...due].sort(()=>Math.random()-.5),flipped=false;
+  const draw=()=>{
+    const fc=$("#fc");
+    if(!q.length){const t=today();const nxt=Math.min(...CARDS.map((_,i)=>S.cards[i]?S.cards[i].due:t));fc.innerHTML=`<h2>אין כרטיסיות לחזרה כרגע 🎉</h2><p class="muted">החזרה הבאה בעוד ${Math.max(1,nxt-t)} ימים. אפשר לתרגל בכל זאת:</p><button class="btn" id="all">תרגול כל ${CARDS.length} הכרטיסיות</button>`;$("#all").onclick=()=>{q=CARDS.map((_,i)=>i).sort(()=>Math.random()-.5);draw();};return;}
+    const i=q[0],c=CARDS[i];flipped=false;
+    fc.innerHTML=`<div class="muted">נשארו ${q.length} · פרק ${c[2]}</div><div class="flash" id="fl" tabindex="0" role="button" aria-label="הפיכת הכרטיס"><div>${esc(c[0])}<div class="muted" style="font-size:.85rem;margin-top:10px">לחצי כדי להפוך</div></div></div><div class="row-btns hidden" id="rate"><button class="btn" id="no">לא ידעתי</button><button class="btn primary" id="yes">ידעתי</button></div>`;
+    const flip=()=>{if(flipped)return;flipped=true;$("#fl").innerHTML=`<div><div class="muted" style="font-size:.9rem">${esc(c[0])}</div><div class="a" style="margin-top:10px">${esc(c[1])}</div></div>`;$("#rate").classList.remove("hidden");};
+    $("#fl").onclick=flip;$("#fl").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}};
+    const ivl=[1,1,3,7,14,30];
+    $("#yes").onclick=()=>{const s=S.cards[i]||{box:0};s.box=Math.min(5,s.box+1);s.due=today()+ivl[s.box];S.cards[i]=s;save();q.shift();draw();};
+    $("#no").onclick=()=>{S.cards[i]={box:0,due:today()+1};S.wrong[c[2]]=(S.wrong[c[2]]||0)+1;save();q.push(q.shift());draw();};
+  };
+  draw();
+  $("#exp").onclick=()=>{
+    const csv="﻿"+CARDS.map(c=>[c[0],c[1],"Herman::ch"+c[2]].map(x=>'"'+x.replace(/"/g,'""')+'"').join(",")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="herman-trauma-recovery-anki.csv";a.click();
+  };
+};
+
+V.practice=()=>{
+  $("#app").innerHTML=`<h1>תרגול יישומי</h1><p class="muted">מיון מקרים ומושגים — הדרך לבדוק שהבנת, לא רק שזכרת. בחרי קטגוריה לכל פריט ולחצי ״בדיקה״.</p><div id="pr"></div>`;
+  PRACTICE.forEach(ex=>{
+    const sec=document.createElement("section");sec.className="card";
+    sec.innerHTML=`<h2>${esc(ex.title)}</h2><p class="muted">${esc(ex.intro)}</p>${ex.items.map((it,k)=>`<div class="sort-item" data-k="${k}"><div>${esc(it[0])}</div><div class="chips">${ex.cats.map((c,j)=>`<button class="chip" data-j="${j}">${esc(c)}</button>`).join("")}</div><div class="why">${esc(it[2])}</div></div>`).join("")}<div class="row-btns"><button class="btn primary chk">בדיקה</button><button class="btn rst">ניסיון חוזר</button><span class="res"></span></div>`;
+    const sel={};
+    sec.querySelectorAll(".sort-item").forEach(el=>el.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{el.classList.remove("right","wrong");el.querySelectorAll(".chip").forEach(x=>x.classList.remove("sel"));ch.classList.add("sel");sel[el.dataset.k]=+ch.dataset.j;}));
+    sec.querySelector(".chk").onclick=()=>{let ok=0;sec.querySelectorAll(".sort-item").forEach(el=>{const k=+el.dataset.k,r=sel[k]===ex.items[k][1];el.classList.toggle("right",r);el.classList.toggle("wrong",!r);if(r)ok++;});S.prac[ex.id]=Math.max(S.prac[ex.id]||0,Math.round(ok/ex.items.length*100));save();sec.querySelector(".res").innerHTML=`<b>${ok}/${ex.items.length}</b> ${ok===ex.items.length?"— מושלם!":"— קראי את ההסברים בפריטים האדומים."}`;};
+    sec.querySelector(".rst").onclick=()=>{for(const k in sel)delete sel[k];sec.querySelectorAll(".sort-item").forEach(el=>{el.classList.remove("right","wrong");el.querySelectorAll(".chip").forEach(x=>x.classList.remove("sel"));});sec.querySelector(".res").textContent="";};
+    $("#pr").appendChild(sec);
+  });
+};
+
+V.lesson=()=>{
+  const L=S.lesson;
+  $("#app").innerHTML=`<h1>שיעור סוקרטי: הקדמה ופרק 1</h1><p class="muted">כך עובד מורה טוב: פתיחה בטוחה, אבחון ידע קודם, הסבר מדורג, שאלה פתוחה עם משוב מנומק, מקרה בוחן וכרטיסייה. כתבי תשובה לפני כל חשיפה — זה העיקר.</p>
+  <div class="card chat">
+    <div class="msg t"><small>המורה</small>ברוכה הבאה לשיעור הראשון. הספר עוסק בנושאים כבדים; בכל רגע אפשר ללחוץ ״מצב תיאורטי״ למעלה, או פשוט לעצור. לפני שמסבירים — שאלת בדיקה: כשאת שומעת <b>״אמנזיה אפיזודית״</b> בהקשר של היסטוריית הפסיכולוגיה, למה לדעתך הרמן מתכוונת?</div>
+    <div class="msg s"><small>את</small><textarea data-k="a1" placeholder="הניחוש שלי...">${esc(L.a1||"")}</textarea></div>
+    <div class="row-btns"><button class="btn primary" data-step="1">המשך ←</button></div>
+  </div>
+  <div class="card chat hidden" id="st1">
+    <div class="msg t"><small>המורה · הסבר נגיש</small>תחשבי על חברה שמתנהגת כמו משפחה ששומרת סוד מביך. כל כמה עשורים חוקרים אמיצים מגלים שהטראומה אמיתית ושכיחה — וכשהגילוי מאיים על מוסדות חזקים (צבא, המבנה המשפחתי), החברה ״שוכחת״ ומתייגת את הנפגעים כחלשים או כמדמיינים.</div>
+    <div class="msg t"><small>המורה · הרחבה אקדמית</small>הרמן מזהה שלושה מחזורים: <b>היסטריה</b> בצרפת של סוף המאה ה־19 (שארקו, ז׳אנה, פרויד) על רקע הרפובליקניזם האנטי־קלריקלי; <b>הלם קרב</b> במלחמות העולם ובווייטנאם (קרדינר, ליפטון, שטן) על רקע התנועה האנטי־מלחמתית — שהוביל להכרה ב־PTSD ב־DSM-III ב־1980; והכרה ב<b>אלימות מינית ומשפחתית</b> בשנות ה־70 (ברג׳ס והולמסטרום, ווקר) על רקע הגל השני של הפמיניזם.</div>
+    <div class="msg t"><small>המורה</small>עכשיו נסי לנסח במילים שלך: מה התנאי שמאפשר לחקר הטראומה להתקדם?</div>
+    <div class="msg s"><small>את</small><textarea data-k="a2" placeholder="במילים שלי...">${esc(L.a2||"")}</textarea></div>
+    <div class="row-btns"><button class="btn primary" data-step="2">המשך ←</button></div>
+  </div>
+  <div class="card chat hidden" id="st2">
+    <div class="fb ok"><b>בדיקה עצמית</b>תשובה מלאה כוללת: תנועה חברתית/פוליטית שתומכת בנפגעים ומאפשרת לשמוע אותם; בלעדיה — ההכחשה חוזרת.</div>
+    <div class="msg t"><small>המורה · שאלה סוקרטית</small>מדוע לדעת הרמן פרויד חזר בו מ״תיאוריית הפיתוי״ ב־1897, ומה הייתה ההשלכה הקלינית למשך כמעט מאה שנה?</div>
+    <div class="msg s"><small>את</small><textarea data-k="a3" placeholder="התשובה שלי...">${esc(L.a3||"")}</textarea></div>
+    <div class="row-btns"><button class="btn primary" data-step="3">קבלת משוב ←</button></div>
+  </div>
+  <div class="card chat hidden" id="st3">
+    <div class="msg t"><small>המורה · משוב מנומק</small>תשובה ברמת מבחן צריכה לכלול שלושה רכיבים — סמני מה יש אצלך:
+      <div class="task"><input type="checkbox" id="r1"><label for="r1"><b>לפי הרמן:</b> ריבוי עדויות על פגיעה מינית במשפחות ״מכובדות״ בווינה אילץ להכיר בתופעה נפוצה — ופרויד לא עמד בלחץ החברתי והמקצועי.</label></div>
+      <div class="task"><input type="checkbox" id="r2"><label for="r2"><b>ההשלכה:</b> מעבר מייחוס לפגיעה ממשית לייחוס ל״פנטזיה לא מודעת״ — עדויות נפגעים לא נלקחו ברצינות במשך עשורים.</label></div>
+      <div class="task"><input type="checkbox" id="r3"><label for="r3"><b>הסתייגות ביקורתית:</b> היסטוריונים מציינים שפרויד הושפע גם משיקולים תיאורטיים פנימיים (מודל הדחפים), לא רק מלחץ חיצוני.</label></div>
+    </div>
+    <div class="msg t"><small>המורה</small>הרכיב השלישי הוא מה שמבדיל תשובה טובה ממצוינת: להבחין בין <i>הטענה של הרמן</i> לבין <i>הקונצנזוס ההיסטורי</i>.</div>
+    <div class="case"><h3>מקרה בוחן ליישום</h3><p class="case-body">רופא צבאי ב־1917 כותב על חייל רועד שאיבד את קולו: ״הוא מסרב לחזור לחזית מתוך חוסר גבריות ואופי מולד חלש״.</p></div>
+    <div class="msg t"><small>המורה</small>נסחי 2 משפטים המסבירים את האבחנה הזו דרך <b>הדיאלקטיקה של הטראומה</b> ו<b>ההקשר הפוליטי</b> של פרק 1.</div>
+    <div class="msg s"><small>את</small><textarea data-k="a4" placeholder="שני משפטים...">${esc(L.a4||"")}</textarea></div>
+    <div class="row-btns"><button class="btn primary" data-step="4">סיום השיעור ←</button></div>
+  </div>
+  <div class="card hidden" id="st4">
+    <div class="fb ok"><b>תשובה לדוגמה</b>בהיעדר תנועה ציבורית שהכירה בנזקי המלחמה, החברה בחרה בצד ההכחשה שבדיאלקטיקה: הסבל יוחס לפגם אישי ולא לאירוע. רק כשהתנועה האנטי־מלחמתית (וייטנאם) נתנה גב לנפגעים, אותו מופע הוכר כתגובה טראומטית (DSM-III, 1980).</div>
+    <h3 style="margin-top:14px">כרטיסייה ראשונה לשימור</h3>
+    <p><b>ש:</b> מהם שלושת הגלים הפוליטיים שאפשרו את חקר הטראומה?<br><b>ת:</b> רפובליקניזם צרפתי (היסטריה); תנועה אנטי־מלחמתית (הלם קרב/PTSD); פמיניזם של שנות ה־70 (אלימות מינית וביתית).</p>
+    <p class="muted">הכרטיסייה כבר נמצאת בחפיסה שלך. ההמשך המומלץ: יחידת פרק 1 המלאה והבוחן שלה.</p>
+    <div class="row-btns"><a class="btn primary" href="#chapter/1">ליחידה של פרק 1</a><a class="btn" href="#cards">לכרטיסיות</a></div>
+  </div>`;
+  document.querySelectorAll("#app textarea[data-k]").forEach(t=>t.oninput=()=>{S.lesson[t.dataset.k]=t.value;save();});
+  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{const n=b.dataset.step,el=$("#st"+n);el.classList.remove("hidden");b.closest(".row-btns").classList.add("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});});
+};
+
+V.research=()=>{
+  $("#app").innerHTML=`<h1>הרמן מול המחקר העדכני</h1><p class="muted">מה שרד את המבחן האמפירי, מה עודכן, ומה שנוי במחלוקת. נדרש לשבוע 6 ולכל עבודה אקדמית.</p>
+  <div class="card"><h2>ICD-11 מול DSM-5-TR</h2><div class="tbl-wrap"><table>
+   <tr><th></th><th>ICD-11 (WHO, בתוקף מ־2022)</th><th>DSM-5-TR (APA)</th></tr>
+   <tr><td><b>מבנה</b></td><td>שתי אבחנות: PTSD ‏(6B40) ו־Complex PTSD ‏(6B41)</td><td>אבחנה אחת רחבה (20 תסמינים) + מאפיין דיסוציאטיבי</td></tr>
+   <tr><td><b>CPTSD</b></td><td>תסמיני PTSD + 3 אשכולות DSO: דיסרגולציה רגשית, תפיסה עצמית שלילית, הפרעות ביחסים</td><td>לא הוכרה כאבחנה נפרדת</td></tr>
+   <tr><td><b>הקשר להרמן</b></td><td>מימוש ישיר של הצעת פרק 6 (1992)</td><td>הרחבת PTSD במקום פיצול</td></tr>
+  </table></div><p class="muted" style="font-size:.9rem">Karatzias et al., 2018; שכיחות עולמית מוערכת של CPTSD — כ־6.2% (Lee et al., 2026).</p></div>
+  <div class="grid g3">
+   <div class="card"><h3>זיכרונות ״מודחקים״</h3><p><b>הרמן:</b> תמיכה זהירה בהיפנוזה ובשחזור זיכרונות.</p><p><b>היום:</b> טכניקות סוגסטיביות עלולות להשתיל זיכרונות שווא (Otgaar et al., 2019). עיבוד נרטיבי של זיכרונות נגישים (CPT, NET) מתוקף היטב.</p><span class="pill">שנוי במחלוקת</span></div>
+   <div class="card"><h3>שלב א׳ כחובה</h3><p><b>הרמן:</b> ייצוב לפני עיבוד.</p><p><b>היום:</b> מטה־אנליזה של 16 ניסויים (Lee, Park & Cho, 2026): עיבוד ישיר יעיל באותה מידה על PTSD (g = 0.04), ייצוב מועיל לדיסרגולציה.</p><span class="pill">נתמך חלקית — התאמה גמישה</span></div>
+   <div class="card"><h3>נוירוביולוגיה</h3><p><b>לניוס (2010):</b> תת־מודולציה (הצפה) מול יתר־מודולציה (דיסוציאציה).</p><p><b>Scheeringa (2025):</b> חלק מההבדלים משקפים פגיעוּת מוקדמת. <b>Grossman et al. (2026):</b> קונצנזוס של 39 מומחים הדוחה את יסודות התיאוריה הפולי־וגאלית.</p><span class="pill">עדכון והסתייגות</span></div>
+  </div>
+  <div class="card"><h2>מהדורות הספר</h2><ul>
+   <li><b>1992</b> — מהדורה ראשונה (Basic Books): Complex PTSD ומודל שלושת השלבים.</li>
+   <li><b>1997</b> — אחרית דבר ״The Dialectic of Trauma Continues״: מלחמות הזיכרון.</li>
+   <li><b>2015</b> — אפילוג: ACEs, נוירוביולוגיה, DSM-5/ICD-11, ביקורת על טיפולים קצרים נוקשים.</li>
+   <li><b>2022</b> — מהדורת 30 שנה: טיפול מיודע־טראומה, נוירופידבק, פסיכדליה.</li>
+   <li><b>עברית</b> — עם עובד, 1994 (תרגום עתליה זילבר); חידוש 2017 (אחרית הדבר בתרגום כרמית גיא).</li>
+   <li><b>2023</b> — ספר ההמשך <i>Truth and Repair</i>: צדק מאחה.</li></ul></div>
+  <div class="row-btns"><a class="btn primary" href="#practice">לתרגיל ״הרמן 1992 מול המחקר העדכני״</a></div>
+  <div class="card"><h2>מקורות</h2><p class="muted" style="font-size:.9rem">המקורות שעליהם נשען המדריך. מומלץ לצטט מהם (ולא מהסיכומים) בעבודה אקדמית.</p><ol class="src">${SOURCES.map(([t,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join("")}</ol></div>`;
+};
+
+V.resources=()=>{
+  const F={lang:"all",wk:0};
+  const curWeek=(PLAN.find(w=>w.tasks.some((_,i)=>!S.plan[w.w+"-"+i]))||PLAN[PLAN.length-1]).w;
+  const draw=()=>{
+    const list=RES.map((r,i)=>({...r,i})).filter(r=>(F.lang==="all"||r.l===F.lang)&&(!F.wk||r.wk.includes(F.wk)));
+    const done=Object.keys(S.res).filter(k=>S.res[k]).length;
+    $("#app").innerHTML=`<h1>17 משאבים מאומתים</h1><p class="muted">אין קורס MOOC חינמי שמלמד את הספר פרק אחר פרק, אז נבנה אחד משילוב של הרצאות של הרמן, סיכומים קליניים, פודקאסטים וסילבוסים. הדירוג משקלל איכות אקדמית, עומק, נגישות ויעילות. נבדקו בנובמבר 2026.</p>
+    <div class="card"><div class="muted">סימנת ${done} מתוך ${RES.length} משאבים</div><div class="meter"><i style="width:${Math.round(done/RES.length*100)}%"></i></div></div>
+    <div class="filters" role="group" aria-label="שפה">${[["all","כל השפות"],["he","עברית"],["en","אנגלית"],["ru","רוסית"]].map(([k,t])=>`<button data-lang="${k}" class="${F.lang===k?"on":""}">${t}</button>`).join("")}</div>
+    <div class="filters" role="group" aria-label="שבוע">${[0,1,2,3,4,5,6].map(w=>`<button data-wk="${w}" class="${F.wk===w?"on":""}">${w?`שבוע ${w}${w===curWeek?" (עכשיו)":""}`:"כל השבועות"}</button>`).join("")}</div>
+    ${list.length?list.map(r=>`<div class="card rsrc"><input type="checkbox" id="r${r.i}" data-i="${r.i}" ${S.res[r.i]?"checked":""} aria-label="סימון: עברתי על המשאב"><div style="min-width:0">
+      <h3><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.n)}</a></h3><div class="muted" style="font-size:.88rem">${esc(r.o)}</div>
+      <div class="meta"><span class="pill p1">${LANG[r.l]}</span><span class="pill">${esc(r.cost)}</span><span class="pill">שבוע ${r.wk.length>3?"1–6":r.wk.join("–")}</span><span class="stars" aria-label="דירוג ${r.r} מתוך 5">${"★".repeat(r.r)}${"☆".repeat(5-r.r)}</span></div>
+      <p><b>סוג:</b> ${esc(r.t)} · <b>זיקה לספר:</b> ${esc(r.rel)}</p><p>${esc(r.fit)}</p></div></div>`).join(""):`<p class="muted">אין משאבים בסינון הזה.</p>`}
+    <div class="notice"><b>שימי לב:</b> משאבים שאינם ברשימה הזו (למשל ״קורסים״ כלליים על טראומה שנמצאו בחיפוש מהיר) לא נבדקו. לפני שמשקיעים זמן או כסף — בודקים מי המפעיל ומה הזיקה האמיתית לספר.</div>`;
+    document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{F.lang=b.dataset.lang;draw();});
+    document.querySelectorAll("[data-wk]").forEach(b=>b.onclick=()=>{F.wk=+b.dataset.wk;draw();});
+    document.querySelectorAll(".rsrc input").forEach(cb=>cb.onchange=()=>{S.res[cb.dataset.i]=cb.checked;save();draw();});
+  };
+  draw();
+};
+
+V.plan=()=>{
+  const [d,t]=planDone();
+  $("#app").innerHTML=`<h1>תוכנית ל־6 שבועות</h1><p class="muted">כ־2 פרקים בשבוע (4–5 שעות). שלושה עקרונות: <b>שליפה פעילה</b> (לבחון את עצמך לפני שמציצים), <b>הסבר עצמי</b> (במילים שלך), ו<b>חזרה מרווחת מצטברת</b> (שבוע 3 על 1–2; שבוע 5 על 5–8; שבוע 6 על הכול).</p>
+  <div class="card"><div class="muted">הושלמו ${d} מתוך ${t} משימות</div><div class="meter"><i style="width:${Math.round(d/t*100)}%"></i></div></div>
+  ${PLAN.map(w=>{const n=w.tasks.filter((_,i)=>S.plan[w.w+"-"+i]).length;return `<details class="week" ${n<w.tasks.length&&PLAN.findIndex(x=>x.tasks.some((_,i)=>!S.plan[x.w+"-"+i]))===w.w-1?"open":""}><summary>שבוע ${w.w}: ${esc(w.t)}<span class="n">${n}/${w.tasks.length} · ${w.h}</span></summary><div class="body"><p><b>מטרה מדידה:</b> ${esc(w.goal)}</p>${w.tasks.map((tk,i)=>`<div class="task"><input type="checkbox" id="p${w.w}-${i}" data-k="${w.w}-${i}" ${S.plan[w.w+"-"+i]?"checked":""}><label for="p${w.w}-${i}">${esc(tk)}</label></div>`).join("")}</div></details>`;}).join("")}
+  <div class="card"><h2>מדדי שליטה</h2><ol><li><b>הסבר עצמי:</b> להסביר 80% ממושגי המפתח בעל־פה בלי סיכומים.</li><li><b>יישום וחיבור:</b> לנתח מקרה תוך קישור בין פרק בחלק א׳ לשלב החלמה בחלק ב׳.</li><li><b>חשיבה ביקורתית:</b> להציג לפחות 2 הבחנות בין הרמן 1992 למחקר העדכני.</li></ol></div>
+  <div class="card method"><h2>איך הלומדה בנויה — ולמה</h2><p class="muted">כל רכיב כאן נבחר לפי מחקר על למידה. הטכניקות האפקטיביות ביותר מרגישות דווקא <i>קשות</i> יותר מקריאה חוזרת — זה סימן שהן עובדות.</p><dl>
+   <dt>① שאלות לפני הקריאה (בראש כל פרק)</dt><dd>ניסיון לענות לפני הלימוד, גם כשטועים, משפר את הלמידה של החומר שאחריו.</dd>
+   <dt>② שליפה פעילה (בוחנים, כרטיסיות, ״במילים שלך״)</dt><dd>הטכניקה החזקה ביותר. סקירה של 50 ניסויים בכיתות: ב־57% מהם התועלת הייתה בינונית עד גדולה (Agarwal et al., 2021). מטה־אנליזה בכיתות אמיתיות: g = 0.37 (Ruitenburg et al., 2026).</dd>
+   <dt>③ חזרה מרווחת (כרטיסיות + אימון יומי)</dt><dd>חזרה על פני ימים עדיפה על ״דחיסה״ לפני מבחן (Carpenter et al., 2022; בכיתות: g = 0.20, Ruitenburg et al., 2026).</dd>
+   <dt>④ שזירה (האימון היומי מערבב פרקים)</dt><dd>ערבוב נושאים מלמד להבחין בין מושגים קרובים — למשל עוררות יתר מול חודרנות, CPTSD מול BPD (g = 0.40, בעיקר כשיש משוב; Ruitenburg et al., 2026).</dd>
+   <dt>⑤ הסבר עצמי ושאלות ״למה?״</dt><dd>ניסוח העיקרון במילים שלך וחיבור לפרקים אחרים מעמיקים את ההבנה (Roediger & Pyc, 2012; Weinstein et al., 2018).</dd>
+   <dt>⑥ דוגמאות קונקרטיות + תרשים</dt><dd>מקרים היפותטיים וספירלת ההחלמה ממחישים רעיון מופשט בשני ערוצים (מילים + תמונה).</dd>
+   <dt>⑦ בטיחות רגשית</dt><dd>שאלת פתיחה בכל אימון, ״מצב תיאורטי״ ו״לא היום״ — לימוד תוכן טראומטי צריך לאפשר שליטה ובחירה ללומדת.</dd>
+  </dl><p class="muted" style="font-size:.9rem"><b>הכי חשוב:</b> סטודנטים בדרך כלל <i>יודעים</i> מה עובד, אבל לא עושים את זה בגלל המאמץ והיעדר הרגל (Rea et al., 2022). לכן האימון היומי בנוי כך שכל מה שצריך הוא ללחוץ על כפתור אחד, 10 דקות ביום.</p></div>`;
+  document.querySelectorAll(".task input[data-k]").forEach(cb=>cb.onchange=()=>{S.plan[cb.dataset.k]=cb.checked;save();const [dd,tt]=planDone();document.querySelector("#app .card .muted").textContent=`הושלמו ${dd} מתוך ${tt} משימות`;document.querySelector("#app .card .meter i").style.width=Math.round(dd/tt*100)+"%";});
+};
+
+V.ai=()=>{
+  $("#app").innerHTML=`<h1>הרחבה: מורה AI חיצוני</h1><p class="muted">האתר הזה מכסה את שלד הלמידה. לשיחה חופשית וקולית אפשר לחבר שלושה כלים חינמיים — כל אחד לתפקיד אחר.</p>
+  <div class="grid g3">
+   <div class="card"><span class="pill p1">שכבה 1</span><h3>NotebookLM — עיגון</h3><p>מעלים רק חומרים שברשותך כחוק (סיכומים, מאמרים, ההערות שלך). מפיקים מפת מושגים ו״תקציר שמע״ בעברית לנסיעות.</p></div>
+   <div class="card"><span class="pill">שכבה 2</span><h3>Gemini / Claude / ChatGPT — מורה סוקרטי</h3><p>צ׳אט במצב לימוד (Guided Learning / Study Mode / Project) עם פרומפט המערכת שלמטה. Gemini Live מאפשר שיחה קולית בעברית.</p></div>
+   <div class="card"><span class="pill">שכבה 3</span><h3>Anki — שימור</h3><p>ייבוא קובץ ה־CSV מעמוד הכרטיסיות. בודקים ידנית הגדרות קליניות — כלי AI טועים לעיתים בכרטיסיות.</p></div>
+  </div>
+  <div class="card"><h2>השוואת הכלים (נובמבר 2026)</h2><p class="muted" style="font-size:.9rem">אין אפליקציה אחת שעושה הכול: שינויי פלטפורמה ומסנני בטיחות על תכנים קשים מפצלים את היכולות. לכן משלבים.</p><div class="tbl-wrap"><table class="cmp">
+   <tr><th></th><th>NotebookLM</th><th>Gemini</th><th>ChatGPT</th><th>Claude</th></tr>
+   <tr><td>מצב לימוד סוקרטי</td><td><a href="https://support.google.com/gemininotebook/answer/18323649?hl=en" target="_blank" rel="noopener">Learning Overviews</a>, בחנים וכרטיסיות</td><td><a href="https://blog.google/products-and-platforms/products/education/guided-learning/" target="_blank" rel="noopener">Guided Learning</a> — חינם לכולם</td><td><a href="https://help.openai.com/en/articles/11780217-using-study-mode-in-chatgpt" target="_blank" rel="noopener">Study Mode</a> (חינם, אבל לא בתוך Projects)</td><td>Learning Mode במוסדות; אפשר לנסח בהוראות Project</td></tr>
+   <tr><td>קבצים</td><td><a href="https://support.google.com/gemininotebook/answer/16213268?hl=en" target="_blank" rel="noopener">50 מקורות חינם</a> למחברת</td><td>10 קבצים לפרומפט; חיבור ל־Drive ול־NotebookLM</td><td>Projects: 5 קבצים חינם, 25 ב־Plus. Custom GPTs פורשים ב־11.12.2026</td><td><a href="https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects" target="_blank" rel="noopener">Projects</a> ללא הגבלת מספר קבצים (30MB לקובץ)</td></tr>
+   <tr><td>קול ועברית</td><td><a href="https://support.google.com/gemininotebook/answer/16212820?hl=en" target="_blank" rel="noopener">Audio Overviews</a> כולל עברית; מצב Join באנגלית בלבד</td><td><a href="https://support.google.com/gemini/answer/15984485?hl=en" target="_blank" rel="noopener">Gemini Live</a> בעברית (לא בתוך Gems)</td><td>קול חדש מ־11.12.2026; 3 שעות ב־Plus</td><td>הכתבה במובייל; אין שיחה קולית סוקרטית רציפה</td></tr>
+   <tr><td>זיכרון ומעקב</td><td>הערות וצ׳אט במחברת; אין מעקב רוחבי</td><td>היסטוריה + מסמך התקדמות ב־Google Docs</td><td>זיכרון רוחבי + בידוד לפי Project</td><td>זיכרון וחיפוש צ׳אטים בכל התוכניות</td></tr>
+   <tr><td>חולשות ומחיר</td><td>חינם (Pro ‏$19.99). פילטר בטיחות עלול לחסום תיאורי אלימות קשים</td><td>חינם; AI Pro ‏$19.99</td><td>חינם / Plus ‏$20. פיצול בין Projects ל־Study Mode</td><td>חינם / Pro ‏$20. אין מצב שמע סוקרטי</td></tr>
+  </table></div><p class="muted" style="font-size:.85rem">מחירים ויכולות משתנים מהר. בדקי בעמודי העזרה המקושרים לפני שמחליטים.</p></div>
+  <div class="card"><h2>הקמה בשלושה צעדים (בחינם, בלי קוד)</h2><ol>
+   <li><b>מחברת ב־NotebookLM:</b> מעלים רק קבצים שברשותך כחוק. מפיקים מפת מושגים ותקציר שמע בעברית.</li>
+   <li><b>מורה סוקרטי:</b> צ׳אט ב־Guided Learning או Project עם הוראות, מחברים מסמך מעקב ב־Drive ומדביקים את הפרומפט שלמטה.</li>
+   <li><b>Anki:</b> בסוף כל שבוע מייצאים כרטיסיות ל־CSV (גם מעמוד הכרטיסיות כאן) ומייבאים ל־<a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a>. בודקים ידנית הגדרות קליניות — כלי AI טועים בכ־5% מהכרטיסיות.</li></ol></div>
+  <div class="card"><h2>תוכנית הטמעה ופיילוט</h2><ol>
+   <li><b>יום 1 — מיפוי:</b> לסמן פרקים מוכרים מול חדשים ולהגדיר יעד (בחינה, סמינריון או דיון בכיתה).</li>
+   <li><b>יום 2 — ארגון מקורות:</b> הספר, סיכומים ו־4–5 מאמרי עומק בתיקיית קורס אחת.</li>
+   <li><b>ימים 3–4 — פיילוט:</b> להריץ את המורה על פרק 1 בלבד ולבדוק דיוק ואיכות משוב.</li>
+   <li><b>שבועות 1–6 — הטמעה:</b> 2 פרקים בשבוע; בדיקת שימור בסוף שבוע 3 ושבוע 6.</li>
+   <li><b>הלאה:</b> אותו שלד (NotebookLM + מורה סוקרטי + Anki) מתאים לכל קורס — מחליפים רק את חומרי המקור.</li></ol></div>
+  <div class="card"><h2>פרוטוקול בטיחות רגשית</h2><ul>
+   <li>לומדים במנות קצובות, לא מרתון.</li>
+   <li>קובעים מראש <b>מילת עצירה</b> (למשל ״בואי נעבור לרמה תיאורטית״) — והמורה חייב לכבד אותה מיד. כאן באתר: כפתור ״מצב תיאורטי״ בראש העמוד.</li>
+   <li>זוכרים את ההבחנה: לימוד תיאורטי על טראומה אינו ליווי או טיפול. אם עולה מצוקה — ער״ן 1201.</li></ul></div>
+  <div class="card"><h2>פרומפט מערכת מוכן</h2><p class="muted">מעתיקים ומדביקים בהוראות הפרויקט / ה־Gem.</p><pre class="prompt" id="sp">${esc(SYSTEM_PROMPT)}</pre><div class="row-btns"><button class="btn primary" id="cp">העתקה</button></div></div>
+  <div class="notice"><b>זכויות יוצרים ודיוק:</b> הטקסט המלא של הספר מוגן. אין להעלות עותקים לא מורשים, ויש לבקש מהמורה לא להמציא ציטוטים או מספרי עמודים.</div>`;
+  $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(SYSTEM_PROMPT);toast("הפרומפט הועתק");}catch(e){const r=document.createRange();r.selectNodeContents($("#sp"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("סמנתי את הטקסט — העתיקי עם Ctrl+C");}};
+};
+
+/* ===================== ROUTER ===================== */
+function route(){
+  PATH_OPEN=null;
+  const h=(location.hash||"#home").slice(1);const [v,arg]=h.split("/");
+  const fn=V[v]||V.home; fn(arg);
+  const tab=v==="chapter"?"chapters":(V[v]?v:"home");
+  document.querySelectorAll("#tabs a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+tab));
+  if(v!=="chapter") window.scrollTo(0,0);
+}
+addEventListener("hashchange",route);
+applyPrefs(); route();
+</script>
+</body>
+</html>
