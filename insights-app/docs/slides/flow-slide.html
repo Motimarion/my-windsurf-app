@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שקף זרימה — דוח תובנות משולב</title>
+<style>
+  /* שקף 1920×1080. נפתח בדפדפן וגם מיוצא ל־PNG (docs/slides/flow-slide.png). */
+  :root {
+    --bg: #12161f;
+    --panel: #1a1f2b;
+    --line: #2c3343;
+    --ink: #eef0f5;
+    --ink-2: #b4bacb;
+    --muted: #7f879b;
+    --code: #5fb3b3;
+    --engine: #e0a64a;
+    --store: #7fbf8a;
+    --human: #d98aa8;
+    --gate: #9b8ce0;
+    font-family: 'Heebo', 'Assistant', 'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  .slide {
+    width: 1920px; height: 1080px; position: relative; overflow: hidden;
+    display: grid; grid-template-columns: 1180px 1fr; gap: 28px; padding: 40px 48px;
+    background:
+      radial-gradient(900px 600px at 85% 10%, rgba(95,179,179,0.10), transparent 70%),
+      radial-gradient(700px 500px at 10% 90%, rgba(224,166,74,0.08), transparent 70%),
+      var(--bg);
+  }
+  header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+  header h1 { margin: 0; font-size: 44px; letter-spacing: -0.01em; }
+  header .eyebrow { color: var(--gate); font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  header .meta { color: var(--muted); font-size: 17px; text-align: left; line-height: 1.5; }
+  .diagram { background: rgba(26,31,43,0.6); border: 1px solid var(--line); border-radius: 18px; position: relative; }
+  svg text { font-family: inherit; }
+  .qa { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px 26px; display: flex; flex-direction: column; gap: 13px; }
+  .qa h2 { margin: 0 0 4px; font-size: 26px; }
+  .q { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; }
+  .q .n { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: 16px; margin-top: 2px; }
+  .q b { display: block; font-size: 19px; margin-bottom: 2px; }
+  .q p { margin: 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.45; }
+  .tag { display: inline-block; padding: 0 7px; border-radius: 6px; font-size: 13.5px; font-weight: 700; }
+  .t-code { background: rgba(95,179,179,0.18); color: var(--code); }
+  .t-engine { background: rgba(224,166,74,0.18); color: var(--engine); }
+  .t-store { background: rgba(127,191,138,0.18); color: var(--store); }
+  .principle { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; font-size: 16px; color: var(--ink); }
+  .principle span { color: var(--engine); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <header>
+    <div>
+      <div class="eyebrow">◆ מטלת הקורס, סעיף 03 · שקף הזרימה של הכלי</div>
+      <h1>דוח תובנות משולב — איך המערכת בנויה</h1>
+    </div>
+    <div class="meta">מיומנויות וסוגיות ב־AI לאנשי למידה · HIT<br>MVP עובד · React + TypeScript · נתונים במכשיר בלבד</div>
+  </header>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1180 880" width="1180" height="880" role="img" aria-label="תרשים זרימה: מהקלט של המשתמש דרך תחנות קוד ותחנת מנוע מתוכננת אל הדוח">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#8a93a8"/>
+        </marker>
+        <marker id="arE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e0a64a"/>
+        </marker>
+      </defs>
+
+      <!-- מקרא -->
+      <g font-size="15" fill="#b4bacb">
+        <rect x="900" y="22" width="16" height="16" rx="4" fill="#5fb3b3"/><text x="890" y="35" text-anchor="start">תחנת קוד</text>
+        <rect x="780" y="22" width="16" height="16" rx="4" fill="none" stroke="#e0a64a" stroke-width="2" stroke-dasharray="4 3"/><text x="770" y="35" text-anchor="start">תחנת מנוע (מתוכננת)</text>
+        <rect x="590" y="22" width="16" height="16" rx="4" fill="#7fbf8a"/><text x="580" y="35" text-anchor="start">מאגר / זיכרון</text>
+        <rect x="455" y="22" width="16" height="16" rx="4" fill="#d98aa8"/><text x="445" y="35" text-anchor="start">אדם</text>
+        <rect x="355" y="22" width="16" height="16" rx="4" fill="#9b8ce0"/><text x="345" y="35" text-anchor="start">שער</text>
+      </g>
+
+      <!-- חיצים (מצוירים ראשונים, מתחת לתחנות) -->
+      <g stroke="#8a93a8" stroke-width="2.2" fill="none" marker-end="url(#ar)">
+        <path d="M720,128 L720,160"/>
+        <path d="M640,238 L470,290"/>
+        <path d="M800,238 L930,290"/>
+        <path d="M720,238 L720,290"/>
+        <path d="M470,372 L600,430"/>
+        <path d="M900,442 L885,462"/>
+        <path d="M720,372 L720,430"/>
+        <path d="M720,512 L720,552"/>
+        <path d="M720,634 L720,672"/>
+        <path d="M720,754 L720,790"/>
+        <path d="M560,93 L305,93 L305,470 L555,470"/>
+      </g>
+      <g stroke="#e0a64a" stroke-width="2.2" fill="none" stroke-dasharray="6 5" marker-end="url(#arE)">
+        <path d="M930,372 L930,402"/>
+      </g>
+      <!-- קווי מאגר -->
+      <g stroke="#7fbf8a" stroke-width="1.8" fill="none" stroke-dasharray="3 5">
+        <path d="M230,420 L555,490"/>
+        <path d="M230,560 L555,585"/>
+        <path d="M230,700 L555,615"/>
+        <path d="M230,560 L555,712"/>
+      </g>
+
+      <!-- משתמש -->
+      <g>
+        <rect x="560" y="58" width="320" height="70" rx="14" fill="#3a2430" stroke="#d98aa8" stroke-width="2"/>
+        <text x="720" y="88" text-anchor="middle" font-size="21" font-weight="700" fill="#f2d5e0">משתמש · הסכמה מדעת</text>
+        <text x="720" y="114" text-anchor="middle" font-size="15" fill="#d9b3c3">5 תמונות (רשות) · 2 שאלונים · 50 פריטים</text>
+      </g>
+
+      <!-- קליטה -->
+      <g>
+        <rect x="560" y="160" width="320" height="78" rx="14" fill="#1d3436" stroke="#5fb3b3" stroke-width="2"/>
+        <text x="720" y="190" text-anchor="middle" font-size="20" font-weight="700" fill="#d6f0f0">① קליטה</text>
+        <text x="720" y="216" text-anchor="middle" font-size="14.5" fill="#a9d3d3">אימות קובץ · הסרת EXIF · בדיקת איכות</text>
+      </g>
+
+      <!-- מדידות -->
+      <g>
+        <rect x="330" y="290" width="280" height="82" rx="14" fill="#1d3436" stroke="#5fb3b3" stroke-width="2"/>
+        <text x="470" y="320" text-anchor="middle" font-size="19" font-weight="700" fill="#d6f0f0">② מדידות פיקסלים</text>
+        <text x="470" y="346" text-anchor="middle" font-size="14" fill="#a9d3d3">Otsu · גודל ומיקום ציור · שורות</text>
+      </g>
+
+      <!-- סימון ידני -->
+      <g>
+        <rect x="625" y="290" width="190" height="82" rx="14" fill="#3a2430" stroke="#d98aa8" stroke-width="2"/>
+        <text x="720" y="320" text-anchor="middle" font-size="18" font-weight="700" fill="#f2d5e0">סימון ידני</text>
+        <text x="720" y="346" text-anchor="middle" font-size="14" fill="#d9b3c3">מרשימה סגורה</text>
+      </g>
+
+      <!-- מנוע -->
+      <g>
+        <rect x="830" y="290" width="200" height="82" rx="14" fill="#2e2618" stroke="#e0a64a" stroke-width="2.2" stroke-dasharray="7 5"/>
+        <text x="930" y="318" text-anchor="middle" font-size="18" font-weight="700" fill="#f5d9a8">③ מנוע: תיאור תמונה</text>
+        <text x="930" y="342" text-anchor="middle" font-size="13.5" fill="#d8bb88">Claude / Gemini Vision</text>
+        <text x="930" y="362" text-anchor="middle" font-size="13" fill="#d8bb88">לא פעיל ב־MVP</text>
+      </g>
+      <!-- הנחיה סמויה -->
+      <g>
+        <rect x="1045" y="290" width="120" height="82" rx="12" fill="#262038" stroke="#9b8ce0" stroke-width="1.6"/>
+        <text x="1105" y="322" text-anchor="middle" font-size="15" font-weight="700" fill="#d7cff7">הנחיה</text>
+        <text x="1105" y="342" text-anchor="middle" font-size="15" font-weight="700" fill="#d7cff7">סמויה</text>
+        <text x="1105" y="362" text-anchor="middle" font-size="12" fill="#b3a8e0">PROMPTS.md</text>
+        <path d="M1045,331 L1032,331" stroke="#9b8ce0" stroke-width="2"/>
+      </g>
+
+      <!-- שער רשימה סגורה -->
+      <g>
+        <rect x="825" y="402" width="210" height="40" rx="10" fill="#262038" stroke="#9b8ce0" stroke-width="2"/>
+        <text x="930" y="428" text-anchor="middle" font-size="15" font-weight="700" fill="#d7cff7">שער: ערך מהרשימה בלבד</text>
+      </g>
+
+      <!-- ניקוד -->
+      <g>
+        <rect x="560" y="430" width="320" height="82" rx="14" fill="#1d3436" stroke="#5fb3b3" stroke-width="2"/>
+        <text x="720" y="462" text-anchor="middle" font-size="19" font-weight="700" fill="#d6f0f0">④ ניקוד שאלונים</text>
+        <text x="720" y="488" text-anchor="middle" font-size="14" fill="#a9d3d3">Mini-IPIP · RIASEC · קוד Holland</text>
+      </g>
+
+      <!-- שליפת ראיות ומסורות -->
+      <g>
+        <rect x="560" y="552" width="320" height="82" rx="14" fill="#1d3436" stroke="#5fb3b3" stroke-width="2"/>
+        <text x="720" y="584" text-anchor="middle" font-size="19" font-weight="700" fill="#d6f0f0">⑤ שליפת ראיות ומסורות</text>
+        <text x="720" y="610" text-anchor="middle" font-size="14" fill="#a9d3d3">כל מסורת ← טענה ברמה C/D</text>
+      </g>
+
+      <!-- אינטגרציה -->
+      <g>
+        <rect x="560" y="672" width="320" height="82" rx="14" fill="#1d3436" stroke="#5fb3b3" stroke-width="2"/>
+        <text x="720" y="704" text-anchor="middle" font-size="19" font-weight="700" fill="#d6f0f0">⑥ אינטגרציה</text>
+        <text x="720" y="730" text-anchor="middle" font-size="14" fill="#a9d3d3">Big Five ↔ RIASEC · נקודות להתבוננות</text>
+      </g>
+
+      <!-- QA + פלט -->
+      <g>
+        <rect x="560" y="790" width="150" height="72" rx="14" fill="#262038" stroke="#9b8ce0" stroke-width="2"/>
+        <text x="635" y="820" text-anchor="middle" font-size="18" font-weight="700" fill="#d7cff7">⑦ בקרת איכות</text>
+        <text x="635" y="845" text-anchor="middle" font-size="13.5" fill="#b3a8e0">10 בדיקות</text>
+        <path d="M710,826 L728,826" stroke="#8a93a8" stroke-width="2.2" marker-end="url(#ar)"/>
+        <rect x="730" y="790" width="150" height="72" rx="14" fill="#eef0f5"/>
+        <text x="805" y="820" text-anchor="middle" font-size="18" font-weight="700" fill="#12161f">⑧ דוח + PDF</text>
+        <text x="805" y="845" text-anchor="middle" font-size="13.5" fill="#3b4254">נמדד · נצפה · נטען</text>
+      </g>
+
+      <!-- מאגרים -->
+      <g font-size="16">
+        <g>
+          <rect x="30" y="380" width="200" height="80" rx="14" fill="#1c2e22" stroke="#7fbf8a" stroke-width="2"/>
+          <text x="130" y="412" text-anchor="middle" font-weight="700" fill="#d5ecd9">נוסחי שאלונים</text>
+          <text x="130" y="438" text-anchor="middle" font-size="13.5" fill="#a9cdb0">50 פריטים + מפתח ניקוד</text>
+        </g>
+        <g>
+          <rect x="30" y="520" width="200" height="80" rx="14" fill="#1c2e22" stroke="#7fbf8a" stroke-width="2"/>
+          <text x="130" y="552" text-anchor="middle" font-weight="700" fill="#d5ecd9">מאגר ראיות</text>
+          <text x="130" y="578" text-anchor="middle" font-size="13.5" fill="#a9cdb0">9 טענות A–D · 15 מקורות</text>
+        </g>
+        <g>
+          <rect x="30" y="660" width="200" height="80" rx="14" fill="#1c2e22" stroke="#7fbf8a" stroke-width="2"/>
+          <text x="130" y="692" text-anchor="middle" font-weight="700" fill="#d5ecd9">מאגר מסורות</text>
+          <text x="130" y="718" text-anchor="middle" font-size="13.5" fill="#a9cdb0">30 פרשנויות "נטען ש…"</text>
+        </g>
+        <g>
+          <rect x="30" y="775" width="200" height="80" rx="14" fill="#1c2e22" stroke="#7fbf8a" stroke-width="2"/>
+          <text x="130" y="807" text-anchor="middle" font-weight="700" fill="#d5ecd9">IndexedDB (במכשיר)</text>
+          <text x="130" y="833" text-anchor="middle" font-size="13.5" fill="#a9cdb0">תהליכים · תמונות · תשובות</text>
+        </g>
+      </g>
+
+      <!-- הערה: ציונים לא מתמונות -->
+      <g>
+        <rect x="20" y="130" width="265" height="170" rx="14" fill="rgba(166,61,61,0.12)" stroke="#c97070" stroke-width="1.6"/>
+        <text x="270" y="163" text-anchor="start" font-size="18" font-weight="700" fill="#f0c4c4">✕ אין חץ מתמונה לציון</text>
+        <text x="270" y="192" text-anchor="start" font-size="14.5" fill="#dcaaaa">הציונים מחושבים רק מהשאלונים.</text>
+        <text x="270" y="216" text-anchor="start" font-size="14.5" fill="#dcaaaa">תמונה ← תיאור בלבד,</text>
+        <text x="270" y="240" text-anchor="start" font-size="14.5" fill="#dcaaaa">שמוצג לצד הציונים</text>
+        <text x="270" y="264" text-anchor="start" font-size="14.5" fill="#dcaaaa">עם רמת הראיות של המסורת.</text>
+      </g>
+      <text x="432" y="84" text-anchor="middle" font-size="14" fill="#8a93a8">תשובות לשאלונים</text>
+      <text x="130" y="875" text-anchor="middle" font-size="13" fill="#8a93a8">נקרא ונכתב בכל שלב</text>
+    </svg>
+  </div>
+
+  <aside class="qa">
+    <h2>שש שאלות הזרימה</h2>
+    <div class="q"><span class="n">1</span><div><b>איך מפרקים את הקלט?</b><p>לשבעה ערוצים עצמאיים: חמש תמונות ושני שאלונים. אין פרומפט חופשי — כל קלט מובנה מראש (ליקרט 1–5, רשימה סגורה), ונקלט, נבדק ונשמר בנפרד.</p></div></div>
+    <div class="q"><span class="n">2</span><div><b>אילו תחנות יש, ומאיזה סוג?</b><p>שבע תחנות <span class="tag t-code">קוד</span> ותחנת <span class="tag t-engine">מנוע</span> אחת — תיאור תמונה — שמתוכננת ולא פעילה. הכלל: מה שאפשר לחשב באופן דטרמיניסטי נשאר בקוד.</p></div></div>
+    <div class="q"><span class="n">3</span><div><b>מה נכנס לתחנת המנוע?</b><p>תמונה אחת, שם הערוץ ורשימת המאפיינים המותרים. ההנחיה הסמויה: לתאר רק מה שנראה, לבחור ערך מהרשימה או "לא ניתן לזהות", לא לפרש, להחזיר JSON. בלי שאלונים ובלי מידע אישי.</p></div></div>
+    <div class="q"><span class="n">4</span><div><b>אילו מאגרים וזיכרון?</b><p><span class="tag t-store">IndexedDB</span> במכשיר לתהליכים ולתמונות; מאגרי ראיות, מסורות ונוסחי שאלונים בקוד. אין זיכרון שיחה — כל דוח מחושב מחדש מהנתונים השמורים.</p></div></div>
+    <div class="q"><span class="n">5</span><div><b>איך נעים בין התחנות?</b><p>המשתמש בוחר את סדר מילוי הקלט. הניתוח עצמו הוא צינור קבוע בקוד (<code>buildReport</code>) — לא מודל מחליט על הסדר. בקרת האיכות היא השער האחרון.</p></div></div>
+    <div class="q"><span class="n">6</span><div><b>איך מורכב הפלט?</b><p>אובייקט דוח → מסך עם טבלאות ותרשימים → PDF. שלוש שכבות מופרדות: מה נמדד, מה נצפה, מה נטען במסורת — וכל טענה עם רמת ראיות ומקור.</p></div></div>
+    <div class="principle"><span>עיקרון:</span> מודל AI יכול לבדוק דיוק של תיאור תמונה — הוא לא יכול לאמת תוקף פסיכולוגי.</div>
+  </aside>
+</div>
+</body>
+</html>
