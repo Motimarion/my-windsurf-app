@@ -22,7 +22,7 @@ import {
   RIASEC_NAMES,
   RIASEC_ORDER,
 } from '../data/questionnaires';
-import { CHANNELS, TRADITIONS, channelById, traditionsFor } from '../data/channels';
+import { CHANNELS, TRADITIONS, activeObservations, channelById, isAllowedValue, retiredCount, traditionsFor } from '../data/channels';
 import { CLAIMS, SOURCES, claimById, sourceById } from '../data/evidence';
 import { hollandCode, hollandTies, scoreScales } from './scoring';
 import { PROVIDERS } from './providers';
@@ -174,7 +174,7 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     const def = channelById(ch.channel);
     for (const o of ch.observations) {
       const f = def.features.find((x) => x.id === o.featureId);
-      if (!f || !f.options.includes(o.value)) invalid.push(`${ch.channel}:${o.featureId}`);
+      if (!f || !isAllowedValue(f, o.value)) invalid.push(`${ch.channel}:${o.featureId}`);
     }
   }
   checks.push({
@@ -257,6 +257,26 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     detail: pending.size ? `${pending.size} מקורות ממתינים לאימות מול המקור המלא` : 'כל המקורות אומתו',
   });
 
+  // 8א. תצפיות בלי תמונה תקינה לא נכנסו.
+  if (report.excludedObservations.length) {
+    checks.push({
+      id: 'observations-need-image',
+      label: 'תצפיות רק מתמונה שעברה בדיקת איכות',
+      status: 'ok',
+      detail: report.excludedObservations.map((e) => `${e.channel}: ${e.count} תצפיות לא נכנסו (${e.reason})`).join('; '),
+    });
+  }
+
+  // 8ב. מאפיינים שהוסרו (לחץ כתיבה): נשארים באחסון המקומי של תהליכים ישנים, אבל לא נכנסים לדוח.
+  if (report.retiredObservations > 0) {
+    checks.push({
+      id: 'retired-features',
+      label: 'מאפיינים שהוסרו לא נכנסו לדוח',
+      status: 'ok',
+      detail: `${report.retiredObservations} תצפיות ישנות (למשל לחץ כתיבה) נשמרו במכשיר אבל לא הוצגו ולא שימשו בדוח`,
+    });
+  }
+
   // 9. סימון נתוני הדגמה.
   if (report.isDemo) {
     checks.push({
@@ -274,9 +294,15 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
   const riasec = scoreScales(RIASEC_ITEMS, session.riasec, RIASEC_ORDER);
   const code = hollandCode(riasec);
 
+  const excluded: Report['excludedObservations'] = [];
   const channels = CHANNELS.map((def) => {
     const img = images.find((i) => i.channel === def.id);
-    const observations = session.observations[def.id] ?? [];
+    // רק תצפיות פעילות: מאפיינים שהוסרו (כמו לחץ כתיבה) לא נכנסים, וערכים ישנים מנורמלים.
+    const active = activeObservations(session.observations[def.id]);
+    // בדיקה חוזרת: תצפית מתארת תמונה. בלי תמונה, או כשהתמונה נכשלה בבדיקת האיכות, היא לא נכנסת לדוח.
+    const blocked = !img ? 'אין תמונה' : img.quality.overall === 'fail' ? 'התמונה נכשלה בבדיקת האיכות' : null;
+    if (blocked && active.length) excluded.push({ channel: def.id, count: active.length, reason: blocked });
+    const observations = blocked ? [] : active;
     const traditions: TraditionNote[] = observations.flatMap((o) => traditionsFor(def.id, o.featureId, o.value));
     return {
       channel: def.id,
@@ -311,6 +337,10 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
     riasec,
     hollandCode: code,
     hollandTie: hollandTies(riasec),
+    // הקשר בלבד: מועתק לדוח ולא נקרא באף חישוב.
+    background: { ...(session.background ?? {}) },
+    retiredObservations: retiredCount(session.observations),
+    excludedObservations: excluded,
     channels,
     integration,
     synthesis: synthesize(bigFive, riasec, channels, session),

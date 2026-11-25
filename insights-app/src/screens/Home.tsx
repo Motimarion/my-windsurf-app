@@ -61,6 +61,9 @@ export default function Home({ toast }: { toast: (m: string) => void }) {
           <button className="btn" onClick={startDemo} disabled={busy}>
             {busy ? 'מכין הדגמה…' : 'הדגמה עם נתונים סינתטיים'}
           </button>
+          <button className="btn" onClick={() => go({ name: 'learn' })}>
+            מצב למידה: מה קורה בפנים
+          </button>
         </div>
       </section>
 

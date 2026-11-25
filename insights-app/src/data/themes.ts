@@ -54,7 +54,6 @@ export const TRADITION_THEME: Record<string, { theme: ThemeId; dir: Direction }>
   'hw.baseline=עולה': M('stability', 1), // אופטימיות
   'hw.baseline=יורד': M('stability', -1), // עייפות
   'hw.spacing=מרווח': M('extraversion', -1), // צורך במרחב אישי
-  'hw.pressure=חזק': M('extraversion', 1), // אנרגיה ונחישות
 
   // מבחן העץ ובית־עץ־אדם
   'tree.roots=מצוירים': M('other', 0), // צורך בביסוס ובקשר לעבר

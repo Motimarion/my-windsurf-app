@@ -1,8 +1,9 @@
 import { CLAIMS, LEVEL_LABELS, SOURCES } from '../data/evidence';
-import { PROVIDERS, dataLeavesText } from '../engine/providers';
+import { PROVIDERS, dataLeavesText, statusLabel } from '../engine/providers';
 import { FLOW_INPUT, FLOW_ORDER, FLOW_OUTPUT, STATIONS, STORES } from '../data/stations';
 import { LevelBadge, StatusBadge } from '../components/ui';
 import type { EvidenceLevel } from '../types';
+import { go } from '../router';
 
 const LAYERS = [
   ['א׳', 'ראייה ממוחשבת', 'בדיקות איכות ומדידות פיקסלים בדפדפן, ותחנת מנוע AI: שליחה אוטומטית אחרי בדיקת איכות, או גשר ידני. הקוד מרכיב את הבקשה, והתשובה עוברת בשער רשימה סגורה.'],
@@ -18,6 +19,12 @@ export default function About() {
   return (
     <>
       <h1>על המערכת</h1>
+      <div className="notice info small row spread" style={{ marginBottom: 12 }}>
+        <span>רוצים לראות מה קורה בכל תחנה, על דוגמה סינתטית, ולתרגל?</span>
+        <button className="btn sm primary" onClick={() => go({ name: 'learn' })}>
+          למצב למידה ←
+        </button>
+      </div>
       <div className="card">
         <h2>איך המערכת בנויה: מהקלט אל הפלט</h2>
         <p className="small muted" style={{ marginTop: 0 }}>
@@ -26,6 +33,10 @@ export default function About() {
         <div className="notice small" style={{ marginBottom: 10 }}>
           {FLOW_INPUT}
         </div>
+        <p className="small" style={{ marginTop: 0 }}>
+          <strong>בגשר הידני האדם מעביר, והקוד אוכף.</strong> המשתמש מעתיק את הבקשה ואת התמונה למודל ומדביק את התשובה. הקוד קובע
+          את הסדר (בדיקת איכות קודם), מרכיב את הבקשה, ובודק כל ערך בשער לפני שהוא נשמר. המשתמש לא יכול לדלג על השער.
+        </p>
         <ol className="stations">
           {STATIONS.map((s) => (
             <li key={s.num} className={s.kind}>
@@ -93,7 +104,7 @@ export default function About() {
           <div key={p.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
             <div className="row">
               <strong>{p.name}</strong>
-              {p.status === 'active' ? <StatusBadge status="ok" label="פעיל" /> : <span className="badge">לא פעיל</span>}
+              {statusLabel(p).on ? <StatusBadge status="ok" label={statusLabel(p).text} /> : <span className="badge">{statusLabel(p).text}</span>}
               <span className="tiny muted">מידע יוצא מהמכשיר: {dataLeavesText(p)}</span>
             </div>
             <div className="small muted">{p.note}</div>
@@ -104,7 +115,11 @@ export default function About() {
       <div className="card small">
         <h2>פרטיות</h2>
         <ul style={{ margin: 0, paddingInlineStart: 18 }}>
-          <li>כל הנתונים נשמרים ב־IndexedDB של הדפדפן במכשיר זה בלבד. אין שרת.</li>
+          <li>האפליקציה עצמה שומרת את הנתונים ב־IndexedDB של הדפדפן במכשיר זה בלבד, בלי שרת משלה.</li>
+          <li>
+            <strong>זה לא חל על מה שמועבר למודל AI.</strong> תמונה שהעברתם ידנית בגשר (Gemini, ChatGPT, Claude) או ששלחתם אוטומטית
+            עם מפתח, יוצאת מהמכשיר ונשמרת אצל הספק לפי תנאי השירות שלו. האפליקציה לא יכולה להבטיח שהספק לא שומר אותה.
+          </li>
           <li>
             האפליקציה לא שולחת תמונות, אלא אם הפעלת שליחה אוטומטית ל־Gemini עם מפתח אישי. גם אז נשלח רק העותק הנקי, ורק אחרי
             שהתמונה עברה את בדיקת האיכות. המפתח נשמר רק בלשונית הנוכחית.

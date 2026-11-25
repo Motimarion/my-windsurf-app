@@ -321,6 +321,97 @@ try {
   check('no requests to external hosts', external.length === 0, [...new Set(external)].join(', '));
   await ctx.close();
 
+  // ---------- 2ב. שדרוג 25.11: מצב למידה, "לא ניתן לקבוע", שאלות רקע, לחץ כתיבה שהוסר ----------
+  {
+    const c2 = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'he-IL' });
+    const p2 = await c2.newPage();
+    const err2 = [];
+    p2.on('pageerror', (e) => err2.push(e.message));
+    await p2.goto(BASE);
+    await p2.getByRole('button', { name: 'מצב למידה: מה קורה בפנים' }).click();
+    await p2.waitForURL(/#\/learn$/);
+    const lamma = p2.getByRole('link', { name: /פתיחת הלומדה ב־LAMMA/ });
+    check('learn: LAMMA link opens the course in a new tab',
+      (await lamma.getAttribute('href')) === 'https://lamma.com/studio/course/c91dbff4-a672-4454-98d6-14e6ca3b5262' &&
+      (await lamma.getAttribute('target')) === '_blank' && (await lamma.getAttribute('rel')).includes('noopener'));
+    check('learn: draft / access notice next to the link', await p2.getByText(/היא טיוטה|טיוטה\. היא נפתחת רק/).first().isVisible());
+    check('learn: title avoids "diagnosis" as a heading', (await p2.title()).includes('הדגמה, לא אבחון'));
+    await p2.getByRole('button', { name: 'לפתוח הכול' }).click();
+    check('learn: every station shows who performs it', (await p2.getByText(/^מבצע: /).count()) >= 9);
+    check('learn: AI, code and human actors all present', (await p2.getByText('מבצע: AI').count()) === 1 && (await p2.getByText('מבצע: אדם').count()) === 1);
+    check('learn: only the model answer is marked hand-written', (await p2.getByText('נכתב ביד לדוגמה — לא הופעל מודל').count()) === 1);
+    check('learn: gate output (computed) rejects pressure', await p2.getByText(/נדחה: hw\.pressure = חזק/).isVisible());
+    const ex1 = p2.locator('.card', { hasText: 'תרגיל 1:' });
+    await ex1.getByRole('radio', { name: 'תשובה ב' }).click();
+    await ex1.getByRole('button', { name: 'בדיקה' }).click();
+    check('learn: wrong JSON answer gets explained feedback from the gate', (await ex1.getByRole('status').textContent()).includes('השער החזיר שגיאה'));
+    await ex1.getByRole('radio', { name: 'תשובה א' }).click();
+    await ex1.getByRole('button', { name: 'בדיקה' }).click();
+    check('learn: correct JSON answer confirmed', (await ex1.getByRole('status').textContent()).startsWith('✓'));
+    const ex2 = p2.locator('.card', { hasText: 'תרגיל 2:' });
+    await ex2.getByRole('radio', { name: 'תחנת קוד, מתשובות השאלון' }).click();
+    await ex2.getByRole('button', { name: 'בדיקה' }).click();
+    check('learn: "who computes the score" feedback', (await ex2.getByRole('status').textContent()).includes('בתחנת קוד'));
+    await p2.screenshot({ path: `${OUT}/desktop-learn.png`, fullPage: true });
+    await p2.getByRole('button', { name: '→ על המערכת' }).click();
+    await p2.getByRole('button', { name: 'למצב למידה ←' }).click();
+    check('about ↔ learn linked both ways', p2.url().endsWith('#/learn'));
+
+    await p2.goto(BASE);
+    await p2.getByRole('button', { name: 'הדגמה עם נתונים סינתטיים' }).click();
+    await p2.waitForURL(/#\/s\/[a-z0-9]+$/);
+    const did = p2.url().split('/s/')[1];
+    await p2.goto(`${BASE}#/s/${did}/c/handwriting`);
+    await p2.getByText('שאלות רקע (רשות)').waitFor();
+    check('handwriting: no pressure feature in the form', (await p2.getByText('לחץ העט').count()) === 0);
+    const size = p2.getByRole('radiogroup', { name: 'גודל האותיות' });
+    await size.getByRole('radio', { name: 'לא ניתן לקבוע' }).click();
+    await p2.getByRole('radiogroup', { name: 'מה חסם?' }).getByRole('radio', { name: 'טשטוש' }).click();
+    await p2.getByRole('radio', { name: 'כתיבה חופשית' }).click();
+    await p2.waitForTimeout(300);
+    await p2.reload();
+    await p2.getByText('שאלות רקע (רשות)').waitFor();
+    check('per-feature "cannot determine" + reason persists after reload',
+      (await p2.getByRole('radiogroup', { name: 'מה חסם?' }).getByRole('radio', { name: 'טשטוש' }).getAttribute('aria-checked')) === 'true');
+    check('background answer persists after reload', (await p2.getByRole('radio', { name: 'כתיבה חופשית' }).getAttribute('aria-checked')) === 'true');
+
+    // תהליך ישן: מוסיפים ישירות לאחסון תצפית לחץ, כמו שהייתה נשמרת לפני השדרוג
+    await p2.evaluate(
+      (id) =>
+        new Promise((res) => {
+          const r = indexedDB.open('insights-report-db');
+          r.onsuccess = () => {
+            const st = r.result.transaction('sessions', 'readwrite').objectStore('sessions');
+            const g = st.get(id);
+            g.onsuccess = () => {
+              const s = g.result;
+              s.observations.handwriting.push({ featureId: 'hw.pressure', value: 'חזק', source: 'manual' });
+              st.put(s).onsuccess = () => res(true);
+            };
+          };
+        }),
+      did,
+    );
+    await p2.reload();
+    await p2.getByText('שאלות רקע (רשות)').waitFor();
+    check('legacy pressure: kept in storage, notice shown, not in the form', await p2.getByText('תצפית ישנה על מאפיין שהוסר').isVisible());
+    await p2.goto(`${BASE}#/s/${did}/c/drawingTree`);
+    await p2.getByRole('button', { name: 'דוגמה סינתטית: עץ' }).click();
+    check('tree channel shows its own synthetic sample', await p2.getByRole('img', { name: /דוגמה סינתטית שנוצרה בקוד לערוץ ציור עץ/ }).isVisible());
+    await p2.goto(`${BASE}#/s/${did}/analyze`);
+    await p2.getByRole('button', { name: /לצפייה בדוח/ }).click();
+    await p2.getByText('קוד Holland').first().waitFor();
+    check('report: legacy pressure never returns as a claim', (await p2.getByText(/לחץ חזק מבטא/).count()) === 0);
+    check('report: retired observation explained in limitations', await p2.getByText(/תצפיות ישנות של מאפיין שהוסר/).isVisible());
+    check('report: three layers labelled', (await p2.getByText('נתוני שאלון', { exact: true }).count()) >= 2 &&
+      (await p2.getByText('תצפית חזותית', { exact: true }).count()) >= 1 && (await p2.getByText('פרשנות מסורתית, לא מדעית', { exact: true }).count()) >= 1);
+    check('report: blocking reason shown per feature', await p2.getByText('· חסם: טשטוש').first().isVisible());
+    check('report: background shown as context only', await p2.getByText('הקשר שדווח:').first().isVisible());
+    check('report: no failed QA after upgrade', (await p2.locator('.badge.fail').count()) === 0, String(await p2.locator('.badge.fail').allTextContents()));
+    check('upgrade flow: no JS errors', err2.length === 0, err2.join(' | '));
+    await c2.close();
+  }
+
   // ---------- 3. נייד ----------
   for (const dev of ['iPhone 13', 'Pixel 7']) {
     const m = await browser.newContext({ ...devices[dev], locale: 'he-IL' });
@@ -342,6 +433,11 @@ try {
       check(`${dev}: no horizontal scroll on ${name}`, await noHScroll());
       await mp.screenshot({ path: `${OUT}/${slug}-${name}.png`, fullPage: name !== 'report' });
     }
+    await mp.goto(`${BASE}#/learn`);
+    await mp.getByRole('button', { name: 'לפתוח הכול' }).click();
+    await mp.waitForTimeout(300);
+    check(`${dev}: no horizontal scroll on learn`, await noHScroll());
+    await mp.screenshot({ path: `${OUT}/${slug}-learn.png`, fullPage: true });
     const btn = await mp.locator('.likert button').first().boundingBox().catch(() => null);
     await mp.goto(`${BASE}#/s/${id}/q/ipip`);
     const b2 = await mp.locator('.likert button').first().boundingBox();

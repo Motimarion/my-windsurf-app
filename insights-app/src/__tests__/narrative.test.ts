@@ -10,7 +10,7 @@ import {
   summaryLines,
   toolsUsed,
 } from '../engine/narrative';
-import { CHANNELS, channelById } from '../data/channels';
+import { CHANNELS, channelById, isAllowedValue } from '../data/channels';
 import { demoAnswers, DEMO_OBSERVATIONS } from '../demo/synthetic';
 import type { Session } from '../types';
 
@@ -63,7 +63,7 @@ describe('דוח במבנה של דוח אבחון — בלי אבחנות', () 
     for (const l of productLines(r)) {
       const def = channelById(l.channel);
       const obs = r.channels.find((c) => c.channel === l.channel)!.observations;
-      for (const o of obs) expect(def.features.find((f) => f.id === o.featureId)!.options).toContain(o.value);
+      for (const o of obs) expect(isAllowedValue(def.features.find((f) => f.id === o.featureId)!, o.value)).toBe(true);
       expect(l.text.length).toBeGreaterThan(0);
     }
   });

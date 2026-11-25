@@ -1,5 +1,5 @@
 import type { ImageRecord, Session } from '../types';
-import { CHANNELS } from '../data/channels';
+import { CHANNELS, activeObservations } from '../data/channels';
 import { MINI_IPIP, RIASEC_ITEMS } from '../data/questionnaires';
 import { progress } from '../engine/scoring';
 import { go, type Route } from '../router';
@@ -14,7 +14,7 @@ export function stepList(s: Session, images: ImageRecord[]) {
   return [
     ...CHANNELS.map((c) => {
       const hasImg = images.some((i) => i.channel === c.id);
-      const manual = (s.observations[c.id] ?? []).filter((o) => o.source !== 'computed').length;
+      const manual = activeObservations(s.observations[c.id]).filter((o) => o.source !== 'computed').length;
       const state: StepState = hasImg && manual > 0 ? 'done' : hasImg ? 'partial' : 'todo';
       return { key: c.id, label: c.short, icon: c.icon, state, route: { name: 'channel', id: s.id, channel: c.id } as Route };
     }),

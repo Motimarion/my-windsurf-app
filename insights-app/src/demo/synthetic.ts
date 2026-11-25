@@ -1,6 +1,6 @@
 // נתוני הדגמה סינתטיים: משתמש בדוי, תמונות שנוצרות בקוד, ותשובות לפי זרע קבוע.
 // אין כאן שום מידע אישי ואין תלות במפתחות API.
-import type { ChannelId, LikertAnswers, Observation, Session } from '../types';
+import type { Background, ChannelId, LikertAnswers, Observation, Session } from '../types';
 import { MINI_IPIP, RIASEC_ITEMS } from '../data/questionnaires';
 import { CONSENT_ITEMS, CONSENT_VERSION } from '../data/consent';
 
@@ -39,7 +39,10 @@ export function demoAnswers(seed = 7) {
 }
 
 const demoObs = (pairs: [string, string][]): Observation[] =>
-  pairs.map(([featureId, value]) => ({ featureId, value, source: 'demo' }));
+  pairs.map(([featureId, value]) =>
+    // "לא ניתן לקבוע" בהדגמה תמיד מגיע עם סיבת חסימה, כמו בסימון אמיתי
+    value === 'לא ניתן לקבוע' ? { featureId, value, source: 'demo', blockedBy: 'הסתרה' } : { featureId, value, source: 'demo' },
+  );
 
 export const DEMO_OBSERVATIONS: Partial<Record<ChannelId, Observation[]>> = {
   palmRight: demoObs([
@@ -52,14 +55,13 @@ export const DEMO_OBSERVATIONS: Partial<Record<ChannelId, Observation[]>> = {
     ['palm.lineClarity', 'בינוניים'],
     ['palm.heartLineEnd', 'מתחת לאמה'],
     ['palm.headLineShape', 'ישר'],
-    ['palm.lifeLineArc', 'לא ניתן לזהות'],
+    ['palm.lifeLineArc', 'לא ניתן לקבוע'],
   ]),
   handwriting: demoObs([
     ['hw.slant', 'קדימה (בכיוון הכתיבה)'],
     ['hw.size', 'בינוני'],
     ['hw.spacing', 'מרווח'],
     ['hw.baseline', 'ישר'],
-    ['hw.pressure', 'לא ניתן לזהות'],
   ]),
   drawingTree: demoObs([
     ['tree.roots', 'מצוירים'],
@@ -76,6 +78,15 @@ export const DEMO_OBSERVATIONS: Partial<Record<ChannelId, Observation[]>> = {
   ]),
 };
 
+export const DEMO_BACKGROUND: Background = {
+  dominantHand: 'ימין',
+  writingHand: 'ימין',
+  handwritingSource: 'הועתק מטקסט',
+  treeMinutes: '2–5 דקות',
+  personMinutes: 'עד 2 דקות',
+  drawingExperience: 'כמעט אין',
+};
+
 export function demoSession(id: string): Session {
   const now = Date.now();
   const { ipip, riasec } = demoAnswers();
@@ -89,6 +100,8 @@ export function demoSession(id: string): Session {
     ipip,
     riasec,
     observations: structuredClone(DEMO_OBSERVATIONS),
+    // שאלות רקע סינתטיות. מוצגות כהקשר בלבד ולא משנות דבר בחישוב.
+    background: { ...DEMO_BACKGROUND },
   };
 }
 
@@ -269,6 +282,18 @@ function drawPerson() {
 
 const toBlob = (c: HTMLCanvasElement) =>
   new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('toBlob failed'))), 'image/jpeg', 0.9));
+
+/** דוגמה סינתטית לערוץ אחד, להצגה ליד הוראות הצילום. כל ערוץ מקבל ציור משלו (עץ ואדם בנפרד). */
+export function demoSampleDataUrl(channel: ChannelId): string {
+  const draw: Record<ChannelId, () => HTMLCanvasElement> = {
+    palmRight: () => drawPalm(false),
+    palmLeft: () => drawPalm(true),
+    handwriting: drawHandwriting,
+    drawingTree: drawTree,
+    drawingPerson: drawPerson,
+  };
+  return draw[channel]().toDataURL('image/jpeg', 0.7);
+}
 
 export async function demoImages(): Promise<{ channel: ChannelId; blob: Blob }[]> {
   return Promise.all([

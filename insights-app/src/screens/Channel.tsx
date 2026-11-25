@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useObjectUrls } from '../useObjectUrls';
-import type { ChannelId, ImageRecord, Observation, Session } from '../types';
-import { channelById } from '../data/channels';
+import type { BlockReason, ChannelId, ImageRecord, Observation, Session } from '../types';
+import { BLOCK_REASONS, RETIRED_FEATURES, UNDETERMINED, activeObservations, channelById } from '../data/channels';
+import BackgroundQuestions from '../components/BackgroundQuestions';
+import { demoSampleDataUrl } from '../demo/synthetic';
 import StepNav, { stepList } from '../components/StepNav';
 import { StatusBadge, radioKeys, rovingIndex } from '../components/ui';
 import { ingestImage, mergeComputed, validateFile } from '../engine/ingest';
@@ -30,8 +32,11 @@ export default function Channel({ session, images, channel, update, reloadImages
   const urlItems = useMemo(() => (img ? [{ key: 'img' as const, blob: img.blob }] : []), [img]);
   const url = useObjectUrls(urlItems).img;
 
-  const obs = session.observations[channel] ?? [];
+  // תצפיות פעילות בלבד: מאפיין שהוסר (לחץ כתיבה) לא מוצג, ו"לא ניתן לזהות" הישן מוצג כ"לא ניתן לקבוע".
+  const obs = activeObservations(session.observations[channel]);
   const valueOf = (fid: string) => obs.find((o) => o.featureId === fid);
+  const retired = (session.observations[channel] ?? []).filter((o) => o.featureId in RETIRED_FEATURES);
+  const [sample, setSample] = useState<string | null>(null);
 
   async function onFile(input: HTMLInputElement) {
     const f = input.files?.[0];
@@ -75,6 +80,16 @@ export default function Channel({ session, images, channel, update, reloadImages
     });
   }
 
+  /** סיבת החסימה למאפיין שסומן "לא ניתן לקבוע". הסימון עצמו נשאר ידני. */
+  function setBlocked(featureId: string, reason: BlockReason) {
+    update((s) => {
+      const list = (s.observations[channel] ?? []).map((o) =>
+        o.featureId === featureId ? { ...o, value: UNDETERMINED, source: 'manual' as const, model: undefined, confidence: undefined, blockedBy: reason } : o,
+      );
+      return refreshAgreement({ ...s, observations: { ...s.observations, [channel]: list } }, channel);
+    });
+  }
+
   const steps = stepList(session, images);
   const idx = steps.findIndex((s) => s.key === channel);
   const next = steps[idx + 1];
@@ -96,6 +111,15 @@ export default function Channel({ session, images, channel, update, reloadImages
               </li>
             ))}
           </ol>
+          <button className="btn sm" style={{ marginTop: 10 }} onClick={() => setSample(sample ? null : demoSampleDataUrl(channel))} aria-expanded={!!sample}>
+            {sample ? 'הסתרת הדוגמה' : `דוגמה סינתטית: ${def.short}`}
+          </button>
+          {sample && (
+            <figure style={{ margin: '8px 0 0' }}>
+              <img src={sample} alt={`דוגמה סינתטית שנוצרה בקוד לערוץ ${def.title}`} style={{ maxWidth: 180, borderRadius: 8, border: '1px solid var(--line)' }} />
+              <figcaption className="tiny muted">ציור שנוצר בקוד, לא צילום של אדם. מראה מה מצלמים, לא איך "צריך" להיראות.</figcaption>
+            </figure>
+          )}
           {autoOn ? (
             <div className="notice warn small" style={{ marginTop: 12 }}>
               <strong>שליחה אוטומטית ל־Gemini פעילה.</strong> אחרי ההעלאה האפליקציה בודקת את איכות התמונה, ואם היא עברה, שולחת
@@ -166,8 +190,19 @@ export default function Channel({ session, images, channel, update, reloadImages
         <h3>תצפיות — מה רואים בתמונה</h3>
         <p className="small muted">
           סמנו רק מה שנראה בבירור. זהו תיאור בלבד — הפרשנויות המסורתיות מוצגות בדוח בנפרד, יחד עם דירוג הראיות.
-          {!img && ' (יש להעלות תמונה כדי לסמן תצפיות.)'}
+          {!img && ' (יש להעלות תמונה כדי לסמן תצפיות.)'} אם מאפיין לא נראה, בחרו "{UNDETERMINED}" וסמנו מה חסם אותו.
         </p>
+        <p className="tiny muted" style={{ marginTop: 0 }}>
+          שלושה דברים שונים: <strong>איכות התמונה</strong> נמדדת בקוד לכל התמונה (למעלה). <strong>סיבת החסימה</strong> היא דיווח
+          למאפיין בודד, לא מדידה. <strong>ביטחון המודל</strong> הוא מה שהמודל דיווח על עצמו, והוא לא מכויל. אף אחד מהם אינו חוזק
+          הראיות למסורת.
+        </p>
+        {retired.length > 0 && (
+          <div className="notice small" style={{ marginBottom: 8 }}>
+            בתהליך הזה שמורה תצפית ישנה על מאפיין שהוסר. היא נשארת במכשיר, אבל לא מוצגת ולא נכנסת לדוח.{' '}
+            {RETIRED_FEATURES[retired[0].featureId]}
+          </div>
+        )}
         {def.features.map((f) => {
           const cur = valueOf(f.id);
           return (
@@ -177,6 +212,9 @@ export default function Channel({ session, images, channel, update, reloadImages
                 {f.computed && <span className="badge accent">חישוב אוטומטי</span>}
                 {cur?.source === 'demo' && <span className="badge warn">ערך הדגמה</span>}
                 {cur?.source === 'ai' && <span className="badge accent">מודל AI{cur.model ? ` · ${cur.model}` : ''}</span>}
+                {cur?.source === 'ai' && cur.confidence && (
+                  <span className="badge" title="דיווח עצמי של המודל, לא מכויל">ביטחון המודל: {cur.confidence}</span>
+                )}
               </div>
               {f.computed ? (
                 <p className="small" style={{ margin: '6px 0 0' }}>
@@ -189,26 +227,62 @@ export default function Channel({ session, images, channel, update, reloadImages
                   )}
                 </p>
               ) : (
-                <div className="chips" style={{ marginTop: 6 }} role="radiogroup" aria-label={f.label} onKeyDown={radioKeys}>
-                  {f.options.map((o) => (
-                    <button
-                      key={o}
-                      className={`chip ${cur?.value === o ? 'on' : ''}`}
-                      role="radio"
-                      aria-checked={cur?.value === o}
-                      tabIndex={rovingIndex(f.options.indexOf(o), f.options.indexOf(cur?.value ?? ''))}
-                      disabled={!img}
-                      onClick={() => setManual(f.id, o)}
-                    >
-                      {o}
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="chips" style={{ marginTop: 6 }} role="radiogroup" aria-label={f.label} onKeyDown={radioKeys}>
+                    {[...f.options, UNDETERMINED].map((o, i, all) => (
+                      <button
+                        key={o}
+                        className={`chip ${cur?.value === o ? 'on' : ''} ${o === UNDETERMINED ? 'chip-undetermined' : ''}`}
+                        role="radio"
+                        aria-checked={cur?.value === o}
+                        tabIndex={rovingIndex(i, all.indexOf(cur?.value ?? ''))}
+                        disabled={!img}
+                        onClick={() => setManual(f.id, o)}
+                      >
+                        {o}
+                      </button>
+                    ))}
+                  </div>
+                  {cur?.value === UNDETERMINED && (
+                    <div className="row small" style={{ marginTop: 6, gap: 6 }}>
+                      <span className="muted" id={`why-${f.id}`}>
+                        מה חסם?
+                      </span>
+                      <div className="chips" role="radiogroup" aria-labelledby={`why-${f.id}`} onKeyDown={radioKeys}>
+                        {BLOCK_REASONS.map((r, i) => (
+                          <button
+                            key={r}
+                            className={`chip ${cur.blockedBy === r ? 'on' : ''}`}
+                            role="radio"
+                            aria-checked={cur.blockedBy === r}
+                            tabIndex={rovingIndex(i, BLOCK_REASONS.indexOf(cur.blockedBy ?? ('' as BlockReason)))}
+                            onClick={() => setBlocked(f.id, r)}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           );
         })}
       </div>
+
+      <BackgroundQuestions
+        channel={channel}
+        background={session.background ?? {}}
+        onChange={(key, value) =>
+          update((s) => {
+            const bg = { ...(s.background ?? {}) };
+            if (value === undefined) delete bg[key];
+            else (bg as Record<string, string>)[key] = value;
+            return { ...s, background: bg };
+          })
+        }
+      />
 
       <AiBridge key={img?.id ?? 'none'} session={session} channel={channel} img={img} update={update} toast={toast} />
 

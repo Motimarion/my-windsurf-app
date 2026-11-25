@@ -152,7 +152,7 @@ describe('השוואה לסימון האנושי ואימוץ', () => {
       }),
       run({ adopted: false }),
     );
-    const out = adoptAi(s, 'drawingTree', [{ featureId: 'tree.roots', value: 'מצוירים', source: 'ai', model: 'Gemini' }]);
+    const out = adoptAi(s, 'drawingTree', [{ featureId: 'tree.roots', value: 'מצוירים', source: 'ai', model: 'Gemini' }], 'ok');
     const obs = out.observations.drawingTree!;
     expect(obs.find((o) => o.featureId === 'tree.roots')).toMatchObject({ value: 'מצוירים', source: 'ai' });
     expect(obs.find((o) => o.featureId === 'tree.trunk')?.source).toBe('manual');
@@ -176,7 +176,9 @@ describe('השוואה לסימון האנושי ואימוץ', () => {
 });
 
 describe('בקרת איכות: אין פלט AI מדומה', () => {
-  const img = [{ channel: 'drawingTree' as const, quality: undefined, computed: undefined }];
+  // תמונה שעברה בדיקת איכות: בלי תמונה תקינה, תצפיות (כולל AI) לא נכנסות לדוח בכלל.
+  const okQ = { width: 1000, height: 1000, brightness: 200, contrast: 50, sharpness: 100, checks: [], overall: 'ok' as const };
+  const img = [{ channel: 'drawingTree' as const, quality: okQ, computed: undefined }];
   const qa = (s: Session) => buildReport(s, img as never).qa.find((q) => q.id === 'no-phantom-ai')!;
 
   it('ערך AI עם הרצה מתועדת שאומצה — תקין', () => {

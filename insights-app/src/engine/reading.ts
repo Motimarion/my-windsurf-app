@@ -128,7 +128,9 @@ export interface ReadingParagraph {
   questionnaire: string | null;
   /** הטענות המסורתיות בנושא, משפט לכל טענה, בלי כפילויות (למשל אותה טענה על שתי הידיים). */
   claims: string[];
-  /** הפסקה כפי שהיא מוצגת: השאלון, הטענות (מאוחדות לפי מסורת) וההכרעה. */
+  /** הטענות המסורתיות מאוחדות לפי מסורת, להצגה בנפרד מהשאלון. */
+  traditionText: string[];
+  /** הפסקה כטקסט רציף (לייצוא ולבדיקות): השאלון, הטענות וההכרעה. בתצוגה שלושת החלקים מוצגים בנפרד. */
   story: string;
   /** איך הטענות מסתדרות עם השאלון. */
   verdict: string;
@@ -195,8 +197,9 @@ function paragraph(t: SynthesisTheme): ReadingParagraph | null {
     tone = 'open';
     verdict = 'הסימנים בתוצרים לא מצביעים לכיוון מסוים בנושא הזה, ולכן אין כאן מה להשוות.';
   }
-  const story = [questionnaire, ...mergeClaims(t.entries), verdict].filter(Boolean).join(' ');
-  return { id: t.id, title: t.title, questionnaire, claims, story, verdict, tone };
+  const traditionText = mergeClaims(t.entries);
+  const story = [questionnaire, ...traditionText, verdict].filter(Boolean).join(' ');
+  return { id: t.id, title: t.title, questionnaire, claims, traditionText, story, verdict, tone };
 }
 
 export function interpretiveReading(report: Report): Reading {

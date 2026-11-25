@@ -134,7 +134,7 @@ export function productLines(report: Report): { channel: ChannelId; title: strin
           const o = c.observations.find((x) => x.featureId === f.id);
           if (!o) return null;
           const label = f.label.replace(/\s*\(מחושב\)$/, '');
-          let value = o.value;
+          let value = o.value + (o.blockedBy ? ` (${o.blockedBy})` : '');
           if (f.id === 'hw.lines' && c.computed?.textLines !== undefined) value = `${c.computed.textLines} (${o.value})`;
           if (f.id === 'drawing.size' && c.computed) value = `${o.value}, ${(c.computed.bboxAreaRatio * 100).toFixed(0)}% מהדף`;
           return `${label}: ${value}`;
