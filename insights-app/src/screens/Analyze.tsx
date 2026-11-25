@@ -3,7 +3,7 @@ import type { ImageRecord, Report, Session } from '../types';
 import StepNav from '../components/StepNav';
 import { StatusBadge } from '../components/ui';
 import { buildReport } from '../engine/report';
-import { PROVIDERS, dataLeavesText } from '../engine/providers';
+import { PROVIDERS, dataLeavesText, statusLabel } from '../engine/providers';
 import { go } from '../router';
 
 const LAYERS = [
@@ -104,7 +104,7 @@ export default function Analyze({ session, images, update }: Props) {
                   <td>
                     <strong>{p.name}</strong>
                   </td>
-                  <td>{p.status === 'active' ? <StatusBadge status="ok" label="פעיל" /> : <span className="badge">לא פעיל</span>}</td>
+                  <td>{statusLabel(p).on ? <StatusBadge status="ok" label={statusLabel(p).text} /> : <span className="badge">{statusLabel(p).text}</span>}</td>
                   <td>{dataLeavesText(p)}</td>
                   <td className="small muted">{p.note}</td>
                 </tr>

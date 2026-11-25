@@ -5,6 +5,7 @@ import {
   MODEL_CHOICES,
   REJECT_TEXT,
   adoptAi,
+  adoptionBlock,
   buildRequest,
   compareWithHuman,
   engineFeatures,
@@ -162,9 +163,11 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
     record(r, model, 'manual');
   }
 
+  const blocked = adoptionBlock(session, channel, img?.quality.overall);
+
   function adopt() {
-    if (!values.length) return;
-    update((s) => adoptAi(s, channel, values));
+    if (!values.length || blocked) return;
+    update((s) => adoptAi(s, channel, values, img?.quality.overall));
     toast(`${values.length} ערכים של ${run?.model ?? 'המודל'} נכנסו לתצפיות (מסומנים "מודל AI")`);
   }
 
@@ -523,14 +526,19 @@ export default function AiBridge({ session, channel, img, update, toast }: Props
                 הערכים של המודל אומצו לתצפיות.
               </p>
             ) : (
-              values.length > 0 && (
+              values.length > 0 &&
+              (blocked ? (
+                <div className="notice warn small" role="note" style={{ marginTop: 8 }}>
+                  <strong>אי אפשר לאמץ את ערכי המודל.</strong> {blocked} ההשוואה נשמרת לצורכי למידה בלבד.
+                </div>
+              ) : (
                 <div className="row" style={{ marginTop: 8 }}>
                   <button className="btn sm" onClick={adopt}>
                     אימוץ ערכי המודל לתצפיות
                   </button>
                   <span className="tiny muted">אפשר גם להשאיר את הסימון שלכם — ההשוואה נשמרת בכל מקרה.</span>
                 </div>
-              )
+              ))
             )}
           </div>
         )}

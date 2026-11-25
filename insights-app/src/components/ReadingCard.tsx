@@ -28,7 +28,22 @@ export default function ReadingCard({ report }: { report: Report }) {
             <h3>
               {p.title} <span className={`badge ${TONE[p.tone].cls}`}>{TONE[p.tone].text}</span>
             </h3>
-            <p>{p.story}</p>
+            {/* שלושה חלקים נפרדים: נתוני שאלון, פרשנות מסורתית לא מדעית, והשוואה ביניהם */}
+            {p.questionnaire && (
+              <p>
+                <span className="badge layer-questionnaire">נתוני שאלון</span> {p.questionnaire}
+              </p>
+            )}
+            {p.traditionText.length > 0 && (
+              <p>
+                <span className="badge layer-tradition">פרשנות מסורתית, לא מדעית</span> {p.traditionText.join(' ')}
+              </p>
+            )}
+            {p.verdict && (
+              <p className="small muted">
+                <span className="badge">השוואה</span> {p.verdict}
+              </p>
+            )}
           </section>
         ))}
         {r.extra.length > 0 && (

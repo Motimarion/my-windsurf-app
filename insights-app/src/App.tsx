@@ -9,6 +9,7 @@ import Quest from './screens/Quest';
 import Analyze from './screens/Analyze';
 import ReportView from './screens/ReportView';
 import About from './screens/About';
+import Learn from './screens/Learn';
 import { EDITION_LABEL, FOOTER_NOTE } from './edition';
 
 function SessionScreens({ id, toast }: { id: string; toast: (m: string) => void }) {
@@ -61,10 +62,13 @@ export default function App() {
           </span>
           <span>
             כירופולוגיה
-            <small>{EDITION_LABEL}</small>
+            <small>{route.name === 'learn' ? 'דוח תובנות — הדגמה, לא אבחון' : EDITION_LABEL}</small>
           </span>
         </button>
         <nav className="row">
+          <button className="btn ghost sm" onClick={() => go({ name: 'learn' })}>
+            מצב למידה
+          </button>
           <button className="btn ghost sm" onClick={() => go({ name: 'about' })}>
             על המערכת
           </button>
@@ -74,6 +78,7 @@ export default function App() {
         {route.name === 'home' && <Home toast={toast} />}
         {route.name === 'consent' && <Consent />}
         {route.name === 'about' && <About />}
+        {route.name === 'learn' && <Learn />}
         {sessionId && <SessionScreens key={sessionId} id={sessionId} toast={toast} />}
       </main>
       <footer className="footer">{FOOTER_NOTE}</footer>

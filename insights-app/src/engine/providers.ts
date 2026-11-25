@@ -19,6 +19,17 @@ export interface VisionProvider {
   describe?: (blob: Blob, channel: ChannelId) => Promise<Observation[]>;
 }
 
+/**
+ * תווית מצב שלא מרמזת שמשהו רץ כשהוא לא רץ:
+ * "זמין" לספק שמופעל רק על ידי המשתמש (גשר ידני, או API עם מפתח והפעלה), ו"פועל" רק למה שרץ בעצמו במכשיר.
+ */
+export function statusLabel(p: VisionProvider): { text: string; on: boolean } {
+  if (p.status !== 'active') return { text: 'לא מחובר', on: false };
+  if (p.userTransfers) return { text: 'זמין — רק כשהמשתמש מעביר ידנית', on: true };
+  if (p.optIn) return { text: 'זמין — כבוי עד הפעלה עם מפתח אישי', on: true };
+  return { text: 'פועל במכשיר', on: true };
+}
+
 /** טקסט לעמודה "מידע יוצא מהמכשיר" בטבלאות. */
 export const dataLeavesText = (p: VisionProvider) =>
   p.userTransfers ? 'רק אם המשתמש מעביר' : p.optIn ? 'רק אם הופעל, אחרי בדיקת איכות' : p.sendsDataOffDevice ? 'כן' : 'לא';

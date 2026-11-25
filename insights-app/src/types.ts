@@ -42,6 +42,12 @@ export interface ImageRecord {
   createdAt: number;
 }
 
+/** סיבה לכך שאי אפשר לקבוע מאפיין בודד מהתמונה. דיווח של אדם או של המודל, לא מדידה. */
+export type BlockReason = 'תאורה' | 'טשטוש' | 'הסתרה' | 'זווית' | 'אחר';
+
+/** ביטחון שהמודל דיווח עליו בעצמו. לא מכויל, ואינו איכות התמונה ואינו חוזק ראיות. */
+export type ModelConfidence = 'גבוה' | 'בינוני' | 'נמוך';
+
 /** תצפית מובנית אחת — מה רואים, לא מה זה "אומר". */
 export interface Observation {
   featureId: string;
@@ -49,7 +55,30 @@ export interface Observation {
   source: 'manual' | 'computed' | 'demo' | 'ai';
   /** לערכי AI בלבד: שם המודל שהמשתמש העביר אליו את הבקשה (Gemini, ChatGPT…). */
   model?: string;
+  /** כשהערך הוא "לא ניתן לקבוע": מה חסם את הקביעה. */
+  blockedBy?: BlockReason;
+  /** לערכי AI בלבד: הביטחון שהמודל דיווח עליו. */
+  confidence?: ModelConfidence;
 }
+
+/**
+ * שאלות רקע (רשות). מוצגות בדוח כהקשר בלבד: לא משמשות לאבחון, לא משנות ציונים ולא בוחרות פרשנות.
+ */
+export interface Background {
+  /** היד הדומיננטית (לערוצי כף היד). */
+  dominantHand?: 'ימין' | 'שמאל' | 'שתיהן';
+  /** היד שכתבה את דוגמת הכתב. */
+  writingHand?: 'ימין' | 'שמאל';
+  /** האם דוגמת הכתב הועתקה מטקסט או נכתבה חופשי. */
+  handwritingSource?: 'הועתק מטקסט' | 'כתיבה חופשית';
+  /** זמן משוער לכל ציור. */
+  treeMinutes?: DrawingTime;
+  personMinutes?: DrawingTime;
+  /** ניסיון בציור. */
+  drawingExperience?: 'כמעט אין' | 'מצייר/ת לפעמים' | 'מצייר/ת הרבה או למדתי ציור';
+}
+
+export type DrawingTime = 'עד 2 דקות' | '2–5 דקות' | 'יותר מ־5 דקות';
 
 /**
  * תיעוד הרצה אחת של תחנת המנוע דרך "הגשר הידני":
@@ -105,6 +134,8 @@ export interface Session {
   barnum?: { own?: number; other?: number };
   /** תשובות לשאלה לחשיבה ("אילו הסברים אחרים מתאימים?") לפי ערוץ. חלק מהלמידה, לא מהדוח. אופציונלי. */
   reflections?: Partial<Record<ChannelId, string>>;
+  /** שאלות רקע (רשות). הקשר בלבד — לא לאבחון ולא לציונים. אופציונלי. */
+  background?: Background;
 }
 
 // ---------- שכבה ב׳ — מאגר מחקר ----------
@@ -241,6 +272,12 @@ export interface Report {
   hollandCode: string | null;
   /** שוויון בציונים שמשפיע על הסדר או על הבחירה בקוד — מוצג למשתמש. */
   hollandTie: boolean;
+  /** שאלות הרקע שנענו, כהקשר בלבד. */
+  background: Background;
+  /** תצפיות ישנות של מאפיינים שהוסרו (כמו לחץ כתיבה), שנשארו באחסון ולא נכנסו לדוח. */
+  retiredObservations: number;
+  /** ערוצים שבהם תצפיות שמורות לא נכנסו לדוח: אין תמונה, התמונה נכשלה בבדיקת האיכות, או ערכי AI מהרצה עם imageUsable=false. */
+  excludedObservations: { channel: ChannelId; count: number; reason: string }[];
   channels: {
     channel: ChannelId;
     hasImage: boolean;

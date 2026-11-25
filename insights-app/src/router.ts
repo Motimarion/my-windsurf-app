@@ -4,6 +4,7 @@ import type { ChannelId } from './types';
 export type Route =
   | { name: 'home' }
   | { name: 'about' }
+  | { name: 'learn' }
   | { name: 'consent' }
   | { name: 'hub'; id: string }
   | { name: 'channel'; id: string; channel: ChannelId }
@@ -16,6 +17,7 @@ const CHANNEL_IDS: ChannelId[] = ['palmLeft', 'palmRight', 'handwriting', 'drawi
 export function parse(hash: string): Route {
   const p = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (p[0] === 'about') return { name: 'about' };
+  if (p[0] === 'learn') return { name: 'learn' };
   if (p[0] === 'consent') return { name: 'consent' };
   if (p[0] === 's' && p[1]) {
     const id = p[1];
@@ -34,6 +36,8 @@ export function href(r: Route): string {
       return '#/';
     case 'about':
       return '#/about';
+    case 'learn':
+      return '#/learn';
     case 'consent':
       return '#/consent';
     case 'hub':

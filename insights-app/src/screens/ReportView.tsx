@@ -4,6 +4,7 @@ import type { ImageRecord, Session } from '../types';
 import { buildReport } from '../engine/report';
 import { BIG_FIVE_DESCRIPTIONS, BIG_FIVE_NAMES, RIASEC_NAMES } from '../data/questionnaires';
 import { channelById } from '../data/channels';
+import { BACKGROUND_NOTE, backgroundFor } from '../data/background';
 import { CLAIMS, claimById, sourceById } from '../data/evidence';
 import { RiasecRadar, ScoreBars } from '../components/charts';
 import { ConfirmDelete, LevelBadge, SectionTitle, StatusBadge } from '../components/ui';
@@ -119,6 +120,10 @@ export default function ReportView({
 
         <SectionTitle num="3">ממצאים: אישיות (Big Five, שאלון Mini-IPIP)</SectionTitle>
         <div className="card">
+          <p className="tiny muted" style={{ marginTop: 0 }}>
+            <span className="badge layer-questionnaire">נתוני שאלון</span> מחושב בקוד מתשובות השאלון בלבד. הנוסח העברי הוא תרגום
+            עבודה שלא תוקף, ואין נורמות.
+          </p>
           <ScoreBars scores={report.bigFive} names={BIG_FIVE_NAMES} />
           <div className="table-wrap" style={{ marginTop: 14 }}>
             <table>
@@ -153,6 +158,10 @@ export default function ReportView({
 
         <SectionTitle num="4">ממצאים: תחומי עניין תעסוקתיים (RIASEC)</SectionTitle>
         <div className="card">
+          <p className="tiny muted" style={{ marginTop: 0 }}>
+            <span className="badge layer-questionnaire">נתוני שאלון</span> מחושב בקוד מתשובות השאלון בלבד. הפריטים כאן הם פריטי
+            הדגמה שלא תוקפו.
+          </p>
           <div className="grid grid-2" style={{ alignItems: 'center' }}>
             <RiasecRadar scores={report.riasec} names={RIASEC_NAMES} />
             <div>
@@ -204,7 +213,7 @@ export default function ReportView({
                 )}
                 <div>
                   <div className="tiny muted" style={{ marginBottom: 4 }}>
-                    מה נצפה (תיאור בלבד)
+                    <span className="badge layer-observed">תצפית חזותית</span> מה נצפה (תיאור בלבד)
                   </div>
                   {ch.observations.length === 0 ? (
                     <p className="small muted">לא סומנו תצפיות.</p>
@@ -216,14 +225,29 @@ export default function ReportView({
                             <td className="small">{def.features.find((f) => f.id === o.featureId)?.label}</td>
                             <td className="small">
                               <strong>{o.value}</strong>
+                              {o.blockedBy && <span className="tiny muted"> · חסם: {o.blockedBy}</span>}
                             </td>
                             <td className="tiny muted">
                               {o.source === 'ai' ? `${SOURCE_TEXT.ai}${o.model ? ` (${o.model})` : ''} · עבר בשער` : SOURCE_TEXT[o.source]}
+                              {o.source === 'ai' && o.confidence && ` · ביטחון שהמודל דיווח: ${o.confidence}`}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                  )}
+                  <p className="tiny muted" style={{ margin: '6px 0 0' }}>
+                    איכות התמונה (מדידה בקוד), סיבת חסימה (דיווח למאפיין) וביטחון המודל (דיווח עצמי, לא מכויל) הם שלושה דברים
+                    נפרדים, ואף אחד מהם אינו חוזק הראיות של המסורת.
+                  </p>
+                  {backgroundFor(ch.channel, report.background).length > 0 && (
+                    <p className="tiny muted" style={{ margin: '6px 0 0' }}>
+                      <strong>הקשר שדווח:</strong>{' '}
+                      {backgroundFor(ch.channel, report.background)
+                        .map((b) => `${b.label}: ${b.value}`)
+                        .join(' · ')}
+                      . {BACKGROUND_NOTE}
+                    </p>
                   )}
                   {(() => {
                     const run = session.aiRuns?.find((r) => r.channel === ch.channel);
@@ -242,7 +266,9 @@ export default function ReportView({
               {ch.traditions.length > 0 && (
                 <div className="notice trad" style={{ marginTop: 12 }}>
                   <div className="row spread" style={{ marginBottom: 6 }}>
-                    <strong className="small">מה נטען במסורת — לא ממצא על האדם</strong>
+                    <strong className="small">
+                      <span className="badge layer-tradition">פרשנות מסורתית, לא מדעית</span> מה נטען במסורת — לא ממצא על האדם
+                    </strong>
                     <LevelBadge level={claimById(ch.traditions[0].claimId)!.level} />
                   </div>
                   <ul className="small" style={{ margin: 0, paddingInlineStart: 18 }}>
@@ -303,8 +329,28 @@ export default function ReportView({
             <li>אין נורמות ישראליות לנוסחים בגרסה זו; הציונים אינם מושווים לאוכלוסייה.</li>
             <li>קריאה בכף היד, גרפולוגיה ופירוש ציורים לא הוכחו כמנבאים תקפים של אישיות — ולכן לא שולבו בציונים.</li>
             <li>תחושה ש״פרשנות מתאימה לי״ אינה ראיה לנכונותה (אפקט בַּרְנוּם, מתאם מדומה).</li>
-            <li>הסכמה בין כמה מודלי AI על תיאור תמונה אינה ראיה לתוקף פסיכולוגי.</li>
+            <li>
+              הסכמה בין כמה מודלי AI על תיאור תמונה אינה ראיה לתוקף פסיכולוגי, וגם לא הוכחה שהתיאור נכון: מודלים יכולים לטעות באותו
+              כיוון, וההסכמה לבדה לא מסבירה מאיפה טעות כזו באה.
+            </li>
             <li>המדידות האוטומטיות (גודל, מיקום, מספר שורות) רגישות לזווית הצילום ולחיתוך הדף.</li>
+            <li>פריטי ה־RIASEC כאן הם פריטי הדגמה שלא תוקפו. הנוסח העברי של Mini-IPIP הוא תרגום עבודה שלא תוקף.</li>
+            <li>אין שום מסלול מתמונה לציון אישיות או לתחום עניין תעסוקתי. הציונים מחושבים בקוד מתשובות השאלונים בלבד.</li>
+            <li>הדוח לא מנבא בריאות, לא מאבחן ולא קובע התאמה לעבודה, ללימודים או לטיפול.</li>
+            <li>לחץ כתיבה לא מוסק מצילום: תמונה סטטית לא מראה אותו, וכהות הקו תלויה בעט, בנייר, בתאורה ובמצלמה.</li>
+            {report.excludedObservations.length > 0 && (
+              <li>
+                תצפיות שמורות שלא נכנסו לדוח (אין תמונה, התמונה נכשלה בבדיקת האיכות, או שהמודל סימן את התמונה כלא מתאימה
+                לתיאור):{' '}
+                {report.excludedObservations.map((e) => `${channelById(e.channel).title} (${e.count}, ${e.reason})`).join(', ')}.
+              </li>
+            )}
+            {report.retiredObservations > 0 && (
+              <li>
+                בתהליך הזה נשמרו {report.retiredObservations} תצפיות ישנות של מאפיין שהוסר (לחץ כתיבה). הן נשארו במכשיר אבל לא
+                נכנסו לדוח.
+              </li>
+            )}
           </ul>
         </div>
         <NotAssessedCard />

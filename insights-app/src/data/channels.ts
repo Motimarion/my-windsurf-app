@@ -1,4 +1,4 @@
-import type { ChannelId, TraditionNote } from '../types';
+import type { BlockReason, ChannelId, Observation, TraditionNote } from '../types';
 
 export interface FeatureDef {
   id: string;
@@ -18,17 +18,51 @@ export interface ChannelDef {
   features: FeatureDef[];
 }
 
-const UNKNOWN = 'לא ניתן לזהות';
+/**
+ * ערך אחיד לכל מאפיין שאי אפשר לקבוע מהתמונה. מותר בכל מאפיין שאינו מחושב, עם סיבת חסימה.
+ * עד 25.11.2026 חלק מהמאפיינים כללו את "לא ניתן לזהות" ברשימה; ערך ישן כזה מתורגם לערך הזה בקריאה.
+ */
+export const UNDETERMINED = 'לא ניתן לקבוע';
+const LEGACY_UNDETERMINED = ['לא ניתן לזהות'];
+
+/** סיבות חסימה למאפיין בודד. אלה דיווחים (של אדם או של המודל), לא מדידה של התמונה. */
+export const BLOCK_REASONS: BlockReason[] = ['תאורה', 'טשטוש', 'הסתרה', 'זווית', 'אחר'];
+
+/**
+ * מאפיינים שהוסרו מהסכמה. תצפיות ישנות שלהם נשארות באחסון המקומי (לא מוחקים נתונים),
+ * אבל לא נכנסות לדוח, לשילוב, לבקשה למודל או להשוואה.
+ */
+export const RETIRED_FEATURES: Record<string, string> = {
+  'hw.pressure': 'לחץ כתיבה לא ניתן להסקה מצילום סטטי: כהות הקו תלויה בעט, בנייר, בתאורה ובמצלמה. המאפיין הוסר ב־25.11.2026.',
+};
+
+/** ערך חוקי למאפיין: מהרשימה הסגורה, או "לא ניתן לקבוע" במאפיין שאינו מחושב. */
+export const isAllowedValue = (f: FeatureDef, value: string) =>
+  f.options.includes(value) || (!f.computed && value === UNDETERMINED);
+
+/** תרגום ערכים ישנים: "לא ניתן לזהות" → "לא ניתן לקבוע". */
+export const normalizeValue = (value: string) => (LEGACY_UNDETERMINED.includes(value) ? UNDETERMINED : value);
+
+/** תצפיות פעילות של ערוץ: בלי מאפיינים שהוסרו, ועם ערכים מנורמלים. לא משנה את מה ששמור. */
+export function activeObservations(list: Observation[] | undefined): Observation[] {
+  return (list ?? [])
+    .filter((o) => !(o.featureId in RETIRED_FEATURES))
+    .map((o) => (LEGACY_UNDETERMINED.includes(o.value) ? { ...o, value: UNDETERMINED } : o));
+}
+
+/** כמה תצפיות של מאפיינים שהוסרו שמורות בתהליך (לבקרת האיכות ולהבהרה בדוח). */
+export const retiredCount = (all: Partial<Record<ChannelId, Observation[]>>) =>
+  Object.values(all).reduce((n, list) => n + (list ?? []).filter((o) => o.featureId in RETIRED_FEATURES).length, 0);
 
 const PALM_FEATURES: FeatureDef[] = [
   { id: 'palm.lineClarity', label: 'בהירות הקווים הראשיים בתמונה', options: ['ברורים', 'בינוניים', 'חלשים'] },
   {
     id: 'palm.heartLineEnd',
     label: 'נקודת הסיום של הקו העליון (״קו הלב״)',
-    options: ['מתחת לאצבע המורה', 'בין המורה לאמה', 'מתחת לאמה', UNKNOWN],
+    options: ['מתחת לאצבע המורה', 'בין המורה לאמה', 'מתחת לאמה'],
   },
-  { id: 'palm.headLineShape', label: 'צורת הקו האמצעי (״קו הראש״)', options: ['ישר', 'מעוקל', UNKNOWN] },
-  { id: 'palm.lifeLineArc', label: 'קשת הקו המקיף את בסיס האגודל (״קו החיים״)', options: ['רחבה', 'צרה', UNKNOWN] },
+  { id: 'palm.headLineShape', label: 'צורת הקו האמצעי (״קו הראש״)', options: ['ישר', 'מעוקל'] },
+  { id: 'palm.lifeLineArc', label: 'קשת הקו המקיף את בסיס האגודל (״קו החיים״)', options: ['רחבה', 'צרה'] },
 ];
 
 const PALM_INSTRUCTIONS = [
@@ -48,11 +82,24 @@ const DRAWING_COMPUTED: FeatureDef[] = [
   },
 ];
 
-const DRAWING_INSTRUCTIONS = (what: string) => [
-  `ציירו ${what} בעיפרון על דף A4 לבן, ללא מחק אם אפשר.`,
-  'אין ״נכון״ או ״לא נכון״ — ציירו בדרך שנוחה לכם.',
+const PHOTO_PAGE = [
   'צלמו את הדף כולו מלמעלה, מקביל לשולחן, בתאורה אחידה וללא צל.',
   'ודאו שארבע פינות הדף נראות בתמונה.',
+];
+
+/** עץ ואדם הם ערוצים נפרדים: דף נפרד, הוראה נפרדת ודוגמה סינתטית נפרדת. */
+const TREE_INSTRUCTIONS = [
+  'ציירו עץ אחד בעיפרון, על דף A4 לבן נפרד (לא על הדף של ציור האדם).',
+  'כל סוג עץ מתאים. אין "נכון" או "לא נכון", וזה לא מבחן ציור.',
+  'עדיף בלי מחק. אם מחקתם, זה בסדר — המערכת לא מתחשבת בזה.',
+  ...PHOTO_PAGE,
+];
+
+const PERSON_INSTRUCTIONS = [
+  'ציירו אדם שלם בעיפרון, על דף A4 לבן נפרד (לא על הדף של ציור העץ).',
+  'כל סגנון מתאים, גם דמות פשוטה. לא צריך לצייר מישהו מסוים.',
+  'עדיף בלי מחק. אם מחקתם, זה בסדר — המערכת לא מתחשבת בזה.',
+  ...PHOTO_PAGE,
 ];
 
 export const CHANNELS: ChannelDef[] = [
@@ -92,7 +139,6 @@ export const CHANNELS: ChannelDef[] = [
       { id: 'hw.size', label: 'גודל האותיות', options: ['קטן', 'בינוני', 'גדול'] },
       { id: 'hw.spacing', label: 'מרווח בין מילים', options: ['צפוף', 'בינוני', 'מרווח'] },
       { id: 'hw.baseline', label: 'קו הבסיס של השורות', options: ['עולה', 'ישר', 'יורד', 'גלי'] },
-      { id: 'hw.pressure', label: 'לחץ העט כפי שנראה בתמונה', options: ['חלש', 'בינוני', 'חזק', UNKNOWN] },
     ],
   },
   {
@@ -101,7 +147,7 @@ export const CHANNELS: ChannelDef[] = [
     short: 'עץ',
     icon: '🌳',
     kind: 'drawing',
-    instructions: DRAWING_INSTRUCTIONS('עץ'),
+    instructions: TREE_INSTRUCTIONS,
     features: [
       ...DRAWING_COMPUTED,
       { id: 'tree.roots', label: 'שורשים', options: ['מצוירים', 'לא מצוירים'] },
@@ -117,7 +163,7 @@ export const CHANNELS: ChannelDef[] = [
     short: 'אדם',
     icon: '🧍',
     kind: 'drawing',
-    instructions: DRAWING_INSTRUCTIONS('אדם שלם'),
+    instructions: PERSON_INSTRUCTIONS,
     features: [
       ...DRAWING_COMPUTED,
       { id: 'person.completeness', label: 'שלמות הדמות', options: ['דמות מלאה', 'דמות חלקית', 'ראש בלבד'] },
@@ -166,7 +212,6 @@ export const TRADITIONS: TraditionNote[] = [
   T('handwriting', 'hw.baseline', 'עולה', GRAPH, 'בגרפולוגיה נטען שקו בסיס עולה מבטא אופטימיות.', 'hw_personality'),
   T('handwriting', 'hw.baseline', 'יורד', GRAPH, 'בגרפולוגיה נטען שקו בסיס יורד מבטא עייפות. (בפועל — זווית הדף והצילום משפיעות מאוד.)', 'hw_personality'),
   T('handwriting', 'hw.spacing', 'מרווח', GRAPH, 'בגרפולוגיה נטען שמרווחים גדולים בין מילים מבטאים צורך במרחב אישי.', 'hw_personality'),
-  T('handwriting', 'hw.pressure', 'חזק', GRAPH, 'בגרפולוגיה נטען שלחץ חזק מבטא אנרגיה ונחישות.', 'hw_personality'),
 
   T('drawingTree', 'tree.roots', 'מצוירים', KOCH, 'במבחן העץ נטען ששורשים מבטאים צורך בביסוס ובקשר לעבר.', 'drawing_signs'),
   T('drawingTree', 'tree.fruit', 'מצוירים', KOCH, 'במבחן העץ נטען שפירות מבטאים הישגיות או תחושת פוריות.', 'drawing_signs'),

@@ -18,6 +18,11 @@ export default function Hub({ session, images }: { session: Session; images: Ima
         <div>
           <h1 style={{ marginBottom: 0 }}>{session.label}</h1>
           {session.isDemo && <span className="badge warn">נתוני הדגמה סינתטיים</span>}
+          {session.isDemo && (
+            <button className="btn ghost sm" onClick={() => go({ name: 'learn' })}>
+              מה קורה בכל תחנה? מצב למידה ←
+            </button>
+          )}
         </div>
       </div>
 

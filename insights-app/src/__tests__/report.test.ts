@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildReport, integrate } from '../engine/report';
 import { demoAnswers, DEMO_OBSERVATIONS } from '../demo/synthetic';
-import { CHANNELS, TRADITIONS } from '../data/channels';
+import { CHANNELS, TRADITIONS, isAllowedValue, UNDETERMINED } from '../data/channels';
 import { CLAIMS, SOURCES, claimById } from '../data/evidence';
 import { BIG_FIVE_ORDER, MINI_IPIP, RIASEC_ITEMS, RIASEC_ORDER } from '../data/questionnaires';
 import { scoreScales } from '../engine/scoring';
@@ -45,7 +45,12 @@ describe('data integrity (layer B/C traceability)', () => {
   it('demo observations use only valid options', () => {
     for (const [ch, obs] of Object.entries(DEMO_OBSERVATIONS)) {
       const def = CHANNELS.find((c) => c.id === ch)!;
-      for (const o of obs!) expect(def.features.find((f) => f.id === o.featureId)!.options).toContain(o.value);
+      // ערך מהרשימה הסגורה, או "לא ניתן לקבוע" עם סיבת חסימה
+      for (const o of obs!) {
+        const f = def.features.find((x) => x.id === o.featureId)!;
+        expect(isAllowedValue(f, o.value), `${ch}:${o.featureId}=${o.value}`).toBe(true);
+        if (o.value === UNDETERMINED) expect(o.blockedBy).toBeTruthy();
+      }
     }
   });
 });

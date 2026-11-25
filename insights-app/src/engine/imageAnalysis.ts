@@ -218,6 +218,8 @@ export function countLines(rows: number[], h: number): number {
 /** המרת מדידות מספריות לתצפיות קטגוריאליות — עדיין תיאור, לא פרשנות. */
 export function computedObservations(channel: ChannelId, c: ComputedFeatures): Observation[] {
   const obs: Observation[] = [];
+  // דף ריק (לא נמצא דיו): אין מה למדוד, ולכן אין תצפית — לא "קטן" ולא "מרכז" (אלה ערכי ברירת מחדל של מדידה ריקה).
+  if (c.inkCoverage <= 0 || c.bboxAreaRatio <= 0) return obs;
   if (channel === 'drawingTree' || channel === 'drawingPerson') {
     const size = c.bboxAreaRatio < 0.15 ? 'קטן' : c.bboxAreaRatio > 0.45 ? 'גדול' : 'בינוני';
     obs.push({ featureId: 'drawing.size', value: size, source: 'computed' });
@@ -230,7 +232,8 @@ export function computedObservations(channel: ChannelId, c: ComputedFeatures): O
     }
     obs.push({ featureId: 'drawing.placement', value: place, source: 'computed' });
   }
-  if (channel === 'handwriting' && c.textLines !== undefined) {
+  // 0 שורות אינו "1–3": נמנעים מתצפית במקום לשבץ ערך.
+  if (channel === 'handwriting' && c.textLines !== undefined && c.textLines > 0) {
     const n = c.textLines;
     obs.push({ featureId: 'hw.lines', value: n <= 3 ? '1–3' : n <= 8 ? '4–8' : '9+', source: 'computed' });
   }

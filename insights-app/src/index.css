@@ -338,3 +338,31 @@ th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
 .reading p { margin: 0 0 8px; line-height: 1.8; }
 .reading .reading-lead { color: var(--muted); margin-bottom: 4px; }
 .reading .reading-closing { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 2px; }
+
+/* "לא ניתן לקבוע" — מופרד חזותית מערכי התיאור */
+.chip.chip-undetermined { border-style: dashed; }
+.badge.layer-observed { background: var(--accent-soft); color: var(--accent); }
+.badge.layer-tradition { background: var(--trad-soft); color: var(--trad); }
+.badge.layer-questionnaire { background: var(--ok-soft); color: var(--ok); }
+
+/* מצב למידה */
+.learn-steps { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
+.learn-step { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.learn-step.code { border-inline-start: 4px solid var(--accent); }
+.learn-step.engine { border-inline-start: 4px dashed var(--gold); }
+.learn-step.human { border-inline-start: 4px solid var(--trad); }
+.learn-step-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: none; border: 0; color: var(--ink); cursor: pointer; text-align: start; font: inherit; min-height: 44px; }
+.learn-step-head .num { min-width: 32px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--surface-2); font-weight: 700; font-size: 0.85rem; }
+.learn-step-title { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.learn-step-body { padding: 0 12px 12px; }
+.learn-io { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 8px; font-size: 0.9rem; }
+.learn-io dt { color: var(--muted); font-weight: 600; }
+.learn-io dd { margin: 0; min-width: 0; }
+.learn-output { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: var(--surface-2); border-radius: 8px; padding: 8px 10px; margin: 4px 0; font-size: 0.8rem; max-width: 100%; }
+.learn-option { text-align: start; justify-content: flex-start; height: auto; min-height: 44px; padding: 8px 12px; border-radius: 10px; width: 100%; }
+.badge.actor-code { background: var(--accent-soft); color: var(--accent); }
+.badge.actor-engine { background: var(--warn-soft); color: var(--warn); }
+.badge.actor-human { background: var(--trad-soft); color: var(--trad); }
+@media (max-width: 560px) { .learn-io { grid-template-columns: 1fr; } }
+.lamma-card { margin: 10px 0 14px; }
+.lamma-card .row > a { flex: none; }

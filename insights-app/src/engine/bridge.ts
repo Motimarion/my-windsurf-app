@@ -5,20 +5,22 @@
 // תחנת קוד ("שער הרשימה הסגורה") מקבלת רק ערכים שמופיעים ברשימה, ומתעלמת מכל טקסט אחר — כולל פרשנות.
 //
 // במונחי הקורס: הקוד מחליט על הסדר; המשתמש משמש כ"קוד שמעביר בין התחנות"; המנוע רק מתאר.
-import type { AiRun, ChannelId, Observation, Session } from '../types';
-import { channelById } from '../data/channels';
+import type { AiRun, BlockReason, ChannelId, CheckStatus, ModelConfidence, Observation, Session } from '../types';
+import { BLOCK_REASONS, RETIRED_FEATURES, UNDETERMINED, activeObservations, channelById, isAllowedValue, normalizeValue } from '../data/channels';
 
 /** ההנחיה הסמויה של תחנה ③. זהה למה שמתועד ב־docs/PROMPTS.md (נבדק בבדיקת יחידה). */
 export const ENGINE_SYSTEM_PROMPT = `אתה מתאר תמונה עבור כלי מחקר. תפקידך לתאר בלבד — לא לפרש.
 
 כללים:
 1. לכל מאפיין ברשימה, בחר בדיוק ערך אחד מתוך הערכים המותרים לו, והעתק אותו מילה במילה.
-2. אם המאפיין לא נראה בבירור בתמונה — בחר "לא ניתן לזהות" (אם הוא ברשימה), אחרת השמט את המאפיין.
-3. אל תסיק דבר על אישיות, רגשות, בריאות, גיל, מגדר או עתיד של האדם.
-4. אל תזכיר פרשנויות של כירומנטיה, גרפולוגיה או מבחנים השלכתיים.
-5. אל תעתיק ואל תצטט טקסט שכתוב בתמונה.
-6. החזר JSON בלבד, בלי טקסט נוסף, במבנה:
-   {"observations":[{"featureId":"...","value":"..."}],"imageUsable":true|false}`;
+2. אם אי אפשר לקבוע מאפיין מהתמונה — כתוב "לא ניתן לקבוע", והוסף "reason" עם אחת הסיבות: תאורה, טשטוש, הסתרה, זווית, אחר.
+3. לכל מאפיין הוסף "confidence": גבוה, בינוני או נמוך — עד כמה הוא נראה בבירור בתמונה הזו.
+4. אל תסיק מהתמונה לחץ כתיבה, מהירות או תנועה: תמונה סטטית לא מראה אותם.
+5. אל תסיק דבר על אישיות, רגשות, בריאות, גיל, מגדר או עתיד של האדם.
+6. אל תזכיר פרשנויות של כירומנטיה, גרפולוגיה או מבחנים השלכתיים.
+7. אל תעתיק ואל תצטט טקסט שכתוב בתמונה.
+8. החזר JSON בלבד, בלי טקסט נוסף, במבנה:
+   {"observations":[{"featureId":"...","value":"...","confidence":"...","reason":"..."}],"imageUsable":true|false}`;
 
 export const MODEL_CHOICES = ['Gemini', 'ChatGPT', 'Claude', 'אחר'] as const;
 
@@ -28,7 +30,7 @@ export const engineFeatures = (channel: ChannelId) => channelById(channel).featu
 /** הודעת המשתמש של תחנה ③ — ללא שאלונים, ציונים, כינוי או פרשנויות. */
 export function buildUserMessage(channel: ChannelId): string {
   const def = channelById(channel);
-  const lines = engineFeatures(channel).map((f) => `- ${f.id} (${f.label}): ${f.options.join(' | ')}`);
+  const lines = engineFeatures(channel).map((f) => `- ${f.id} (${f.label}): ${[...f.options, UNDETERMINED].join(' | ')}`);
   return `ערוץ: ${def.title}\nמאפיינים וערכים מותרים:\n${lines.join('\n')}`;
 }
 
@@ -43,10 +45,11 @@ export function buildRequest(channel: ChannelId): string {
   ].join('\n');
 }
 
-export type RejectReason = 'unknown-feature' | 'computed' | 'not-in-list' | 'duplicate' | 'bad-shape';
+export type RejectReason = 'unknown-feature' | 'retired' | 'computed' | 'not-in-list' | 'duplicate' | 'bad-shape';
 
 export const REJECT_TEXT: Record<RejectReason, string> = {
   'unknown-feature': 'מאפיין שלא קיים בערוץ הזה',
+  retired: 'מאפיין שהוסר: לא ניתן להסיק אותו מצילום (למשל לחץ כתיבה)',
   computed: 'מאפיין שמחושב בקוד — לא המודל קובע אותו',
   'not-in-list': 'ערך מחוץ לרשימה הסגורה',
   duplicate: 'המאפיין הופיע פעמיים — נלקח הערך הראשון',
@@ -64,6 +67,7 @@ export interface GateResult {
 }
 
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
+const CONFIDENCES: ModelConfidence[] = ['גבוה', 'בינוני', 'נמוך'];
 
 /** מחזיר את סוף הקטע המאוזן שמתחיל ב־start (סוגריים מסולסלים ומרובעים, בהתחשב במחרוזות), או ‎-1. */
 function balancedEnd(text: string, start: number): number {
@@ -139,13 +143,24 @@ export function parseResponse(raw: string, channel: ChannelId, model: string): G
       continue;
     }
     const f = features.find((x) => x.id === fid);
+    const v = normalizeValue(value);
     let reason: RejectReason | null = null;
-    if (!f) reason = 'unknown-feature';
+    if (fid in RETIRED_FEATURES) reason = 'retired';
+    else if (!f) reason = 'unknown-feature';
     else if (f.computed) reason = 'computed';
-    else if (!f.options.includes(value)) reason = 'not-in-list';
+    else if (!isAllowedValue(f, v)) reason = 'not-in-list';
     else if (accepted.some((o) => o.featureId === fid)) reason = 'duplicate';
-    if (reason) rejected.push({ featureId: fid, value, reason });
-    else accepted.push({ featureId: fid, value, source: 'ai', model });
+    if (reason) {
+      rejected.push({ featureId: fid, value, reason });
+      continue;
+    }
+    // שדות נלווים: נשמרים רק אם הם מהרשימה הקבועה. ערך אחר פשוט לא נשמר (לא דוחה את התצפית).
+    const conf = typeof item?.confidence === 'string' ? norm(item.confidence) : '';
+    const why = typeof item?.reason === 'string' ? norm(item.reason) : '';
+    const obs: Observation = { featureId: fid, value: v, source: 'ai', model };
+    if (CONFIDENCES.includes(conf as ModelConfidence)) obs.confidence = conf as ModelConfidence;
+    if (v === UNDETERMINED) obs.blockedBy = BLOCK_REASONS.includes(why as BlockReason) ? (why as BlockReason) : 'אחר';
+    accepted.push(obs);
   }
   return { accepted, rejected, extraText, imageUsable: typeof imageUsable === 'boolean' ? imageUsable : undefined };
 }
@@ -160,9 +175,11 @@ export interface CompareRow {
 
 /** השוואה בין תיאור המודל לסימון האנושי — מדד לדיוק התיאור בלבד, לא לתוקף פסיכולוגי. */
 export function compareWithHuman(channel: ChannelId, current: Observation[], aiObs: Observation[]) {
+  const cur = activeObservations(current);
+  const fromAi = activeObservations(aiObs);
   const rows: CompareRow[] = engineFeatures(channel).map((f) => {
-    const human = current.find((o) => o.featureId === f.id && (o.source === 'manual' || o.source === 'demo'))?.value;
-    const ai = aiObs.find((o) => o.featureId === f.id)?.value;
+    const human = cur.find((o) => o.featureId === f.id && (o.source === 'manual' || o.source === 'demo'))?.value;
+    const ai = fromAi.find((o) => o.featureId === f.id)?.value;
     return { featureId: f.id, label: f.label, human, ai, agree: human && ai ? human === ai : undefined };
   });
   const compared = rows.filter((r) => r.agree !== undefined);
@@ -174,8 +191,25 @@ export function recordRun(s: Session, run: AiRun): Session {
   return { ...s, aiRuns: [...(s.aiRuns ?? []).filter((r) => r.channel !== run.channel), run] };
 }
 
-/** אימוץ ערכי המודל: מחליף את ערכי המאפיינים שהמודל תיאר, ומשאיר את השאר (כולל מה שחושב בקוד). */
-export function adoptAi(s: Session, channel: ChannelId, aiObs: Observation[]): Session {
+/**
+ * מתי אסור לאמץ ערכי מודל, גם אם כל ערך עבר בשער (ערך מהרשימה הוא תנאי הכרחי, לא מספיק):
+ * אין תמונה, התמונה נכשלה בבדיקת האיכות, או שהמודל עצמו דיווח שהתמונה לא מתאימה לתיאור (imageUsable=false).
+ * מחזיר את הסיבה, או null כשמותר.
+ */
+export function adoptionBlock(s: Session, channel: ChannelId, quality: CheckStatus | undefined): string | null {
+  if (!quality) return 'אין תמונה בערוץ הזה, ולכן אין מה לתאר.';
+  if (quality === 'fail') return 'התמונה נכשלה בבדיקת האיכות. ערכי המודל לא נכנסים לתצפיות — צלמו מחדש.';
+  const run = (s.aiRuns ?? []).find((r) => r.channel === channel);
+  if (run?.imageUsable === false) return 'המודל דיווח שהתמונה לא מתאימה לתיאור (imageUsable=false). ערכי המודל לא נכנסים לתצפיות.';
+  return null;
+}
+
+/**
+ * אימוץ ערכי המודל: מחליף את ערכי המאפיינים שהמודל תיאר, ומשאיר את השאר (כולל מה שחושב בקוד).
+ * הבדיקה כאן ולא רק בכפתור: כשיש חסימה הפונקציה לא משנה דבר.
+ */
+export function adoptAi(s: Session, channel: ChannelId, aiObs: Observation[], quality: CheckStatus | undefined): Session {
+  if (adoptionBlock(s, channel, quality)) return s;
   const ids = new Set(aiObs.map((o) => o.featureId));
   const kept = (s.observations[channel] ?? []).filter((o) => !ids.has(o.featureId));
   const runs = (s.aiRuns ?? []).map((r) => (r.channel === channel ? { ...r, adopted: true } : r));

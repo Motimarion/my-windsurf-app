@@ -14,6 +14,7 @@ import type {
   TraditionNote,
 } from '../types';
 import { THEMES, TRADITION_THEME } from '../data/themes';
+import { activeObservations } from '../data/channels';
 
 const bandDir = (band: ScaleScore<string>['band']): Direction | null =>
   band === 'high' ? 1 : band === 'low' ? -1 : band === 'mid' ? 0 : null;
@@ -46,7 +47,7 @@ export function synthesize(
     for (const note of ch.traditions) {
       const m = TRADITION_THEME[note.id] ?? { theme: 'other' as const, dir: 0 as Direction };
       const theme = themes.find((t) => t.id === m.theme)!;
-      const obs = session.observations[ch.channel]?.find((o) => o.featureId === note.featureId && o.value === note.value);
+      const obs = activeObservations(session.observations[ch.channel]).find((o) => o.featureId === note.featureId && o.value === note.value);
       let vs: SynthesisEntry['vs'] = 'na';
       if (m.theme !== 'other' && m.dir !== 0 && theme.dir !== null) vs = theme.dir === 0 ? 'neutral' : theme.dir === m.dir ? 'match' : 'mismatch';
       theme.entries.push({ channel: ch.channel, note, dir: m.dir, vs, source: obs?.source, model: obs?.model });

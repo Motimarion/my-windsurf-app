@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { barnumReadings, barnumVerdict, ownShownFirst, traitOf } from '../engine/barnum';
 import { buildReport } from '../engine/report';
 import { demoAnswers, DEMO_OBSERVATIONS } from '../demo/synthetic';
-import { TRADITIONS } from '../data/channels';
+import { CHANNELS, TRADITIONS } from '../data/channels';
+
+const okQ = { width: 1000, height: 1000, brightness: 200, contrast: 50, sharpness: 100, checks: [], overall: 'ok' as const };
+const images = CHANNELS.map((c) => ({ channel: c.id, quality: okQ }));
 import type { Session } from '../types';
 
 const session = (over: Partial<Session> = {}): Session => ({
@@ -28,7 +31,7 @@ describe('Barnum check', () => {
   });
 
   it('builds two readings of equal length: same features, other values', () => {
-    const r = barnumReadings(buildReport(session(), []));
+    const r = barnumReadings(buildReport(session(), images));
     expect(r.own.length).toBeGreaterThanOrEqual(2);
     expect(r.other.length).toBe(r.own.length);
     r.own.forEach((t, i) => {
@@ -39,7 +42,7 @@ describe('Barnum check', () => {
   });
 
   it('no feature or trait repeats inside the readings', () => {
-    const r = barnumReadings(buildReport(session(), []));
+    const r = barnumReadings(buildReport(session(), images));
     const traits = [...r.own, ...r.other].map(traitOf);
     expect(new Set(traits).size).toBe(traits.length);
     const feats = r.own.map((t) => `${t.channel}|${t.featureId}`);
@@ -47,7 +50,7 @@ describe('Barnum check', () => {
   });
 
   it('no observations → no readings', () => {
-    const r = barnumReadings(buildReport(session({ observations: {} }), []));
+    const r = barnumReadings(buildReport(session({ observations: {} }), images));
     expect(r.own).toEqual([]);
     expect(r.other).toEqual([]);
   });
