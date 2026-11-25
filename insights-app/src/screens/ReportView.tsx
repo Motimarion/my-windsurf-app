@@ -340,7 +340,8 @@ export default function ReportView({
             <li>לחץ כתיבה לא מוסק מצילום: תמונה סטטית לא מראה אותו, וכהות הקו תלויה בעט, בנייר, בתאורה ובמצלמה.</li>
             {report.excludedObservations.length > 0 && (
               <li>
-                תצפיות שמורות שלא נכנסו לדוח, כי אין תמונה או שהתמונה נכשלה בבדיקת האיכות:{' '}
+                תצפיות שמורות שלא נכנסו לדוח (אין תמונה, התמונה נכשלה בבדיקת האיכות, או שהמודל סימן את התמונה כלא מתאימה
+                לתיאור):{' '}
                 {report.excludedObservations.map((e) => `${channelById(e.channel).title} (${e.count}, ${e.reason})`).join(', ')}.
               </li>
             )}

@@ -257,11 +257,11 @@ export function runQA(report: Omit<Report, 'qa'>, session: Session): QACheck[] {
     detail: pending.size ? `${pending.size} מקורות ממתינים לאימות מול המקור המלא` : 'כל המקורות אומתו',
   });
 
-  // 8א. תצפיות בלי תמונה תקינה לא נכנסו.
+  // 8א. תצפיות שלא נכנסו: אין תמונה, התמונה נכשלה, או ערכי AI מהרצה לא שמישה.
   if (report.excludedObservations.length) {
     checks.push({
       id: 'observations-need-image',
-      label: 'תצפיות רק מתמונה שעברה בדיקת איכות',
+      label: 'תצפיות רק מתמונה תקינה ומהרצה שמישה',
       status: 'ok',
       detail: report.excludedObservations.map((e) => `${e.channel}: ${e.count} תצפיות לא נכנסו (${e.reason})`).join('; '),
     });
@@ -302,7 +302,12 @@ export function buildReport(session: Session, images: ImageMeta[], now = Date.no
     // בדיקה חוזרת: תצפית מתארת תמונה. בלי תמונה, או כשהתמונה נכשלה בבדיקת האיכות, היא לא נכנסת לדוח.
     const blocked = !img ? 'אין תמונה' : img.quality.overall === 'fail' ? 'התמונה נכשלה בבדיקת האיכות' : null;
     if (blocked && active.length) excluded.push({ channel: def.id, count: active.length, reason: blocked });
-    const observations = blocked ? [] : active;
+    // ערכי AI מהרצה שהמודל עצמו סימן כלא שמישה (imageUsable=false) לא נכנסים, גם אם אומצו (למשל לפני שנוסף חסם האימוץ).
+    // מסננים רק ערכים שמקורם במודל; סימון ידני וחישוב בקוד באותו ערוץ נשארים, כי הם לא נשענים על ההרצה הזו.
+    const unusableRun = (session.aiRuns ?? []).some((r) => r.channel === def.id && r.imageUsable === false);
+    const aiDropped = !blocked && unusableRun ? active.filter((o) => o.source === 'ai').length : 0;
+    if (aiDropped) excluded.push({ channel: def.id, count: aiDropped, reason: 'ערכי AI מהרצה שהמודל סימן כלא שמישה (imageUsable=false)' });
+    const observations = blocked ? [] : aiDropped ? active.filter((o) => o.source !== 'ai') : active;
     const traditions: TraditionNote[] = observations.flatMap((o) => traditionsFor(def.id, o.featureId, o.value));
     return {
       channel: def.id,

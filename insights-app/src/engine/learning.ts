@@ -70,6 +70,8 @@ export const SAMPLE_MODEL_RESPONSE = `הנה התיאור:
 ],"imageUsable":true}
 הכותב נראה אדם בטוח בעצמו.`;
 
+const SOURCE_NAME: Record<Observation['source'], string> = { manual: 'סימון אנושי', computed: 'חישוב בקוד', demo: 'סימון אנושי (הדגמה)', ai: 'מודל' };
+
 const fmt = (o: Observation) =>
   `${o.featureId} = ${o.value}${o.blockedBy ? ` (חסם: ${o.blockedBy})` : ''}${o.confidence ? ` · ביטחון שהמודל דיווח: ${o.confidence}` : ''}`;
 
@@ -86,7 +88,11 @@ export function buildWalkthrough(): WalkStep[] {
   const { ipip, riasec } = demoAnswers();
   const bf = scoreScales(MINI_IPIP, ipip, BIG_FIVE_ORDER);
   const ri = scoreScales(RIASEC_ITEMS, riasec, RIASEC_ORDER);
-  const trad = gate.accepted.flatMap((o) => traditionsFor('handwriting', o.featureId, o.value));
+  // החלטה מפורשת בדוגמה: ערכי המודל הושוו לסימון האנושי ולא אומצו. לכן התצפיות שנבחרו לדוח הן החישוב בקוד
+  // והסימון האנושי — ואותו אוסף בדיוק משמש גם לתחנת הראיות וגם לדוח, כדי שלא יופיע ערך בלי מקור מוסבר.
+  // (למשל "מרווח": המודל כתב "מרווח מאוד" והשער דחה אותו; "מרווח" שבדוח הוא מהסימון האנושי.)
+  const selected: Observation[] = [...computedObs, ...human];
+  const trad = selected.flatMap((o) => traditionsFor('handwriting', o.featureId, o.value));
 
   const session: Session = {
     id: 'learn-demo',
@@ -97,7 +103,7 @@ export function buildWalkthrough(): WalkStep[] {
     consent: null,
     ipip,
     riasec,
-    observations: { handwriting: [...computedObs, ...human] },
+    observations: { handwriting: selected },
     background: { ...DEMO_BACKGROUND },
   };
   const report = buildReport(session, [{ channel: 'handwriting', quality, computed }], 0);
@@ -187,6 +193,17 @@ export function buildWalkthrough(): WalkStep[] {
       explain: 'זה מדד לדיוק התיאור בלבד. גם הסכמה מלאה לא אומרת שלמאפיין יש משמעות פסיכולוגית.',
     },
     {
+      id: 'select',
+      num: '4ב',
+      name: 'בחירת התצפיות לדוח',
+      actor: 'אדם',
+      input: 'ערכי המודל שעברו בשער, הסימון האנושי והמדידות בקוד.',
+      action: 'המשתמש מחליט אם לאמץ את ערכי המודל. בדוגמה הזו הוא לא מאמץ: נשארים הסימון האנושי והמדידות.',
+      output: selected.map((o) => `${o.featureId} = ${o.value} · מקור: ${SOURCE_NAME[o.source]}`),
+      explain:
+        'מכאן והלאה — מסורות, ראיות ודוח — הכול נגזר מהאוסף הזה בלבד. לכן "מרווח" שמופיע בהמשך מגיע מהסימון האנושי, ולא מהמודל: הערך של המודל ("מרווח מאוד") נדחה בשער.',
+    },
+    {
       id: 'scores',
       num: '5',
       name: 'ניקוד השאלונים',
@@ -201,7 +218,7 @@ export function buildWalkthrough(): WalkStep[] {
       num: '6',
       name: 'שליפת מסורות וראיות',
       actor: 'קוד',
-      input: 'התצפיות שעברו, ומאגרי המסורות והראיות.',
+      input: 'התצפיות שנבחרו לדוח (תחנה 4ב), ומאגרי המסורות והראיות.',
       action: 'לכל תצפית שיש לה טענה במסורת: שליפת הטענה ורמת הראיות שלה.',
       output: trad.length
         ? trad.map((t) => {
@@ -288,9 +305,9 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'agreement',
     title: 'הסכמה בין מודלים',
-    question: 'שלושה מודלים תיארו את "קו הראש" ככמעוקל. מה זה מראה?',
+    question: 'שלושה מודלים תיארו את "קו הראש" כמעוקל. מה זה מראה?',
     options: [
-      { id: 'desc', text: 'שהתיאור עקבי, וכנראה הקו באמת נראה מעוקל בתמונה' },
+      { id: 'desc', text: 'שהתיאור עקבי; אין בכך הוכחה שהוא נכון' },
       { id: 'trait', text: 'שלאדם יש דמיון ויצירתיות' },
       { id: 'valid', text: 'שהקריאה בכף היד תקפה במקרה הזה' },
     ],
@@ -346,7 +363,7 @@ export function feedback(ex: Exercise, choice: string): { correct: boolean; text
       return {
         correct,
         text: correct
-          ? 'נכון, בזהירות. הסכמה מראה שהתיאור עקבי, לא שהוא נכון: מודלים עלולים לטעות באותו כיוון (אותה תאורה, נתוני אימון דומים), ואין בהסכמה לבדה הסבר למקור טעות כזו. ובוודאי שאין בה דבר על משמעות הקו — הקשר בין קו הראש ליצירתיות לא נחקר (רמה D).'
+          ? 'נכון. הסכמה מראה שהתיאור עקבי, לא שהוא נכון: מודלים עלולים לטעות באותו כיוון (אותה תאורה, נתוני אימון דומים), ואין בהסכמה לבדה הסבר למקור טעות כזו. כדי לדעת אם הוא נכון משווים לסימון אנושי. ובוודאי שאין בה דבר על משמעות הקו — הקשר בין קו הראש ליצירתיות לא נחקר (רמה D).'
           : 'לא. הסכמה בין מודלים בודקת רק את התיאור, וגם אותו רק כעקביות — מודלים יכולים לטעות יחד. גם אם כולם מסכימים שהקו מעוקל, זה לא הופך את המסורת לתקפה (רמה D).',
       };
     case 'pressure':

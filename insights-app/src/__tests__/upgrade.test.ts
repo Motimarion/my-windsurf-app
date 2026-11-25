@@ -284,3 +284,83 @@ describe('קישור ללומדה ב־LAMMA וכותרת מצב הלמידה', (
     expect(LEARN_TITLE).toBe('דוח תובנות — הדגמה, לא אבחון');
   });
 });
+
+describe('רגרסיה (סקירה של c0ccd72): ערכי AI שאומצו מהרצה עם imageUsable=false לא נכנסים לדוח', () => {
+  const aiRun = (over: Partial<AiRun>): AiRun => ({
+    channel: 'handwriting', model: 'Gemini', at: 1, accepted: 1, rejected: 0, extraText: false,
+    agreement: { agree: 0, compared: 0 }, adopted: true, imageUsable: false, ...over,
+  });
+  const saved = (run: AiRun) =>
+    session({
+      observations: {
+        handwriting: [
+          { featureId: 'hw.size', value: 'גדול', source: 'ai', model: 'Gemini' },
+          { featureId: 'hw.slant', value: 'זקופה', source: 'manual' },
+          { featureId: 'hw.lines', value: '4–8', source: 'computed' },
+        ],
+      },
+      aiRuns: [run],
+    });
+
+  it('השחזור מהסקירה: תמונה תקינה, ערך AI שאומץ, imageUsable=false → לא בדוח, לא במסורת ולא בשילוב', () => {
+    const r = buildReport(saved(aiRun({})), allImages, 1);
+    const hw = r.channels.find((c) => c.channel === 'handwriting')!;
+    expect(hw.observations.some((o) => o.source === 'ai')).toBe(false);
+    expect(hw.traditions.some((t) => t.featureId === 'hw.size')).toBe(false);
+    expect(JSON.stringify(r.synthesis)).not.toContain('hw.size=גדול');
+    expect(r.excludedObservations).toContainEqual({ channel: 'handwriting', count: 1, reason: expect.stringContaining('imageUsable=false') });
+    expect(r.qa.find((q) => q.id === 'observations-need-image')!.detail).toContain('imageUsable=false');
+    expect(r.qa.filter((q) => q.status === 'fail')).toEqual([]);
+  });
+
+  it('תצפיות ידניות וחישוביות באותו ערוץ נשארות', () => {
+    const hw = buildReport(saved(aiRun({})), allImages, 1).channels.find((c) => c.channel === 'handwriting')!;
+    expect(hw.observations.map((o) => `${o.source}:${o.featureId}`).sort()).toEqual(['computed:hw.lines', 'manual:hw.slant']);
+    expect(hw.traditions.some((t) => t.featureId === 'hw.slant')).toBe(true);
+  });
+
+  it('אותה הרצה עם imageUsable=true (או בלי השדה, כמו בהרצות ישנות) — ערך ה־AI נשאר', () => {
+    for (const run of [aiRun({ imageUsable: true }), aiRun({ imageUsable: undefined })]) {
+      const hw = buildReport(saved(run), allImages, 1).channels.find((c) => c.channel === 'handwriting')!;
+      expect(hw.observations.some((o) => o.source === 'ai' && o.featureId === 'hw.size')).toBe(true);
+    }
+  });
+
+  it('הרצה לא שמישה בערוץ אחר לא משפיעה על כתב היד', () => {
+    const s = saved(aiRun({ imageUsable: true }));
+    s.aiRuns!.push(aiRun({ channel: 'drawingTree' }));
+    const hw = buildReport(s, allImages, 1).channels.find((c) => c.channel === 'handwriting')!;
+    expect(hw.observations.some((o) => o.source === 'ai')).toBe(true);
+  });
+});
+
+describe('מצב למידה: אוסף תצפיות אחד לראיות ולדוח (סקירה של c0ccd72)', () => {
+  const steps = buildWalkthrough();
+  it('תחנת הראיות נגזרת מאותו אוסף שבתחנת הבחירה, ולא מערכי המודל', () => {
+    const select = steps.find((s) => s.id === 'select')!;
+    expect(select.actor).toBe('אדם');
+    const selectedText = select.output.join('\n');
+    expect(selectedText).toContain('hw.spacing = מרווח · מקור: סימון אנושי');
+    expect(selectedText).not.toContain('מקור: מודל');
+    const evidence = steps.find((s) => s.id === 'evidence')!.output.join('\n');
+    // "מרווח" במסורת מגיע מהסימון האנושי; הערך של המודל ("מרווח מאוד") נדחה בשער ולא חוזר
+    expect(evidence).toContain('מרווחים גדולים');
+    expect(evidence).not.toContain('מרווח מאוד');
+    expect(steps.find((s) => s.id === 'evidence')!.input).toContain('4ב');
+  });
+  it('הטענות בתחנת הראיות הן בדיוק הטענות שבדוח לאותו ערוץ', () => {
+    const evidence = steps.find((s) => s.id === 'evidence')!.output.map((l) => l.split(' — רמה')[0]).sort();
+    const human = DEMO_OBSERVATIONS.handwriting!;
+    const r = buildReport(session({ observations: { handwriting: human } }), allImages, 1);
+    const inReport = r.channels.find((c) => c.channel === 'handwriting')!.traditions.map((t) => t.text).sort();
+    expect(evidence).toEqual(inReport);
+  });
+  it('תרגיל ההסכמה: התשובה הנכונה לא טוענת שהתיאור נכון, והשאלה בלי "ככמעוקל"', () => {
+    const ex = EXERCISES.find((e) => e.id === 'agreement')!;
+    expect(ex.question).toContain('כמעוקל');
+    expect(ex.question).not.toContain('ככמעוקל');
+    const correct = ex.options.find((o) => o.id === ex.correct)!.text;
+    expect(correct).toBe('שהתיאור עקבי; אין בכך הוכחה שהוא נכון');
+    expect(correct).not.toContain('כנראה');
+  });
+});

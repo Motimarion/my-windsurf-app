@@ -338,7 +338,9 @@ try {
     check('learn: title avoids "diagnosis" as a heading', (await p2.title()).includes('הדגמה, לא אבחון'));
     await p2.getByRole('button', { name: 'לפתוח הכול' }).click();
     check('learn: every station shows who performs it', (await p2.getByText(/^מבצע: /).count()) >= 9);
-    check('learn: AI, code and human actors all present', (await p2.getByText('מבצע: AI').count()) === 1 && (await p2.getByText('מבצע: אדם').count()) === 1);
+    check('learn: AI, code and human actors all present', (await p2.getByText('מבצע: AI').count()) === 1 && (await p2.getByText('מבצע: אדם').count()) === 2);
+    check('learn: report observations come from the selection station (human marking), not from rejected model values',
+      await p2.getByText('hw.spacing = מרווח · מקור: סימון אנושי').isVisible());
     check('learn: only the model answer is marked hand-written', (await p2.getByText('נכתב ביד לדוגמה — לא הופעל מודל').count()) === 1);
     check('learn: gate output (computed) rejects pressure', await p2.getByText(/נדחה: hw\.pressure = חזק/).isVisible());
     const ex1 = p2.locator('.card', { hasText: 'תרגיל 1:' });

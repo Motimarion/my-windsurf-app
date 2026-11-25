@@ -276,7 +276,7 @@ export interface Report {
   background: Background;
   /** תצפיות ישנות של מאפיינים שהוסרו (כמו לחץ כתיבה), שנשארו באחסון ולא נכנסו לדוח. */
   retiredObservations: number;
-  /** ערוצים שבהם תצפיות שמורות לא נכנסו לדוח: אין תמונה, או שהתמונה נכשלה בבדיקת האיכות. */
+  /** ערוצים שבהם תצפיות שמורות לא נכנסו לדוח: אין תמונה, התמונה נכשלה בבדיקת האיכות, או ערכי AI מהרצה עם imageUsable=false. */
   excludedObservations: { channel: ChannelId; count: number; reason: string }[];
   channels: {
     channel: ChannelId;
